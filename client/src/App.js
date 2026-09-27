@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./LandingPage";
 import Login from "./login/login";
 import Verify from './verify/verify'
+import Profile from './profile/profile'
+import Identity from './identity/identity'
+import RoleAndMode from './roleandmode/roleandmode'
 
 function App() {
   return (
@@ -10,6 +13,9 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify" element={<Verify />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/identity" element={<Identity />} />
+        <Route path="/roleandmode" element={<RoleAndMode />} />
       </Routes>
     </BrowserRouter>
   );

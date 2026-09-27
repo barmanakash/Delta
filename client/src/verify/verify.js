@@ -13,6 +13,8 @@ import PhoneIphoneOutlinedIcon from "@mui/icons-material/PhoneIphoneOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import TimerOutlinedIcon from "@mui/icons-material/TimerOutlined";
+import { Link as RouterLink } from "react-router-dom";
+
 
 export default function App() {
   const [code, setCode] = useState(["4", "8", "2", "1", "7", "3"]);
@@ -491,6 +493,8 @@ export default function App() {
           <Button
             fullWidth
             disableElevation
+            component={RouterLink}
+            to ='/profile'
             endIcon={
               <ArrowForwardIcon
                 style={{ fontSize: 21 }}
