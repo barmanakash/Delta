@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
+
 import {
   Box,
   Typography,
@@ -789,6 +791,8 @@ function App() {
             {/* Create Account */}
             <Button
               variant="contained"
+              component={RouterLink}
+              to ='/verify'
               disableElevation
               endIcon={<ArrowForward />}
               style={{
