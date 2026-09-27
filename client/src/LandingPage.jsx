@@ -1,5 +1,8 @@
 import React from "react";
 import { Box, Typography, Button, Stack, Avatar } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
+import Footer from '../src/footer/footer'
+
 
 /* ---------------------------------------------------------------------- */
 /*  Small inline SVG icons (no external icon package installed)           */
@@ -309,8 +312,10 @@ const Navbar = () => (
       {/* right actions */}
       <Row spacing={2.5}>
         <Typography
-          component="a"
-          href="#"
+          // component="a"
+          // href="/login"
+          component={RouterLink}
+          to="/login"
           sx={{
             fontFamily: pageFont,
             fontSize: 14.5,
@@ -1083,6 +1088,7 @@ export default function LandingPage() {
         <StatsRow />
         <CTASection />
       </Box>
+      <Footer />
     </Box>
   );
 }
