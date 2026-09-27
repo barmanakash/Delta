@@ -5,6 +5,7 @@ import Verify from './verify/verify'
 import Profile from './profile/profile'
 import Identity from './identity/identity'
 import RoleAndMode from './roleandmode/roleandmode'
+import Gender from './gender/gender'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/identity" element={<Identity />} />
         <Route path="/roleandmode" element={<RoleAndMode />} />
+        <Route path="/gender" element={<Gender />} />
       </Routes>
     </BrowserRouter>
   );

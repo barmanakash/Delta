@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from app.database import get_users_collection
 from app.models.user import (
     UserRegister,
@@ -8,7 +8,12 @@ from app.models.user import (
     TokenResponse,
     MessageResponse,
 )
-from app.utils.security import hash_password, verify_password, create_access_token
+from app.utils.security import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    get_current_user,
+)
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -121,3 +126,22 @@ async def login(payload: UserLogin):
         access_token=token,
         user=_user_response(user),
     )
+
+
+# ---------------------------------------------------------------------------
+#  GET /api/auth/me
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Get the currently authenticated user's profile",
+)
+async def get_me(current_user: dict = Depends(get_current_user)):
+    """
+    Return the profile of the user identified by the bearer token sent in
+    the "Authorization" header. Used by the frontend to populate the
+    profile page with the real signed-up user's data instead of hardcoded
+    placeholders.
+    """
+    return _user_response(current_user)

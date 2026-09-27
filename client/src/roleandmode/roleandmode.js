@@ -13,6 +13,8 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+
 
 export default function RolAndMode() {
   const [selectedRole, setSelectedRole] = useState("");
@@ -585,6 +587,8 @@ export default function RolAndMode() {
         {/* CONTINUE */}
         <Button
           disabled={!selectedRole}
+           component={RouterLink}
+           to ='/gender'
           style={{
             position: "relative",
             display: "flex",

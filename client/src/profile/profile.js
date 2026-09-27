@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
   Button,
   TextField,
   InputAdornment,
+  CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
@@ -22,10 +25,178 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
+const API_BASE_URL = "http://localhost:8000";
 
 export default function Profile() {
+  const navigate = useNavigate();
+
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [dob, setDob] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // Format a raw 10-digit mobile string as "+91 98765 43210" for display.
+  const formatMobile = (raw) => {
+    const digits = (raw || "").replace(/\D/g, "");
+    if (digits.length !== 10) return raw || "";
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    // Show whatever was cached at signup immediately, then refresh from the
+    // server so the page never sits on the old hardcoded placeholders.
+    const cachedUser = localStorage.getItem("user");
+    if (cachedUser) {
+      try {
+        const parsed = JSON.parse(cachedUser);
+        setFullName(parsed.full_name || "");
+        setEmail(parsed.email || "");
+        setMobile(formatMobile(parsed.mobile));
+      } catch {
+        // ignore malformed cache, the API call below will populate it
+      }
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.status === 401) {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("user");
+          navigate("/login");
+          return;
+        }
+
+        if (!response.ok) {
+          setError("Unable to load your profile. Please try again.");
+          return;
+        }
+
+        const data = await response.json();
+        setFullName(data.full_name || "");
+        setEmail(data.email || "");
+        setMobile(formatMobile(data.mobile));
+        localStorage.setItem("user", JSON.stringify(data));
+      } catch (err) {
+        setError("Unable to connect to server. Please make sure the backend is running.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // -------------------------------------------------------------------------
+  //  Validation
+  // -------------------------------------------------------------------------
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!fullName.trim()) {
+      errors.fullName = "Full name is required";
+    } else if (fullName.trim().length < 2) {
+      errors.fullName = "Full name must be at least 2 characters";
+    }
+
+    if (!email.trim()) {
+      errors.email = "Email address is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      errors.email = "Enter a valid email address";
+    }
+
+    if (!dob.trim()) {
+      errors.dob = "Date of birth is required";
+    } else {
+      const match = dob.trim().match(/^(\d{2})\s*\/\s*(\d{2})\s*\/\s*(\d{4})$/);
+      if (!match) {
+        errors.dob = "Use format DD / MM / YYYY";
+      } else {
+        const day = parseInt(match[1], 10);
+        const month = parseInt(match[2], 10);
+        const year = parseInt(match[3], 10);
+        const dobDate = new Date(year, month - 1, day);
+        const isRealDate =
+          dobDate.getFullYear() === year &&
+          dobDate.getMonth() === month - 1 &&
+          dobDate.getDate() === day;
+
+        if (!isRealDate) {
+          errors.dob = "Enter a valid date";
+        } else {
+          const today = new Date();
+          let age = today.getFullYear() - dobDate.getFullYear();
+          const hadBirthdayThisYear =
+            today.getMonth() > dobDate.getMonth() ||
+            (today.getMonth() === dobDate.getMonth() && today.getDate() >= dobDate.getDate());
+          if (!hadBirthdayThisYear) age -= 1;
+
+          if (age < 18) {
+            errors.dob = "You must be at least 18 years old";
+          }
+        }
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleContinue = () => {
+    if (!validateForm()) return;
+    navigate("/identity");
+  };
+
+  // -------------------------------------------------------------------------
+  //  Profile photo upload
+  // -------------------------------------------------------------------------
+
+  const handlePhotoButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file (JPG or PNG).");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5 MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setError("");
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoPreview(previewUrl);
+    // Note: this only previews the photo locally. Persisting it requires a
+    // backend upload endpoint, which doesn't exist yet.
+  };
+
   return (
     <Box
       style={{
@@ -504,6 +675,14 @@ export default function Profile() {
             </Typography>
 
             {/* PROFILE IMAGE */}
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handlePhotoChange}
+              style={{ display: "none" }}
+            />
+
             <Box
               style={{
                 width: 144,
@@ -516,18 +695,33 @@ export default function Profile() {
                 alignItems: "center",
                 justifyContent: "center",
                 position: "relative",
+                overflow: "hidden",
               }}
             >
-              <PersonOutlineOutlinedIcon
-                style={{
-                  color: "#007a71",
-                  fontSize: 68,
-                  strokeWidth: 1,
-                }}
-              />
+              {photoPreview ? (
+                <Box
+                  component="img"
+                  src={photoPreview}
+                  alt="Profile"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <PersonOutlineOutlinedIcon
+                  style={{
+                    color: "#007a71",
+                    fontSize: 68,
+                    strokeWidth: 1,
+                  }}
+                />
+              )}
 
               {/* CAMERA */}
               <Box
+                onClick={handlePhotoButtonClick}
                 style={{
                   position: "absolute",
                   right: -1,
@@ -540,6 +734,7 @@ export default function Profile() {
                   alignItems: "center",
                   justifyContent: "center",
                   border: "3px solid #f5f5ff",
+                  cursor: "pointer",
                 }}
               >
                 <CameraAltOutlinedIcon
@@ -589,6 +784,7 @@ export default function Profile() {
 
             <Button
               disableElevation
+              onClick={handlePhotoButtonClick}
               startIcon={
                 <UploadOutlinedIcon
                   style={{ fontSize: 14 }}
@@ -701,7 +897,8 @@ export default function Profile() {
 
             <TextField
               fullWidth
-              value="Harshit Bhargava"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
               variant="outlined"
               size="small"
               InputProps={{
@@ -729,7 +926,8 @@ export default function Profile() {
 
               <TextField
                 fullWidth
-                value="harshit@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 variant="outlined"
                 size="small"
                 InputProps={{
@@ -798,10 +996,11 @@ export default function Profile() {
 
               <TextField
                 fullWidth
-                value="+91 98765 43210"
+                value={mobile}
                 variant="outlined"
                 size="small"
                 InputProps={{
+                  readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
                       <PhoneIphoneOutlinedIcon
@@ -928,12 +1127,17 @@ export default function Profile() {
             <Button
               fullWidth
               disableElevation
+              disabled={loading}
               component={RouterLink}
               to ='/identity'
               endIcon={
-                <ArrowForwardIcon
-                  style={{ fontSize: 20 }}
-                />
+                loading ? (
+                  <CircularProgress size={18} style={{ color: "#fff" }} />
+                ) : (
+                  <ArrowForwardIcon
+                    style={{ fontSize: 20 }}
+                  />
+                )
               }
               style={{
                 height: 47,
@@ -1041,6 +1245,23 @@ export default function Profile() {
           © 2024 SafeRoute Technologies Inc. All rights reserved.
         </Typography>
       </Box>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={5000}
+        onClose={() => setError("")}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setError("")}
+          severity="error"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 import {
   Box,
@@ -8,6 +8,9 @@ import {
   Checkbox,
   FormControlLabel,
   IconButton,
+  CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import {
@@ -25,9 +28,123 @@ import {
   VerifiedOutlined,
 } from "@mui/icons-material";
 
+const API_BASE_URL = "http://localhost:8000";
+
 function App() {
+  const navigate = useNavigate();
+
+  // Form state
+  const [fullName, setFullName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  // UI state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  // ---------------------------------------------------------------------------
+  //  Validation
+  // ---------------------------------------------------------------------------
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!fullName.trim()) {
+      errors.fullName = "Full name is required";
+    }
+
+    if (!mobile.trim()) {
+      errors.mobile = "Mobile number is required";
+    } else if (!/^\d{10}$/.test(mobile.replace(/[\s\-]/g, ""))) {
+      errors.mobile = "Enter a valid 10-digit mobile number";
+    }
+
+    if (!email.trim()) {
+      errors.email = "Email address is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      errors.email = "Enter a valid email address";
+    }
+
+    if (!password) {
+      errors.password = "Password is required";
+    } else if (password.length < 8) {
+      errors.password = "Minimum 8 characters";
+    } else if (!/\d/.test(password)) {
+      errors.password = "Must contain at least 1 number";
+    }
+
+    if (!confirmPassword) {
+      errors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
+
+    if (!agreedToTerms) {
+      errors.terms = "You must agree to the terms";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // ---------------------------------------------------------------------------
+  //  Submit handler
+  // ---------------------------------------------------------------------------
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: fullName.trim(),
+          mobile: mobile.replace(/[\s\-]/g, ""),
+          email: email.trim().toLowerCase(),
+          password: password,
+          confirm_password: confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle validation errors from FastAPI
+        if (data.detail) {
+          if (typeof data.detail === "string") {
+            setError(data.detail);
+          } else if (Array.isArray(data.detail)) {
+            // Pydantic validation errors
+            const messages = data.detail.map((err) => err.msg).join(". ");
+            setError(messages);
+          }
+        } else {
+          setError("Registration failed. Please try again.");
+        }
+        return;
+      }
+
+      // Success — store token and user data, then navigate to verify
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      navigate("/verify");
+    } catch (err) {
+      setError("Unable to connect to server. Please make sure the backend is running.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const inputStyle = {
     height: "44px",
@@ -54,6 +171,12 @@ function App() {
     color: "#182033",
     marginBottom: "7px",
     display: "block",
+  };
+
+  const errorTextStyle = {
+    fontSize: "11px",
+    color: "#d32f2f",
+    marginTop: "4px",
   };
 
   return (
@@ -535,7 +658,12 @@ function App() {
                 Full Name <span style={{ color: "#d32f2f" }}>*</span>
               </Typography>
 
-              <Box style={inputContainerStyle}>
+              <Box
+                style={{
+                  ...inputContainerStyle,
+                  border: fieldErrors.fullName ? "1px solid #d32f2f" : "none",
+                }}
+              >
                 <PersonOutlined
                   style={{
                     color: "#788187",
@@ -548,6 +676,11 @@ function App() {
                 <input
                   type="text"
                   placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, fullName: "" }));
+                  }}
                   style={{
                     ...inputStyle,
                     flex: 1,
@@ -557,6 +690,9 @@ function App() {
                   }}
                 />
               </Box>
+              {fieldErrors.fullName && (
+                <Typography style={errorTextStyle}>{fieldErrors.fullName}</Typography>
+              )}
             </Box>
 
             {/* Mobile Number */}
@@ -565,7 +701,12 @@ function App() {
                 Mobile Number <span style={{ color: "#d32f2f" }}>*</span>
               </Typography>
 
-              <Box style={inputContainerStyle}>
+              <Box
+                style={{
+                  ...inputContainerStyle,
+                  border: fieldErrors.mobile ? "1px solid #d32f2f" : "none",
+                }}
+              >
                 <PhoneOutlined
                   style={{
                     color: "#788187",
@@ -598,6 +739,13 @@ function App() {
                 <input
                   type="tel"
                   placeholder="Enter mobile number"
+                  value={mobile}
+                  onChange={(e) => {
+                    // Allow only digits, max 10
+                    const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    setMobile(val);
+                    setFieldErrors((prev) => ({ ...prev, mobile: "" }));
+                  }}
                   style={{
                     ...inputStyle,
                     flex: 1,
@@ -608,6 +756,9 @@ function App() {
                   }}
                 />
               </Box>
+              {fieldErrors.mobile && (
+                <Typography style={errorTextStyle}>{fieldErrors.mobile}</Typography>
+              )}
             </Box>
 
             {/* Email */}
@@ -616,7 +767,12 @@ function App() {
                 Email Address <span style={{ color: "#d32f2f" }}>*</span>
               </Typography>
 
-              <Box style={inputContainerStyle}>
+              <Box
+                style={{
+                  ...inputContainerStyle,
+                  border: fieldErrors.email ? "1px solid #d32f2f" : "none",
+                }}
+              >
                 <MailOutlined
                   style={{
                     color: "#788187",
@@ -629,6 +785,11 @@ function App() {
                 <input
                   type="email"
                   placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, email: "" }));
+                  }}
                   style={{
                     ...inputStyle,
                     flex: 1,
@@ -639,15 +800,19 @@ function App() {
                 />
               </Box>
 
-              <Typography
-                style={{
-                  fontSize: "11px",
-                  color: "#555d62",
-                  marginTop: "7px",
-                }}
-              >
-                Work or personal email for account notifications
-              </Typography>
+              {fieldErrors.email ? (
+                <Typography style={errorTextStyle}>{fieldErrors.email}</Typography>
+              ) : (
+                <Typography
+                  style={{
+                    fontSize: "11px",
+                    color: "#555d62",
+                    marginTop: "7px",
+                  }}
+                >
+                  Work or personal email for account notifications
+                </Typography>
+              )}
             </Box>
 
             {/* Passwords */}
@@ -664,10 +829,20 @@ function App() {
                   Password <span style={{ color: "#d32f2f" }}>*</span>
                 </Typography>
 
-                <Box style={inputContainerStyle}>
+                <Box
+                  style={{
+                    ...inputContainerStyle,
+                    border: fieldErrors.password ? "1px solid #d32f2f" : "none",
+                  }}
+                >
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setFieldErrors((prev) => ({ ...prev, password: "" }));
+                    }}
                     style={{
                       ...inputStyle,
                       flex: 1,
@@ -691,6 +866,9 @@ function App() {
                     )}
                   </IconButton>
                 </Box>
+                {fieldErrors.password && (
+                  <Typography style={errorTextStyle}>{fieldErrors.password}</Typography>
+                )}
               </Box>
 
               <Box>
@@ -699,10 +877,25 @@ function App() {
                   <span style={{ color: "#d32f2f" }}>*</span>
                 </Typography>
 
-                <Box style={inputContainerStyle}>
+                <Box
+                  style={{
+                    ...inputContainerStyle,
+                    border: fieldErrors.confirmPassword
+                      ? "1px solid #d32f2f"
+                      : "none",
+                  }}
+                >
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        confirmPassword: "",
+                      }));
+                    }}
                     style={{
                       ...inputStyle,
                       flex: 1,
@@ -728,6 +921,11 @@ function App() {
                     )}
                   </IconButton>
                 </Box>
+                {fieldErrors.confirmPassword && (
+                  <Typography style={errorTextStyle}>
+                    {fieldErrors.confirmPassword}
+                  </Typography>
+                )}
               </Box>
             </Box>
 
@@ -767,9 +965,14 @@ function App() {
               control={
                 <Checkbox
                   size="small"
+                  checked={agreedToTerms}
+                  onChange={(e) => {
+                    setAgreedToTerms(e.target.checked);
+                    setFieldErrors((prev) => ({ ...prev, terms: "" }));
+                  }}
                   style={{
                     padding: "0 9px 0 0",
-                    color: "#70777c",
+                    color: fieldErrors.terms ? "#d32f2f" : "#70777c",
                   }}
                 />
               }
@@ -777,7 +980,7 @@ function App() {
                 <Typography
                   style={{
                     fontSize: "12px",
-                    color: "#4f575c",
+                    color: fieldErrors.terms ? "#d32f2f" : "#4f575c",
                   }}
                 >
                   I agree to the{" "}
@@ -791,14 +994,20 @@ function App() {
             {/* Create Account */}
             <Button
               variant="contained"
-              component={RouterLink}
-              to ='/verify'
               disableElevation
-              endIcon={<ArrowForward />}
+              disabled={loading}
+              onClick={handleSubmit}
+              endIcon={
+                loading ? (
+                  <CircularProgress size={18} style={{ color: "#fff" }} />
+                ) : (
+                  <ArrowForward />
+                )
+              }
               style={{
                 height: "51px",
                 borderRadius: "10px",
-                backgroundColor: "#007c70",
+                backgroundColor: loading ? "#4da89f" : "#007c70",
                 textTransform: "none",
                 fontSize: "15px",
                 fontWeight: 700,
@@ -806,7 +1015,7 @@ function App() {
                 marginBottom: "28px",
               }}
             >
-              Create Account
+              {loading ? "Creating Account..." : "Create Account"}
             </Button>
 
             {/* Login */}
@@ -926,6 +1135,23 @@ function App() {
           </Typography>
         </Box>
       </Box>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={5000}
+        onClose={() => setError("")}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setError("")}
+          severity="error"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
