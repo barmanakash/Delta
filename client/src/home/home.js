@@ -36,6 +36,7 @@ import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import RemoveOutlinedIcon from "@mui/icons-material/RemoveOutlined";
 import FullscreenOutlinedIcon from "@mui/icons-material/FullscreenOutlined";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 const teal = "#007d73";
 const dark = "#182136";
@@ -43,6 +44,7 @@ const lightBg = "#f8f8ff";
 const lavender = "#f0f1fc";
 
 export default function App() {
+  const navigate = useNavigate();
   return (
     <Box
       style={{
@@ -152,11 +154,24 @@ export default function App() {
               icon={<RouteOutlinedIcon style={{ fontSize: 17 }} />}
               text="My Route"
             />
-            <NavItem
+            {/* <NavItem
               icon={<PeopleAltOutlinedIcon style={{ fontSize: 17 }} />}
               text="Requests"
               badge="2"
-            />
+              // component={RouterLink}
+              // to ='/liftrequest'
+              onClick={() => navigate('/liftrequest')}
+            /> */}
+            <div
+              onClick={() => navigate('/liftrequest')}
+              style={{ cursor: 'pointer', display: 'inline-block' }}
+            >
+              <NavItem
+                icon={<PeopleAltOutlinedIcon style={{ fontSize: 17 }} />}
+                text="Requests"
+                badge="2"
+              />
+            </div>
             <NavItem
               icon={<DirectionsCarOutlinedIcon style={{ fontSize: 17 }} />}
               text="Trips"

@@ -28,6 +28,9 @@ dist/
 # User-uploaded files (profile photos)
 uploads/
 
+# Sensitive uploads (government ID documents) — never commit these
+private_uploads/
+
 # Logs and local databases
 *.log
 *.sqlite3

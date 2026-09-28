@@ -10,6 +10,7 @@ from starlette.concurrency import run_in_threadpool
 from app.config import settings
 from app.database import get_users_collection
 from app.models.user import (
+    IdDocumentInfo,
     UserRegister,
     UserLogin,
     UserResponse,
@@ -35,6 +36,21 @@ def _user_response(user: dict) -> UserResponse:
     photo_url = (
         f"/uploads/{settings.PROFILE_PHOTO_SUBDIR}/{photo}" if photo else None
     )
+
+    doc = user.get("id_document")
+    id_document = (
+        IdDocumentInfo(
+            id_type=doc["id_type"],
+            original_filename=doc.get("original_filename", "document"),
+            content_type=doc.get("content_type", "application/octet-stream"),
+            size=doc.get("size", 0),
+            uploaded_at=doc["uploaded_at"],
+            status=doc.get("status", "pending"),
+        )
+        if doc
+        else None
+    )
+
     return UserResponse(
         id=str(user["_id"]),
         full_name=user["full_name"],
@@ -43,6 +59,7 @@ def _user_response(user: dict) -> UserResponse:
         created_at=user["created_at"],
         date_of_birth=user.get("date_of_birth"),
         profile_photo_url=photo_url,
+        id_document=id_document,
     )
 
 
@@ -327,3 +344,130 @@ async def update_profile(
         access_token=create_access_token({"sub": new_email}),
         user=_user_response(updated_user),
     )
+
+
+# ---------------------------------------------------------------------------
+#  PUT /api/auth/identity
+# ---------------------------------------------------------------------------
+
+ALLOWED_ID_TYPES = {"aadhaar", "driving", "passport", "voter"}
+
+_DOCUMENT_CONTENT_TYPES = {
+    ".jpg": "image/jpeg",
+    ".png": "image/png",
+    ".pdf": "application/pdf",
+}
+
+
+def _detect_document_extension(data: bytes) -> Optional[str]:
+    """
+    Identify an ID document (JPG / PNG / PDF) from its actual bytes.
+    The client-supplied filename / Content-Type are never trusted.
+    """
+    if data.startswith(b"\xff\xd8\xff"):
+        return ".jpg"
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return ".png"
+    if data.startswith(b"%PDF-"):
+        return ".pdf"
+    return None
+
+
+def _safe_display_name(name: Optional[str]) -> str:
+    """Client filename reduced to a plain, short, printable name (display only)."""
+    base = Path((name or "document").replace("\\", "/")).name
+    cleaned = "".join(ch for ch in base if ch.isprintable()).strip()[:100]
+    return cleaned or "document"
+
+
+@router.put(
+    "/identity",
+    response_model=UserResponse,
+    summary="Submit / update the government ID document",
+)
+async def update_identity(
+    id_type: str = Form(...),
+    document: Optional[UploadFile] = File(None),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Store the user's government-ID document (multipart/form-data).
+
+    - `id_type` must be one of: aadhaar, driving, passport, voter.
+    - `document` (JPG / PNG / PDF, max 10 MB) is required the first time.
+      Afterwards it's optional: omit it to only change the ID type, or send
+      a new one to replace the old file.
+    - Files are saved in a private folder (never served as static files)
+      and the metadata is stored on the user with status "pending".
+    """
+    users = get_users_collection()
+
+    id_type = id_type.strip().lower()
+    if id_type not in ALLOWED_ID_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Select a valid ID type (Aadhaar, Driving Licence, Passport or Voter ID)",
+        )
+
+    existing = current_user.get("id_document")
+    doc_dir = Path(settings.PRIVATE_UPLOAD_DIR) / settings.IDENTITY_DOC_SUBDIR
+
+    if document is not None and document.filename:
+        data = await document.read(settings.MAX_ID_DOC_BYTES + 1)
+        if not data:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="The uploaded file is empty",
+            )
+        if len(data) > settings.MAX_ID_DOC_BYTES:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="Document must be 10 MB or smaller",
+            )
+        extension = _detect_document_extension(data)
+        if not extension:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Document must be a JPG, PNG or PDF file",
+            )
+
+        stored_name = f"{current_user['_id']}_{uuid.uuid4().hex}{extension}"
+        await run_in_threadpool(_save_file, doc_dir / stored_name, data)
+
+        new_doc = {
+            "id_type": id_type,
+            "filename": stored_name,  # internal only, never returned by the API
+            "original_filename": _safe_display_name(document.filename),
+            "content_type": _DOCUMENT_CONTENT_TYPES[extension],
+            "size": len(data),
+            "uploaded_at": datetime.now(timezone.utc),
+            "status": "pending",
+        }
+        try:
+            await users.update_one(
+                {"_id": current_user["_id"]}, {"$set": {"id_document": new_doc}}
+            )
+        except Exception:
+            await run_in_threadpool(_delete_file, doc_dir / stored_name)
+            raise
+
+        # The previous document is no longer referenced — remove it from disk
+        if existing and existing.get("filename"):
+            await run_in_threadpool(
+                _delete_file, doc_dir / Path(existing["filename"]).name
+            )
+
+    elif existing:
+        # No new file: only the ID type is being changed
+        await users.update_one(
+            {"_id": current_user["_id"]},
+            {"$set": {"id_document.id_type": id_type}},
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Please upload your ID document",
+        )
+
+    updated_user = await users.find_one({"_id": current_user["_id"]})
+    return _user_response(updated_user)

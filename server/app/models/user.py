@@ -63,6 +63,17 @@ class UserLogin(BaseModel):
 #  Response Models
 # ---------------------------------------------------------------------------
 
+class IdDocumentInfo(BaseModel):
+    """Metadata about an uploaded ID document (the file itself is never exposed)."""
+
+    id_type: str  # aadhaar | driving | passport | voter
+    original_filename: str
+    content_type: str
+    size: int
+    uploaded_at: datetime
+    status: str = "pending"  # pending | verified | rejected
+
+
 class UserResponse(BaseModel):
     """User data returned in API responses (no password)."""
 
@@ -73,6 +84,7 @@ class UserResponse(BaseModel):
     created_at: datetime
     date_of_birth: Optional[str] = None  # ISO format: YYYY-MM-DD
     profile_photo_url: Optional[str] = None  # e.g. /uploads/profile_photos/<file>
+    id_document: Optional[IdDocumentInfo] = None
 
 
 class TokenResponse(BaseModel):

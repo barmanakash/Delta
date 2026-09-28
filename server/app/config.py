@@ -26,5 +26,13 @@ class Settings:
     PROFILE_PHOTO_SUBDIR: str = "profile_photos"
     MAX_PHOTO_BYTES: int = 5 * 1024 * 1024  # 5 MB
 
+    # Government-ID documents are sensitive: they live in a SEPARATE folder that
+    # is never mounted as static files, so they cannot be fetched by URL.
+    PRIVATE_UPLOAD_DIR: str = os.getenv(
+        "PRIVATE_UPLOAD_DIR", str(BASE_DIR / "private_uploads")
+    )
+    IDENTITY_DOC_SUBDIR: str = "identity_documents"
+    MAX_ID_DOC_BYTES: int = 10 * 1024 * 1024  # 10 MB
+
 
 settings = Settings()
