@@ -7,7 +7,8 @@ import Identity from './identity/identity';
 import RoleAndMode from './roleandmode/roleandmode';
 import Gender from './gender/gender';
 import Home from './home/home';
-import LiftRequest from './liftrequest/liftrequest'
+import LiftRequest from './liftrequest/liftrequest';
+import ViewRequest from './viewRequest/viewrequest';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/gender" element={<Gender />} />
         <Route path="/home" element={<Home />} />
         <Route path="/liftrequest" element={<LiftRequest />} />
+        <Route path="/viewRequest" element={<ViewRequest />} />
       </Routes>
     </BrowserRouter>
   );

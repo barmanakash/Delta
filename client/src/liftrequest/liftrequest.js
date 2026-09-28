@@ -28,6 +28,7 @@ import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 const teal = "#00796b";
 const dark = "#172033";
@@ -35,6 +36,7 @@ const purple = "#4b48d8";
 const lightPurple = "#f0f1ff";
 
 function App() {
+  const navigate = useNavigate();
   const requests = [
     {
       name: "Rohit",
@@ -806,6 +808,7 @@ function App() {
                   <Button
                     variant="contained"
                     endIcon={<ArrowForwardIcon />}
+                    onClick={() => navigate('/viewRequest')}
                     sx={{
                       textTransform: "none",
                       fontSize: 12,
