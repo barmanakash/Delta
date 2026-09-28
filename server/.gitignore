@@ -25,6 +25,9 @@ build/
 dist/
 *.egg-info/
 
+# User-uploaded files (profile photos)
+uploads/
+
 # Logs and local databases
 *.log
 *.sqlite3

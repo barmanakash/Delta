@@ -6,6 +6,7 @@ import Profile from './profile/profile'
 import Identity from './identity/identity'
 import RoleAndMode from './roleandmode/roleandmode'
 import Gender from './gender/gender'
+import Home from './home/home'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/identity" element={<Identity />} />
         <Route path="/roleandmode" element={<RoleAndMode />} />
         <Route path="/gender" element={<Gender />} />
+        <Route path="/home" element={<Home />} />
       </Routes>
     </BrowserRouter>
   );

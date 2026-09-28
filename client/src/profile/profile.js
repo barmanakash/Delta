@@ -25,7 +25,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = "http://localhost:8000";
 
@@ -39,8 +39,31 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
-  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoFile, setPhotoFile] = useState(null); // newly picked, not yet uploaded
+  const [photoPreview, setPhotoPreview] = useState(null); // blob: URL of photoFile
+  const [savedPhotoUrl, setSavedPhotoUrl] = useState(null); // photo already stored on the server
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Photo shown in the avatar circles: a freshly picked one wins over the saved one.
+  const displayPhoto = photoPreview || savedPhotoUrl;
+
+  // The API returns photo paths like "/uploads/profile_photos/x.jpg".
+  const toAbsoluteUrl = (path) =>
+    path ? (path.startsWith("http") ? path : `${API_BASE_URL}${path}`) : null;
+
+  // "1998-05-12" (API) -> "12 / 05 / 1998" (form)
+  const isoToDisplayDob = (iso) => {
+    const m = (iso || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? `${m[3]} / ${m[2]} / ${m[1]}` : "";
+  };
+
+  // Keep only digits and auto-insert " / " while typing: "12052001" -> "12 / 05 / 2001"
+  const formatDobInput = (value) => {
+    const d = value.replace(/\D/g, "").slice(0, 8);
+    const parts = [d.slice(0, 2), d.slice(2, 4), d.slice(4, 8)].filter(Boolean);
+    return parts.join(" / ");
+  };
 
   // Format a raw 10-digit mobile string as "+91 98765 43210" for display.
   const formatMobile = (raw) => {
@@ -66,6 +89,8 @@ export default function Profile() {
         setFullName(parsed.full_name || "");
         setEmail(parsed.email || "");
         setMobile(formatMobile(parsed.mobile));
+        setDob(isoToDisplayDob(parsed.date_of_birth));
+        setSavedPhotoUrl(toAbsoluteUrl(parsed.profile_photo_url));
       } catch {
         // ignore malformed cache, the API call below will populate it
       }
@@ -93,6 +118,8 @@ export default function Profile() {
         setFullName(data.full_name || "");
         setEmail(data.email || "");
         setMobile(formatMobile(data.mobile));
+        setDob(isoToDisplayDob(data.date_of_birth));
+        setSavedPhotoUrl(toAbsoluteUrl(data.profile_photo_url));
         localStorage.setItem("user", JSON.stringify(data));
       } catch (err) {
         setError("Unable to connect to server. Please make sure the backend is running.");
@@ -157,13 +184,75 @@ export default function Profile() {
       }
     }
 
+    // A photo is mandatory: either one picked now, or one already saved on the server.
+    if (!photoFile && !savedPhotoUrl) {
+      errors.photo = "Please upload a profile photo";
+    }
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleContinue = () => {
-    if (!validateForm()) return;
-    navigate("/identity");
+  // "12 / 05 / 1998" (form) -> "1998-05-12" (API)
+  const displayDobToIso = (display) => {
+    const m = display.trim().match(/^(\d{2})\s*\/\s*(\d{2})\s*\/\s*(\d{4})$/);
+    return m ? `${m[3]}-${m[2]}-${m[1]}` : "";
+  };
+
+  const handleContinue = async () => {
+    if (saving || loading) return;
+    if (!validateForm()) return; // stay on this page until everything is valid
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("full_name", fullName.trim());
+    formData.append("email", email.trim().toLowerCase());
+    formData.append("date_of_birth", displayDobToIso(dob));
+    if (photoFile) formData.append("photo", photoFile);
+
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+        method: "PUT",
+        // No Content-Type here: the browser sets the multipart boundary itself.
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        navigate("/login");
+        return;
+      }
+
+      if (!response.ok) {
+        let message = "Unable to save your profile. Please try again.";
+        if (typeof data.detail === "string") {
+          message = data.detail;
+        } else if (Array.isArray(data.detail)) {
+          message = data.detail.map((d) => d.msg).join(". ");
+        }
+        setError(message);
+        return;
+      }
+
+      // The server issues a fresh token (it is tied to the email, which may have changed).
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/identity");
+    } catch (err) {
+      setError("Unable to connect to server. Please make sure the backend is running.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // -------------------------------------------------------------------------
@@ -178,23 +267,29 @@ export default function Profile() {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setError("Please choose an image file (JPG or PNG).");
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("Please choose a JPG, PNG or WEBP image.");
       e.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setError("Image must be under 5 MB.");
+      setError("Image must be 5 MB or smaller.");
       e.target.value = "";
       return;
     }
 
     setError("");
-    const previewUrl = URL.createObjectURL(file);
-    setPhotoPreview(previewUrl);
-    // Note: this only previews the photo locally. Persisting it requires a
-    // backend upload endpoint, which doesn't exist yet.
+    setFieldErrors((prev) => ({ ...prev, photo: "" }));
+
+    // Free the previous preview, then keep the File itself: it is uploaded
+    // to the server when "Continue to Verification" is clicked.
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+
+    // Allow re-selecting the same file again later
+    e.target.value = "";
   };
 
   return (
@@ -339,14 +434,28 @@ export default function Profile() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              overflow: "hidden",
             }}
           >
-            <AccountCircleOutlinedIcon
-              style={{
-                color: "#ffffff",
-                fontSize: 20,
-              }}
-            />
+            {displayPhoto ? (
+              <Box
+                component="img"
+                src={displayPhoto}
+                alt="Profile"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <AccountCircleOutlinedIcon
+                style={{
+                  color: "#ffffff",
+                  fontSize: 20,
+                }}
+              />
+            )}
           </Box>
         </Box>
       </Box>
@@ -593,7 +702,7 @@ export default function Profile() {
             position: "relative",
             zIndex: 2,
             width: 897,
-            height: 636,
+            minHeight: 636,
             background: "#ffffff",
             borderRadius: 12,
             margin: "23px auto 0",
@@ -677,7 +786,7 @@ export default function Profile() {
             {/* PROFILE IMAGE */}
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               ref={fileInputRef}
               onChange={handlePhotoChange}
               style={{ display: "none" }}
@@ -689,19 +798,30 @@ export default function Profile() {
                 height: 144,
                 borderRadius: "50%",
                 background: "#f0f1ff",
-                border: "2px solid #e6e7f6",
                 margin: "27px auto 0",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
                 position: "relative",
-                overflow: "hidden",
               }}
             >
-              {photoPreview ? (
+              {/* Inner circle clips the photo; the camera badge sits outside it so it isn't cut off */}
+              <Box
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "50%",
+                  border: fieldErrors.photo
+                    ? "2px solid #df3f3f"
+                    : "2px solid #e6e7f6",
+                  boxSizing: "border-box",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}
+              >
+              {displayPhoto ? (
                 <Box
                   component="img"
-                  src={photoPreview}
+                  src={displayPhoto}
                   alt="Profile"
                   style={{
                     width: "100%",
@@ -718,6 +838,7 @@ export default function Profile() {
                   }}
                 />
               )}
+              </Box>
 
               {/* CAMERA */}
               <Box
@@ -764,7 +885,7 @@ export default function Profile() {
                   marginLeft: 4,
                 }}
               >
-                (Optional)
+                (Required)
               </span>
             </Typography>
 
@@ -803,8 +924,22 @@ export default function Profile() {
                 margin: "17px auto 0",
               }}
             >
-              Upload Photo
+              {displayPhoto ? "Change Photo" : "Upload Photo"}
             </Button>
+
+            {fieldErrors.photo && (
+              <Typography
+                align="center"
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#d32f2f",
+                  marginTop: 8,
+                }}
+              >
+                {fieldErrors.photo}
+              </Typography>
+            )}
 
             {/* SECURITY BOX */}
             <Box
@@ -898,7 +1033,12 @@ export default function Profile() {
             <TextField
               fullWidth
               value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              onChange={(e) => {
+                setFullName(e.target.value);
+                setFieldErrors((prev) => ({ ...prev, fullName: "" }));
+              }}
+              error={!!fieldErrors.fullName}
+              helperText={fieldErrors.fullName || ""}
               variant="outlined"
               size="small"
               InputProps={{
@@ -927,7 +1067,12 @@ export default function Profile() {
               <TextField
                 fullWidth
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setFieldErrors((prev) => ({ ...prev, email: "" }));
+                }}
+                error={!!fieldErrors.email}
+                helperText={fieldErrors.email || ""}
                 variant="outlined"
                 size="small"
                 InputProps={{
@@ -1059,6 +1204,14 @@ export default function Profile() {
               <TextField
                 fullWidth
                 placeholder="DD / MM / YYYY"
+                value={dob}
+                onChange={(e) => {
+                  setDob(formatDobInput(e.target.value));
+                  setFieldErrors((prev) => ({ ...prev, dob: "" }));
+                }}
+                error={!!fieldErrors.dob}
+                helperText={fieldErrors.dob || ""}
+                inputProps={{ inputMode: "numeric", maxLength: 14 }}
                 variant="outlined"
                 size="small"
                 InputProps={{
@@ -1127,11 +1280,10 @@ export default function Profile() {
             <Button
               fullWidth
               disableElevation
-              disabled={loading}
-              component={RouterLink}
-              to ='/identity'
+              disabled={loading || saving}
+              onClick={handleContinue}
               endIcon={
-                loading ? (
+                loading || saving ? (
                   <CircularProgress size={18} style={{ color: "#fff" }} />
                 ) : (
                   <ArrowForwardIcon
@@ -1342,6 +1494,16 @@ const fieldStyle = {
 
   "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
     border: "1px solid #00857b",
+  },
+
+  // Must come after the hover/focus rules so a validation error stays red
+  "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
+    border: "1px solid #d32f2f",
+  },
+
+  "& .MuiFormHelperText-root": {
+    margin: "4px 2px 0",
+    fontSize: "11.5px",
   },
 
   "& .MuiInputBase-input": {

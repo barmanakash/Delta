@@ -1043,7 +1043,7 @@ export default function Identity() {
           <Button
             fullWidth
             component={RouterLink}
-            to ='/roleandmode'
+            to='/roleandmode'
             disabled
             endIcon={
               <ArrowForwardIcon
@@ -1074,12 +1074,17 @@ export default function Identity() {
 
           {/* SKIP */}
           <Typography
+            component={RouterLink}
+            to="/roleandmode"
             align="center"
             style={{
+              display: "block", // Fixes inline alignment issue
+              width: "100%",    // Takes full width to center correctly
               fontSize: 11,
               fontWeight: 700,
               color: "#4d5659",
               marginTop: 16,
+              textDecoration: "none", // Optional: removes the default link underline
             }}
           >
             Skip for now

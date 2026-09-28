@@ -71,6 +71,8 @@ class UserResponse(BaseModel):
     mobile: str
     email: str
     created_at: datetime
+    date_of_birth: Optional[str] = None  # ISO format: YYYY-MM-DD
+    profile_photo_url: Optional[str] = None  # e.g. /uploads/profile_photos/<file>
 
 
 class TokenResponse(BaseModel):

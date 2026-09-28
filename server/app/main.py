@@ -1,5 +1,10 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from app.config import settings
 from app.routes.auth import router as auth_router
 
 app = FastAPI(
@@ -28,6 +33,15 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 
 app.include_router(auth_router)
+
+# ---------------------------------------------------------------------------
+#  Static files — uploaded profile photos are served from /uploads/...
+# ---------------------------------------------------------------------------
+
+(Path(settings.UPLOAD_DIR) / settings.PROFILE_PHOTO_SUBDIR).mkdir(
+    parents=True, exist_ok=True
+)
+app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 
 # ---------------------------------------------------------------------------

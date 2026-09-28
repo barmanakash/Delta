@@ -1,7 +1,11 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# .../server
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings:
@@ -16,6 +20,11 @@ class Settings:
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(
         os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
     )
+
+    # Where uploaded files (profile photos) are stored on disk
+    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", str(BASE_DIR / "uploads"))
+    PROFILE_PHOTO_SUBDIR: str = "profile_photos"
+    MAX_PHOTO_BYTES: int = 5 * 1024 * 1024  # 5 MB
 
 
 settings = Settings()

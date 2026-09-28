@@ -15,6 +15,8 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import HelpOutlinedIcon from "@mui/icons-material/HelpOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+
 
 export default function Gender() {
   const [gender, setGender] = useState("");
@@ -666,6 +668,8 @@ export default function Gender() {
             }}
           >
             <Button
+             component={RouterLink}
+             to ='/roleandmode'
               style={{
                 minWidth: 102,
                 height: 52,
@@ -687,6 +691,8 @@ export default function Gender() {
             </Button>
 
             <Button
+              component={RouterLink}
+              to ='/home'
               disabled={!gender || !agreed}
               style={{
                 width: 238,
