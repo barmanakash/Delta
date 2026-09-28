@@ -22,8 +22,11 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import StarIcon from "@mui/icons-material/Star";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+
 
 const ConfirmRequest = () => {
+  const navigate = useNavigate();
   return (
     <Box
       sx={{
@@ -947,6 +950,7 @@ const ConfirmRequest = () => {
               </Button>
 
               <Button
+                onClick={() => navigate('/matchrequest')}
                 fullWidth
                 startIcon={
                   <AccountCircleOutlinedIcon

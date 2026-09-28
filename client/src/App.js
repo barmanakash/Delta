@@ -10,6 +10,7 @@ import Home from './home/home';
 import LiftRequest from './liftrequest/liftrequest';
 import ViewRequest from './viewRequest/viewrequest';
 import ConfirmRequest from './confimrequest/confirmrequest'
+import MatchRequest from './matchRequest/MatchConfirm'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/liftrequest" element={<LiftRequest />} />
         <Route path="/viewRequest" element={<ViewRequest />} />
         <Route path="/confirmrequest" element={<ConfirmRequest />} />
+        <Route path="/matchrequest" element={<MatchRequest />} />
       </Routes>
     </BrowserRouter>
   );
