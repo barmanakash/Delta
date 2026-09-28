@@ -172,10 +172,16 @@ export default function App() {
                 badge="2"
               />
             </div>
-            <NavItem
-              icon={<DirectionsCarOutlinedIcon style={{ fontSize: 17 }} />}
-              text="Trips"
-            />
+            <div
+              onClick={() => navigate('/trips')}
+              style={{ cursor: 'pointer', display: 'inline-block' }}
+            >
+              <NavItem
+                icon={<DirectionsCarOutlinedIcon style={{ fontSize: 17 }} />}
+                text="Trips"
+              />
+            </div>
+
           </Box>
         </Box>
 

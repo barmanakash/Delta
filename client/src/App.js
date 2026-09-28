@@ -11,6 +11,8 @@ import LiftRequest from './liftrequest/liftrequest';
 import ViewRequest from './viewRequest/viewrequest';
 import ConfirmRequest from './confimrequest/confirmrequest'
 import MatchRequest from './matchRequest/MatchConfirm'
+import Trips from './Trips/trips';
+import VerifyPassanger from './verifypassanger/VerifyPassenger'
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
         <Route path="/viewRequest" element={<ViewRequest />} />
         <Route path="/confirmrequest" element={<ConfirmRequest />} />
         <Route path="/matchrequest" element={<MatchRequest />} />
+        <Route path="/trips" element={<Trips />} />
+        <Route path="/verifypassanger" element={<VerifyPassanger />} />
       </Routes>
     </BrowserRouter>
   );
