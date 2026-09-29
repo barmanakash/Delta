@@ -1,12 +1,16 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
   Button,
   Select,
   MenuItem,
+  CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
+import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
@@ -19,10 +23,207 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+
+const API_BASE_URL = "http://localhost:8000";
+const MAX_DOC_BYTES = 10 * 1024 * 1024; // 10 MB
+const ALLOWED_DOC_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+
+const formatFileSize = (bytes) =>
+  bytes >= 1024 * 1024
+    ? `${(bytes / 1024 / 1024).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 export default function Identity() {
-  const [idType, setIdType] = React.useState("");
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+
+  const [idType, setIdType] = useState("");
+  const [file, setFile] = useState(null); // newly picked, not yet uploaded
+  const [preview, setPreview] = useState(null); // blob: URL (images only)
+  const [savedDoc, setSavedDoc] = useState(null); // document already stored on the server
+  const [savedPhotoUrl, setSavedPhotoUrl] = useState(null); // header avatar
+  const [dragActive, setDragActive] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const hasDocument = !!file || !!savedDoc;
+  const canContinue = !!idType && hasDocument;
+
+  const docTitle = file
+    ? file.name
+    : savedDoc
+    ? savedDoc.original_filename
+    : "Upload your ID";
+  const docSubtitle = file
+    ? `${formatFileSize(file.size)} \u00b7 Ready to upload`
+    : savedDoc
+    ? "Uploaded \u00b7 pending verification"
+    : "";
+
+  // Load what is already saved (so a returning user isn't asked again)
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const loadUser = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.status === 401) {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("user");
+          navigate("/login");
+          return;
+        }
+        if (!response.ok) return;
+
+        const data = await response.json();
+        localStorage.setItem("user", JSON.stringify(data));
+        if (data.profile_photo_url) {
+          setSavedPhotoUrl(`${API_BASE_URL}${data.profile_photo_url}`);
+        }
+        if (data.id_document) {
+          setSavedDoc(data.id_document);
+          setIdType(data.id_document.id_type);
+        }
+      } catch {
+        setError("Unable to connect to server. Please make sure the backend is running.");
+      }
+    };
+
+    loadUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // -------------------------------------------------------------------------
+  //  File picking (browse + drag & drop)
+  // -------------------------------------------------------------------------
+
+  const acceptFile = (picked) => {
+    if (!picked) return;
+
+    let problem = "";
+    if (!ALLOWED_DOC_TYPES.includes(picked.type)) {
+      problem = "Please upload a JPG, PNG or PDF file.";
+    } else if (picked.size === 0) {
+      problem = "That file is empty. Please choose another one.";
+    } else if (picked.size > MAX_DOC_BYTES) {
+      problem = "File is too large. Maximum size is 10 MB.";
+    }
+
+    if (problem) {
+      setFieldErrors((prev) => ({ ...prev, document: problem }));
+      return;
+    }
+
+    setFieldErrors((prev) => ({ ...prev, document: "" }));
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(picked);
+    setPreview(picked.type.startsWith("image/") ? URL.createObjectURL(picked) : null);
+  };
+
+  const handleBrowseClick = () => fileInputRef.current?.click();
+
+  const handleFileInputChange = (e) => {
+    acceptFile(e.target.files && e.target.files[0]);
+    e.target.value = ""; // allow picking the same file again
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    acceptFile(e.dataTransfer.files && e.dataTransfer.files[0]);
+  };
+
+  const handleRemoveFile = () => {
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(null);
+    setPreview(null);
+  };
+
+  // -------------------------------------------------------------------------
+  //  Submit
+  // -------------------------------------------------------------------------
+
+  const handleContinue = async () => {
+    if (uploading) return;
+
+    const errors = {};
+    if (!idType) errors.idType = "Please select an ID type";
+    if (!hasDocument) errors.document = "Please upload a photo or scan of your ID";
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    // Nothing changed since the last save: just move on
+    if (!file && savedDoc && savedDoc.id_type === idType) {
+      navigate("/roleandmode");
+      return;
+    }
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("id_type", idType);
+    if (file) formData.append("document", file);
+
+    setUploading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/identity`, {
+        method: "PUT",
+        // No Content-Type: the browser sets the multipart boundary itself.
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        navigate("/login");
+        return;
+      }
+
+      if (!response.ok) {
+        let message = "Unable to upload your document. Please try again.";
+        if (typeof data.detail === "string") {
+          message = data.detail;
+        } else if (Array.isArray(data.detail)) {
+          message = data.detail.map((d) => d.msg).join(". ");
+        }
+        setError(message);
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify(data));
+      navigate("/roleandmode");
+    } catch (err) {
+      setError("Unable to connect to server. Please make sure the backend is running.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <Box
@@ -204,14 +405,24 @@ export default function Identity() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              overflow: "hidden",
             }}
           >
-            <AccountCircleOutlinedIcon
-              style={{
-                color: "#fff",
-                fontSize: 20,
-              }}
-            />
+            {savedPhotoUrl ? (
+              <Box
+                component="img"
+                src={savedPhotoUrl}
+                alt="Profile"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <AccountCircleOutlinedIcon
+                style={{
+                  color: "#fff",
+                  fontSize: 20,
+                }}
+              />
+            )}
           </Box>
         </Box>
       </Box>
@@ -708,7 +919,10 @@ export default function Identity() {
             <Select
               fullWidth
               value={idType}
-              onChange={(e) => setIdType(e.target.value)}
+              onChange={(e) => {
+                setIdType(e.target.value);
+                setFieldErrors((prev) => ({ ...prev, idType: "" }));
+              }}
               displayEmpty
               IconComponent={KeyboardArrowDownIcon}
               startAdornment={
@@ -729,7 +943,7 @@ export default function Identity() {
               }}
               sx={{
                 "& .MuiOutlinedInput-notchedOutline": {
-                  border: "none",
+                  border: fieldErrors.idType ? "1px solid #d32f2f" : "none",
                 },
                 "& .MuiSelect-select": {
                   padding: "9px 12px",
@@ -754,6 +968,19 @@ export default function Identity() {
                 Voter ID
               </MenuItem>
             </Select>
+
+            {fieldErrors.idType && (
+              <Typography
+                style={{
+                  fontSize: 11,
+                  color: "#d32f2f",
+                  fontWeight: 600,
+                  marginTop: 6,
+                }}
+              >
+                {fieldErrors.idType}
+              </Typography>
+            )}
 
             {/* ACCEPTED */}
             <Box
@@ -795,92 +1022,214 @@ export default function Identity() {
           </Typography>
 
           <Box
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
             style={{
-              height: 295,
+              minHeight: 295,
               borderRadius: 14,
-              background: "#f4f4fc",
+              background: dragActive ? "#eaf7f5" : "#f4f4fc",
+              border: fieldErrors.document
+                ? "1.5px dashed #d32f2f"
+                : dragActive
+                ? "1.5px dashed #008078"
+                : "1.5px dashed transparent",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
               boxSizing: "border-box",
+              padding: "24px 16px",
+              transition: "background 0.15s, border-color 0.15s",
             }}
           >
-            <Box
-              style={{
-                width: 57,
-                height: 57,
-                borderRadius: 14,
-                background: "#ffffff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 2px 5px rgba(30,40,80,0.04)",
-              }}
-            >
-              <CloudUploadOutlinedIcon
-                style={{
-                  color: "#008078",
-                  fontSize: 31,
-                }}
-              />
-            </Box>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/jpeg,image/png,application/pdf"
+              onChange={handleFileInputChange}
+              style={{ display: "none" }}
+            />
 
-            <Typography
-              style={{
-                fontSize: 17,
-                fontWeight: 700,
-                color: "#172033",
-                marginTop: 16,
-              }}
-            >
-              Upload your ID
-            </Typography>
-
-            <Typography
-              style={{
-                fontSize: 13,
-                color: "#4d565a",
-                marginTop: 3,
-                textAlign: "center",
-              }}
-            >
-              Drag &amp; drop your document here or browse from your
-              <br />
-              device
-            </Typography>
-
-            <Button
-              disableElevation
-              startIcon={
-                <AttachFileOutlinedIcon
+            {hasDocument ? (
+              <>
+                <Box
                   style={{
-                    fontSize: 16,
+                    width: 57,
+                    height: 57,
+                    borderRadius: 14,
+                    background: "#ffffff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 5px rgba(30,40,80,0.04)",
+                    overflow: "hidden",
                   }}
-                />
-              }
-              style={{
-                height: 34,
-                minWidth: 116,
-                borderRadius: 18,
-                background: "#ffffff",
-                color: "#182238",
-                textTransform: "none",
-                fontSize: 11,
-                fontWeight: 700,
-                marginTop: 19,
-                boxShadow: "0 2px 5px rgba(20,30,70,0.07)",
-              }}
-            >
-              Browse File
-            </Button>
+                >
+                  {preview ? (
+                    <Box
+                      component="img"
+                      src={preview}
+                      alt="Document preview"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <InsertDriveFileOutlinedIcon
+                      style={{ color: "#008078", fontSize: 28 }}
+                    />
+                  )}
+                </Box>
+
+                <Typography
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: "#172033",
+                    marginTop: 14,
+                    maxWidth: 420,
+                    textAlign: "center",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {docTitle}
+                </Typography>
+
+                <Box
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                    marginTop: 4,
+                  }}
+                >
+                  <CheckCircleOutlineOutlinedIcon
+                    style={{ fontSize: 14, color: "#00867d" }}
+                  />
+                  <Typography style={{ fontSize: 12, color: "#4d565a" }}>
+                    {docSubtitle}
+                  </Typography>
+                </Box>
+
+                <Box style={{ display: "flex", gap: 10, marginTop: 18 }}>
+                  <Button
+                    disableElevation
+                    onClick={handleBrowseClick}
+                    startIcon={<AttachFileOutlinedIcon style={{ fontSize: 16 }} />}
+                    style={{
+                      height: 34,
+                      minWidth: 116,
+                      borderRadius: 18,
+                      background: "#ffffff",
+                      color: "#182238",
+                      textTransform: "none",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      boxShadow: "0 2px 5px rgba(20,30,70,0.07)",
+                    }}
+                  >
+                    Change File
+                  </Button>
+
+                  {file && (
+                    <Button
+                      disableElevation
+                      onClick={handleRemoveFile}
+                      style={{
+                        height: 34,
+                        minWidth: 90,
+                        borderRadius: 18,
+                        background: "transparent",
+                        color: "#8a4141",
+                        textTransform: "none",
+                        fontSize: 11,
+                        fontWeight: 700,
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </Box>
+              </>
+            ) : (
+              <>
+                <Box
+                  style={{
+                    width: 57,
+                    height: 57,
+                    borderRadius: 14,
+                    background: "#ffffff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 5px rgba(30,40,80,0.04)",
+                  }}
+                >
+                  <CloudUploadOutlinedIcon
+                    style={{
+                      color: "#008078",
+                      fontSize: 31,
+                    }}
+                  />
+                </Box>
+
+                <Typography
+                  style={{
+                    fontSize: 17,
+                    fontWeight: 700,
+                    color: "#172033",
+                    marginTop: 16,
+                  }}
+                >
+                  Upload your ID
+                </Typography>
+
+                <Typography
+                  style={{
+                    fontSize: 13,
+                    color: "#4d565a",
+                    marginTop: 3,
+                    textAlign: "center",
+                  }}
+                >
+                  Drag &amp; drop your document here or browse from your
+                  <br />
+                  device
+                </Typography>
+
+                <Button
+                  disableElevation
+                  onClick={handleBrowseClick}
+                  startIcon={
+                    <AttachFileOutlinedIcon
+                      style={{
+                        fontSize: 16,
+                      }}
+                    />
+                  }
+                  style={{
+                    height: 34,
+                    minWidth: 116,
+                    borderRadius: 18,
+                    background: "#ffffff",
+                    color: "#182238",
+                    textTransform: "none",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    marginTop: 19,
+                    boxShadow: "0 2px 5px rgba(20,30,70,0.07)",
+                  }}
+                >
+                  Browse File
+                </Button>
+              </>
+            )}
 
             <Box
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
-                marginTop: 28,
+                marginTop: 22,
               }}
             >
               <Box
@@ -941,6 +1290,20 @@ export default function Identity() {
               </Box>
             </Box>
           </Box>
+
+          {fieldErrors.document && (
+            <Typography
+              style={{
+                fontSize: 11,
+                color: "#d32f2f",
+                fontWeight: 600,
+                marginTop: 8,
+                textAlign: "center",
+              }}
+            >
+              {fieldErrors.document}
+            </Typography>
+          )}
 
           {/* SECURITY MESSAGE */}
           <Box
@@ -1042,25 +1405,30 @@ export default function Identity() {
           {/* CONTINUE */}
           <Button
             fullWidth
-            component={RouterLink}
-            to='/roleandmode'
-            disabled
+            disableElevation
+            disabled={uploading}
+            onClick={handleContinue}
             endIcon={
-              <ArrowForwardIcon
-                style={{
-                  fontSize: 18,
-                }}
-              />
+              uploading ? (
+                <CircularProgress size={16} style={{ color: "#fff" }} />
+              ) : (
+                <ArrowForwardIcon
+                  style={{
+                    fontSize: 18,
+                  }}
+                />
+              )
             }
             style={{
               height: 42,
               borderRadius: 10,
-              background: "#e4e8ff",
-              color: "#7b8388",
+              background: uploading ? "#4fa39a" : "#007d74",
+              color: "#ffffff",
               textTransform: "none",
               fontSize: 13,
               fontWeight: 700,
               marginTop: 22,
+              cursor: uploading ? "default" : "pointer",
             }}
           >
             <LockOutlinedIcon
@@ -1069,7 +1437,7 @@ export default function Identity() {
                 marginRight: 4,
               }}
             />
-            Continue
+            {uploading ? "Uploading…" : "Continue"}
           </Button>
 
           {/* SKIP */}
@@ -1247,6 +1615,23 @@ export default function Identity() {
           active.
         </Typography>
       </Box>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={5000}
+        onClose={() => setError("")}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setError("")}
+          severity="error"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
