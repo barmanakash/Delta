@@ -66,7 +66,7 @@ export default function Identity() {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!token) {
-      navigate("/login");
+      navigate("/signin");
       return;
     }
 
@@ -79,7 +79,7 @@ export default function Identity() {
         if (response.status === 401) {
           localStorage.removeItem("access_token");
           localStorage.removeItem("user");
-          navigate("/login");
+          navigate("/signin");
           return;
         }
         if (!response.ok) return;
@@ -179,7 +179,7 @@ export default function Identity() {
 
     const token = localStorage.getItem("access_token");
     if (!token) {
-      navigate("/login");
+      navigate("/signin");
       return;
     }
 
@@ -201,7 +201,7 @@ export default function Identity() {
       if (response.status === 401) {
         localStorage.removeItem("access_token");
         localStorage.removeItem("user");
-        navigate("/login");
+        navigate("/signin");
         return;
       }
 
