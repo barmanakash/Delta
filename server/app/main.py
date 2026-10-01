@@ -6,6 +6,8 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.routes.auth import router as auth_router
+from app.routes.lifts import router as lifts_router
+from app.routes.rides import router as rides_router
 
 app = FastAPI(
     title="SafeRoute API",
@@ -33,6 +35,8 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 
 app.include_router(auth_router)
+app.include_router(lifts_router)
+app.include_router(rides_router)
 
 # ---------------------------------------------------------------------------
 #  Static files — uploaded profile photos are served from /uploads/...

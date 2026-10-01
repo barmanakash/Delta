@@ -27,18 +27,6 @@ export default function RolAndMode() {
     const handleContinue = async () => {
         if (!selectedRole || saving) return;
 
-        if (selectedRole !== "rider") {
-            // The Lift Taker experience (its own home/dashboard, request flow,
-            // etc.) isn't built yet — only the Rider screens are. Rather than
-            // silently dropping a Lift Taker into the Rider dashboard, let
-            // them know instead.
-            localStorage.setItem("role", selectedRole);
-            setNotice(
-                "Lift Taker mode is coming soon! We're still building that experience — for now you can continue as a Rider."
-            );
-            return;
-        }
-
         const token = localStorage.getItem("access_token");
         if (!token) {
             navigate("/signin");
@@ -755,7 +743,7 @@ export default function RolAndMode() {
                 </Box>
             </Box>
 
-            {/* Lift Taker "coming soon" notice */}
+            {/* Error notice */}
             <Snackbar
                 open={!!notice}
                 autoHideDuration={6000}

@@ -14,3 +14,13 @@ def get_database():
 def get_users_collection():
     """Return the 'users' collection."""
     return database["users"]
+
+
+def get_lift_requests_collection():
+    """Return the 'lift_requests' collection (requests made by lift takers)."""
+    return database["lift_requests"]
+
+
+def get_ride_offers_collection():
+    """Return the 'ride_offers' collection (routes published by riders)."""
+    return database["ride_offers"]

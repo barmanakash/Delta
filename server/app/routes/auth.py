@@ -1,3 +1,4 @@
+import re
 import uuid
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -26,6 +27,18 @@ from app.utils.security import (
 )
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+
+def _email_query(email: str) -> dict:
+    """
+    Case-insensitive exact match on the email field.
+
+    Emails are stored lowercase from now on, but accounts created earlier may
+    still hold the address exactly as it was typed (e.g. "Akash@gmail.com"),
+    and the sign-in form always sends it lowercased. Matching case-insensitively
+    keeps those accounts able to log in.
+    """
+    return {"email": {"$regex": f"^{re.escape(email)}$", "$options": "i"}}
 
 
 # ---------------------------------------------------------------------------
@@ -87,9 +100,10 @@ async def register(payload: UserRegister):
     - Returns a JWT access token.
     """
     users = get_users_collection()
+    email = str(payload.email).strip().lower()
 
-    # Check duplicate email
-    if await users.find_one({"email": payload.email}):
+    # Check duplicate email (case-insensitive)
+    if await users.find_one(_email_query(email)):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="An account with this email already exists",
@@ -106,7 +120,7 @@ async def register(payload: UserRegister):
     user_doc = {
         "full_name": payload.full_name,
         "mobile": payload.mobile,
-        "email": payload.email,
+        "email": email,
         "password": hash_password(payload.password),
         "created_at": datetime.now(timezone.utc),
     }
@@ -115,7 +129,7 @@ async def register(payload: UserRegister):
     user_doc["_id"] = result.inserted_id
 
     # Create JWT token
-    token = create_access_token({"sub": payload.email})
+    token = create_access_token({"sub": email})
 
     return TokenResponse(
         access_token=token,
@@ -142,7 +156,7 @@ async def login(payload: UserLogin):
     """
     users = get_users_collection()
 
-    user = await users.find_one({"email": payload.email})
+    user = await users.find_one(_email_query(str(payload.email).strip().lower()))
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -155,7 +169,9 @@ async def login(payload: UserLogin):
             detail="Invalid email or password",
         )
 
-    token = create_access_token({"sub": payload.email})
+    # The token's subject must be the email exactly as stored, because
+    # get_current_user looks the user up by it.
+    token = create_access_token({"sub": user["email"]})
 
     return TokenResponse(
         access_token=token,

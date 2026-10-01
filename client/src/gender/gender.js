@@ -61,7 +61,8 @@ export default function Gender() {
 
       const data = await response.json();
       localStorage.setItem("user", JSON.stringify(data));
-      navigate("/home");
+      // Lift takers get their own home screen; riders keep the rider home
+      navigate(data.role === "lift" ? "/lifttakerhome" : "/home");
     } catch (err) {
       setError("Unable to connect to server. Please make sure the backend is running.");
     } finally {

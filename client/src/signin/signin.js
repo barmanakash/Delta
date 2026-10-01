@@ -114,6 +114,8 @@ function App() {
         navigate("/roleandmode");
       } else if (!user.gender) {
         navigate("/gender");
+      } else if (user.role === "lift") {
+        navigate("/lifttakerhome");
       } else {
         navigate("/home");
       }

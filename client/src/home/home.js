@@ -16,7 +16,6 @@ import RouteOutlinedIcon from "@mui/icons-material/RouteOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import AddRoadOutlinedIcon from "@mui/icons-material/AddRoadOutlined";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
@@ -37,6 +36,7 @@ import RemoveOutlinedIcon from "@mui/icons-material/RemoveOutlined";
 import FullscreenOutlinedIcon from "@mui/icons-material/FullscreenOutlined";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import ProfileMenu from "../profilemenu/profilemenu";
 
 const teal = "#007d73";
 const dark = "#182136";
@@ -50,23 +50,18 @@ export default function App() {
   const [fullName, setFullName] = useState("");
   const [photoUrl, setPhotoUrl] = useState(null);
   const [role, setRole] = useState("rider");
+  const [user, setUser] = useState(null); // full profile, shown in the profile menu
 
   const firstName = fullName.trim().split(/\s+/)[0] || "there";
-  const initials = fullName
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
-    .join("") || "?";
 
   const toAbsoluteUrl = (path) =>
     path ? (path.startsWith("http") ? path : `${API_BASE_URL}${path}`) : null;
 
-  const applyUser = (user) => {
-    setFullName(user.full_name || "");
-    setPhotoUrl(toAbsoluteUrl(user.profile_photo_url));
-    setRole(user.role || "rider");
+  const applyUser = (userData) => {
+    setUser(userData);
+    setFullName(userData.full_name || "");
+    setPhotoUrl(toAbsoluteUrl(userData.profile_photo_url));
+    setRole(userData.role || "rider");
   };
 
   useEffect(() => {
@@ -81,7 +76,12 @@ export default function App() {
     const cachedUser = localStorage.getItem("user");
     if (cachedUser) {
       try {
-        applyUser(JSON.parse(cachedUser));
+        const cached = JSON.parse(cachedUser);
+        if (cached.role === "lift") {
+          navigate("/lifttakerhome", { replace: true }); // lift takers have their own home
+          return;
+        }
+        applyUser(cached);
       } catch {
         // ignore malformed cache, the fetch below will populate it
       }
@@ -102,8 +102,12 @@ export default function App() {
         if (!response.ok) return;
 
         const data = await response.json();
-        applyUser(data);
         localStorage.setItem("user", JSON.stringify(data));
+        if (data.role === "lift") {
+          navigate("/lifttakerhome", { replace: true });
+          return;
+        }
+        applyUser(data);
       } catch {
         // Offline / backend down: keep showing whatever was cached above.
       }
@@ -280,45 +284,7 @@ export default function App() {
             />
           </Box>
 
-          <Avatar
-            src={photoUrl || undefined}
-            style={{
-              width: 34,
-              height: 34,
-              fontSize: 12,
-              background: "#d8b293",
-              color: "#172033",
-              border: "2px solid #fff",
-            }}
-          >
-            {!photoUrl && initials}
-          </Avatar>
-
-          <Typography
-            style={{
-              fontSize: 14,
-              fontWeight: 700,
-              marginLeft: -10,
-            }}
-          >
-            {fullName || "Loading\u2026"}
-          </Typography>
-
-          <ShieldOutlinedIcon
-            style={{
-              fontSize: 17,
-              color: teal,
-              marginLeft: -12,
-            }}
-          />
-
-          <KeyboardArrowDownIcon
-            style={{
-              fontSize: 19,
-              color: "#596066",
-              marginLeft: -13,
-            }}
-          />
+          <ProfileMenu user={user} photoUrl={photoUrl} />
         </Box>
       </Box>
 
@@ -361,7 +327,7 @@ export default function App() {
                   letterSpacing: "-0.7px",
                 }}
               >
-                Good morning, Harshit
+                Good morning, {firstName}
               </Typography>
 
               <Chip
