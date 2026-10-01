@@ -1,6 +1,6 @@
 // App.jsx
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -42,9 +42,77 @@ const teal = "#007d73";
 const dark = "#182136";
 const lightBg = "#f8f8ff";
 const lavender = "#f0f1fc";
+const API_BASE_URL = "http://localhost:8000";
 
 export default function App() {
   const navigate = useNavigate();
+
+  const [fullName, setFullName] = useState("");
+  const [photoUrl, setPhotoUrl] = useState(null);
+  const [role, setRole] = useState("rider");
+
+  const firstName = fullName.trim().split(/\s+/)[0] || "there";
+  const initials = fullName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("") || "?";
+
+  const toAbsoluteUrl = (path) =>
+    path ? (path.startsWith("http") ? path : `${API_BASE_URL}${path}`) : null;
+
+  const applyUser = (user) => {
+    setFullName(user.full_name || "");
+    setPhotoUrl(toAbsoluteUrl(user.profile_photo_url));
+    setRole(user.role || "rider");
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      navigate("/signin");
+      return;
+    }
+
+    // Show the cached user immediately so the page never flashes
+    // placeholder content, then refresh from the server.
+    const cachedUser = localStorage.getItem("user");
+    if (cachedUser) {
+      try {
+        applyUser(JSON.parse(cachedUser));
+      } catch {
+        // ignore malformed cache, the fetch below will populate it
+      }
+    }
+
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.status === 401) {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("user");
+          navigate("/signin");
+          return;
+        }
+        if (!response.ok) return;
+
+        const data = await response.json();
+        applyUser(data);
+        localStorage.setItem("user", JSON.stringify(data));
+      } catch {
+        // Offline / backend down: keep showing whatever was cached above.
+      }
+    };
+
+    fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <Box
       style={{
@@ -124,7 +192,7 @@ export default function App() {
           </Typography>
 
           <Chip
-            label="RIDER"
+            label={role === "lift" ? "LIFT TAKER" : "RIDER"}
             size="small"
             style={{
               height: 18,
@@ -213,6 +281,7 @@ export default function App() {
           </Box>
 
           <Avatar
+            src={photoUrl || undefined}
             style={{
               width: 34,
               height: 34,
@@ -222,7 +291,7 @@ export default function App() {
               border: "2px solid #fff",
             }}
           >
-            HB
+            {!photoUrl && initials}
           </Avatar>
 
           <Typography
@@ -232,7 +301,7 @@ export default function App() {
               marginLeft: -10,
             }}
           >
-            Harshit Bhargava
+            {fullName || "Loading\u2026"}
           </Typography>
 
           <ShieldOutlinedIcon

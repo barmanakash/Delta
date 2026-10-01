@@ -4,6 +4,8 @@ import {
     Typography,
     Button,
     Radio,
+    Snackbar,
+    Alert,
 } from "@mui/material";
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
@@ -17,7 +19,65 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 
 export default function RolAndMode() {
+    const navigate = useNavigate();
     const [selectedRole, setSelectedRole] = useState("");
+    const [notice, setNotice] = useState("");
+    const [saving, setSaving] = useState(false);
+
+    const handleContinue = async () => {
+        if (!selectedRole || saving) return;
+
+        if (selectedRole !== "rider") {
+            // The Lift Taker experience (its own home/dashboard, request flow,
+            // etc.) isn't built yet — only the Rider screens are. Rather than
+            // silently dropping a Lift Taker into the Rider dashboard, let
+            // them know instead.
+            localStorage.setItem("role", selectedRole);
+            setNotice(
+                "Lift Taker mode is coming soon! We're still building that experience — for now you can continue as a Rider."
+            );
+            return;
+        }
+
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            navigate("/signin");
+            return;
+        }
+
+        setSaving(true);
+        try {
+            const response = await fetch("http://localhost:8000/api/auth/onboarding", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ role: selectedRole }),
+            });
+
+            if (response.status === 401) {
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("user");
+                navigate("/signin");
+                return;
+            }
+
+            if (!response.ok) {
+                setNotice("Unable to save your role right now. Please try again.");
+                return;
+            }
+
+            const data = await response.json();
+            localStorage.setItem("role", selectedRole);
+            localStorage.setItem("user", JSON.stringify(data));
+            navigate("/gender");
+        } catch (err) {
+            setNotice("Unable to connect to server. Please make sure the backend is running.");
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
         <Box
@@ -586,9 +646,8 @@ export default function RolAndMode() {
 
                 {/* CONTINUE */}
                 <Button
-                    disabled={!selectedRole}
-                    component={RouterLink}
-                    to='/gender'
+                    disabled={!selectedRole || saving}
+                    onClick={handleContinue}
                     style={{
                         position: "relative",
                         display: "flex",
@@ -609,7 +668,7 @@ export default function RolAndMode() {
                             marginRight: 7,
                         }}
                     />
-                    Continue to SafeRoute
+                    {saving ? "Saving..." : "Continue to SafeRoute"}
                 </Button>
 
                 {/* BACK */}
@@ -695,6 +754,23 @@ export default function RolAndMode() {
                     </Typography>
                 </Box>
             </Box>
+
+            {/* Lift Taker "coming soon" notice */}
+            <Snackbar
+                open={!!notice}
+                autoHideDuration={6000}
+                onClose={() => setNotice("")}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={() => setNotice("")}
+                    severity="info"
+                    variant="filled"
+                    sx={{ width: "100%", backgroundColor: "#5559e2" }}
+                >
+                    {notice}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }

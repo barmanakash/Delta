@@ -110,8 +110,12 @@ function App() {
         navigate("/profile");
       } else if (!user.id_document) {
         navigate("/identity");
-      } else {
+      } else if (!user.role) {
         navigate("/roleandmode");
+      } else if (!user.gender) {
+        navigate("/gender");
+      } else {
+        navigate("/home");
       }
     } catch (err) {
       setError("Unable to connect to server. Please make sure the backend is running.");

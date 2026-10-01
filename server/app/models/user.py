@@ -59,6 +59,39 @@ class UserLogin(BaseModel):
     password: str
 
 
+class OnboardingUpdate(BaseModel):
+    """
+    Schema for saving the role/mode and gender onboarding steps.
+
+    Both fields are optional so the role step and the gender step (which
+    happen on two different pages) can each PATCH just their own field
+    without clobbering the other.
+    """
+
+    role: Optional[str] = None  # rider | lift
+    gender: Optional[str] = None  # male | female
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        v = v.strip().lower()
+        if v not in ("rider", "lift"):
+            raise ValueError("role must be 'rider' or 'lift'")
+        return v
+
+    @field_validator("gender")
+    @classmethod
+    def validate_gender(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        v = v.strip().lower()
+        if v not in ("male", "female"):
+            raise ValueError("gender must be 'male' or 'female'")
+        return v
+
+
 # ---------------------------------------------------------------------------
 #  Response Models
 # ---------------------------------------------------------------------------
@@ -85,6 +118,9 @@ class UserResponse(BaseModel):
     date_of_birth: Optional[str] = None  # ISO format: YYYY-MM-DD
     profile_photo_url: Optional[str] = None  # e.g. /uploads/profile_photos/<file>
     id_document: Optional[IdDocumentInfo] = None
+    role: Optional[str] = None  # rider | lift
+    gender: Optional[str] = None  # male | female
+    onboarding_completed: bool = False
 
 
 class TokenResponse(BaseModel):

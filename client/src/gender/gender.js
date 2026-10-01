@@ -4,6 +4,8 @@ import {
   Typography,
   Button,
   Checkbox,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
@@ -19,8 +21,53 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 
 export default function Gender() {
+  const navigate = useNavigate();
   const [gender, setGender] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleContinue = async () => {
+    if (!gender || !agreed || saving) return;
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      navigate("/signin");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await fetch("http://localhost:8000/api/auth/onboarding", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ gender }),
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        navigate("/signin");
+        return;
+      }
+
+      if (!response.ok) {
+        setError("Unable to save your preferences right now. Please try again.");
+        return;
+      }
+
+      const data = await response.json();
+      localStorage.setItem("user", JSON.stringify(data));
+      navigate("/home");
+    } catch (err) {
+      setError("Unable to connect to server. Please make sure the backend is running.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Box
@@ -691,9 +738,8 @@ export default function Gender() {
             </Button>
 
             <Button
-              component={RouterLink}
-              to ='/home'
-              disabled={!gender || !agreed}
+              onClick={handleContinue}
+              disabled={!gender || !agreed || saving}
               style={{
                 width: 238,
                 height: 52,
@@ -707,7 +753,7 @@ export default function Gender() {
                 fontWeight: 700,
               }}
             >
-              Continue to SafeRoute
+              {saving ? "Saving..." : "Continue to SafeRoute"}
               <ArrowForwardIcon
                 style={{
                   fontSize: 18,
@@ -794,6 +840,23 @@ export default function Gender() {
           © 2025 SafeRoute Technologies Inc. All commuter safety protocols active.
         </Typography>
       </Box>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!error}
+        autoHideDuration={5000}
+        onClose={() => setError("")}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setError("")}
+          severity="error"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

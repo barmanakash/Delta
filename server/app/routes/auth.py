@@ -11,6 +11,7 @@ from app.config import settings
 from app.database import get_users_collection
 from app.models.user import (
     IdDocumentInfo,
+    OnboardingUpdate,
     UserRegister,
     UserLogin,
     UserResponse,
@@ -60,6 +61,9 @@ def _user_response(user: dict) -> UserResponse:
         date_of_birth=user.get("date_of_birth"),
         profile_photo_url=photo_url,
         id_document=id_document,
+        role=user.get("role"),
+        gender=user.get("gender"),
+        onboarding_completed=bool(user.get("role") and user.get("gender")),
     )
 
 
@@ -468,6 +472,47 @@ async def update_identity(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Please upload your ID document",
         )
+
+    updated_user = await users.find_one({"_id": current_user["_id"]})
+    return _user_response(updated_user)
+
+
+# ---------------------------------------------------------------------------
+#  PUT /api/auth/onboarding
+# ---------------------------------------------------------------------------
+
+@router.put(
+    "/onboarding",
+    response_model=UserResponse,
+    summary="Save the role/mode and gender onboarding steps",
+)
+async def update_onboarding(
+    payload: OnboardingUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Persist the Role & Mode step (rider/lift) and the Gender step.
+
+    These happen on two different pages, so the request body only needs to
+    include whichever field that page collected — the other is left as-is.
+    A user only counts as fully onboarded (`onboarding_completed`) once both
+    are set, which is what lets login send a returning user straight to
+    `/home` instead of back through the whole signup flow.
+    """
+    update_fields = {}
+    if payload.role is not None:
+        update_fields["role"] = payload.role
+    if payload.gender is not None:
+        update_fields["gender"] = payload.gender
+
+    if not update_fields:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Provide a role and/or gender to save",
+        )
+
+    users = get_users_collection()
+    await users.update_one({"_id": current_user["_id"]}, {"$set": update_fields})
 
     updated_user = await users.find_one({"_id": current_user["_id"]})
     return _user_response(updated_user)
