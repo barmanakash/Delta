@@ -8,6 +8,7 @@ import Identity from './identity/identity';
 import RoleAndMode from './roleandmode/roleandmode';
 import Gender from './gender/gender';
 import Home from './home/home';
+import CreateCommute from './createcommute/createcommute';
 import LiftTakerHome from './lifttakerhome/lifttakerhome';
 import FindLift from './findlift/findlift';
 import CompatibleRiders from './compatibleriders/compatibleriders';
@@ -31,6 +32,7 @@ function App() {
         <Route path="/roleandmode" element={<RoleAndMode />} />
         <Route path="/gender" element={<Gender />} />
         <Route path="/home" element={<Home />} />
+        <Route path="/createcommute" element={<CreateCommute />} />
         <Route path="/lifttakerhome" element={<LiftTakerHome />} />
         <Route path="/findlift" element={<FindLift />} />
         <Route path="/compatibleriders/:requestId" element={<CompatibleRiders />} />

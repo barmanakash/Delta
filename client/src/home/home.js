@@ -222,10 +222,15 @@ export default function App() {
               icon={<HomeOutlinedIcon style={{ fontSize: 17 }} />}
               text="Home"
             />
-            <NavItem
-              icon={<RouteOutlinedIcon style={{ fontSize: 17 }} />}
-              text="My Route"
-            />
+            <div
+              onClick={() => navigate("/createcommute")}
+              style={{ cursor: "pointer", display: "inline-block" }}
+            >
+              <NavItem
+                icon={<RouteOutlinedIcon style={{ fontSize: 17 }} />}
+                text="My Route"
+              />
+            </div>
             {/* <NavItem
               icon={<PeopleAltOutlinedIcon style={{ fontSize: 17 }} />}
               text="Requests"
@@ -362,6 +367,7 @@ export default function App() {
           >
             <Button
               variant="contained"
+              onClick={() => navigate("/createcommute")}
               startIcon={<AddRoadOutlinedIcon />}
               style={{
                 height: 36,
@@ -764,6 +770,7 @@ export default function App() {
                   </Button>
 
                   <Button
+                    onClick={() => navigate("/createcommute")}
                     startIcon={<EditOutlinedIcon />}
                     style={{
                       height: 36,

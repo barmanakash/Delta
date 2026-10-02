@@ -1,10 +1,18 @@
+import uuid
 from datetime import date, datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.config import settings
 from app.database import get_ride_offers_collection
-from app.models.ride import RideOfferCreate, RideOfferResponse, RideStop
+from app.models.ride import (
+    CommuteCreate,
+    CommuteResponse,
+    RideOfferCreate,
+    RideOfferResponse,
+    RideStop,
+)
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/api/rides", tags=["Ride offers"])
@@ -122,3 +130,148 @@ async def list_my_offers(current_user: dict = Depends(get_current_user)):
         .limit(50)
     )
     return [_to_response(doc) for doc in await cursor.to_list(length=50)]
+
+
+# ---------------------------------------------------------------------------
+#  Commutes: the rider's "Create Your Commute" screen
+# ---------------------------------------------------------------------------
+
+# Same defaults a one-off offer gets, so both kinds of offer look alike
+_OFFER_DEFAULTS = {
+    key: RideOfferCreate.model_fields[key].default
+    for key in ("rate_per_min", "helmet_note", "walk_note", "route_note")
+}
+
+
+def _rider_snapshot(user: dict) -> dict:
+    """How the rider is shown to lift takers, frozen at publish time."""
+    photo = user.get("profile_photo")
+    return {
+        "rider_name": _display_name(user.get("full_name", "")),
+        "rider_photo_url": (
+            f"/uploads/{settings.PROFILE_PHOTO_SUBDIR}/{photo}" if photo else None
+        ),
+        "rider_gender": user.get("gender"),
+        "rider_verification": _verification_label(user),
+    }
+
+
+@router.post(
+    "/commutes",
+    response_model=CommuteResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Publish a repeating commute (outbound and optional return trip)",
+)
+async def create_commute(
+    payload: CommuteCreate,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Saves the commute as ride offers that repeat on the chosen weekdays: one
+    for the outbound trip and, when the return trip is on, one for the way
+    back along the same stops in reverse. A rider has one active commute at a
+    time, so publishing a new one replaces the previous one.
+    """
+    if current_user.get("role") != "rider":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only riders can offer a lift",
+        )
+
+    offers = get_ride_offers_collection()
+    now = datetime.now(timezone.utc)
+    commute_id = uuid.uuid4().hex
+
+    # Stops on the way out, with minutes after departure at each
+    outbound_stops = [{"name": payload.pickup, "offset_min": 0}]
+    if payload.stop:
+        outbound_stops.append(
+            {
+                "name": payload.stop,
+                "offset_min": payload.stop_offset_min or max(1, payload.duration_min // 2),
+            }
+        )
+    outbound_stops.append({"name": payload.destination, "offset_min": payload.duration_min})
+
+    # The way back visits the same stops in reverse
+    return_stops = [
+        {"name": s["name"], "offset_min": payload.duration_min - s["offset_min"]}
+        for s in reversed(outbound_stops)
+    ]
+
+    common = {
+        "user_id": current_user["_id"],
+        **_rider_snapshot(current_user),
+        "travel_date": None,
+        "repeat_daily": True,  # repeats ...
+        "repeat_days": payload.days,  # ... but only on these weekdays
+        "seats_available": payload.seats,
+        "vehicle_type": payload.vehicle_type,
+        "vehicle_model": payload.vehicle_model,
+        "vehicle_plate": payload.vehicle_plate,
+        "corridor": f"Via {payload.stop}" if payload.stop else None,
+        **_OFFER_DEFAULTS,
+        "status": "active",
+        "commute_id": commute_id,
+        "created_at": now,
+    }
+
+    docs = [
+        {
+            **common,
+            "direction": "outbound",
+            "stops": outbound_stops,
+            "depart_time": payload.outbound_time,
+            # Kept so the form can be pre-filled when the rider edits it
+            "commute_form": payload.model_dump(),
+        }
+    ]
+    if payload.return_enabled:
+        docs.append(
+            {
+                **common,
+                "direction": "return",
+                "stops": return_stops,
+                "depart_time": payload.return_time,
+            }
+        )
+
+    # One active commute at a time
+    await offers.update_many(
+        {
+            "user_id": current_user["_id"],
+            "commute_id": {"$exists": True},
+            "status": "active",
+        },
+        {"$set": {"status": "replaced", "replaced_at": now}},
+    )
+    await offers.insert_many(docs)
+
+    return CommuteResponse(
+        id=commute_id, status="active", created_at=now, **payload.model_dump()
+    )
+
+
+@router.get(
+    "/commutes/active",
+    response_model=Optional[CommuteResponse],
+    summary="The signed-in rider's active commute (null if none)",
+)
+async def get_active_commute(current_user: dict = Depends(get_current_user)):
+    doc = await get_ride_offers_collection().find_one(
+        {
+            "user_id": current_user["_id"],
+            "commute_id": {"$exists": True},
+            "direction": "outbound",
+            "status": "active",
+        },
+        sort=[("created_at", -1)],
+    )
+    if not doc or not doc.get("commute_form"):
+        return None
+    return CommuteResponse(
+        id=doc["commute_id"],
+        status=doc["status"],
+        created_at=doc["created_at"],
+        **doc["commute_form"],
+    )

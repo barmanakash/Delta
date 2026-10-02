@@ -493,7 +493,7 @@ export default function RolAndMode() {
                         icon={
                             <TwoWheelerIcon
                                 style={{
-                                    fontSize: 34,
+                                    fontSize: 33,
                                     color: "#007b73",
                                 }}
                             />

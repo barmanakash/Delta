@@ -27,6 +27,9 @@ _GENERIC_WORDS = {
 # Below this word-overlap score two place names are treated as different places
 MIN_PLACE_SIMILARITY = 0.5
 
+# date.weekday() -> the day codes riders pick on the Create Commute screen
+_WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+
 # Score penalties (rupees-free "points" out of 100)
 MAX_PICKUP_PENALTY = 14
 MAX_DROP_PENALTY = 14
@@ -77,6 +80,14 @@ def build_match(offer: dict, request: dict, now: Optional[datetime] = None) -> O
     stops = offer.get("stops") or []
     if len(stops) < 2 or offer.get("seats_available", 0) < 1:
         return None
+
+    # Commutes repeat only on the weekdays the rider picked (offers without
+    # repeat_days, such as the demo riders, repeat every day)
+    days = offer.get("repeat_days")
+    if offer.get("repeat_daily") and days:
+        weekday = _WEEKDAYS[datetime.strptime(request["travel_date"], "%Y-%m-%d").weekday()]
+        if weekday not in days:
+            return None
 
     # Same-gender rule
     if request.get("same_gender_only"):

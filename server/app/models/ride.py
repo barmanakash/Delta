@@ -100,6 +100,125 @@ class RideOfferResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+#  Commutes (the rider's "Create Your Commute" form)
+# ---------------------------------------------------------------------------
+
+DAY_CODES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+
+
+class CommuteCreate(BaseModel):
+    """
+    A rider's repeating commute: pickup -> destination (with an optional stop
+    on the way), leaving at `outbound_time` on the chosen weekdays, and
+    optionally coming back at `return_time`.
+
+    It is stored as ride offers (one per direction), so lift takers searching
+    on a matching route find it.
+    """
+
+    pickup: str
+    destination: str
+    stop: Optional[str] = None  # one optional stop along the corridor
+
+    pickup_lat: Optional[float] = Field(default=None, ge=-90, le=90)
+    pickup_lng: Optional[float] = Field(default=None, ge=-180, le=180)
+    destination_lat: Optional[float] = Field(default=None, ge=-90, le=90)
+    destination_lng: Optional[float] = Field(default=None, ge=-180, le=180)
+    distance_km: Optional[float] = Field(default=None, gt=0, le=500)
+
+    # One-way travel time; sets when the rider reaches each stop
+    duration_min: int = Field(ge=2, le=300)
+    # Minutes from pickup to the optional stop (defaults to halfway)
+    stop_offset_min: Optional[int] = Field(default=None, ge=1, le=299)
+
+    outbound_time: str  # 24h "HH:MM"
+    return_enabled: bool = True
+    return_time: Optional[str] = None
+    days: list[str] = Field(min_length=1)
+
+    seats: int = Field(default=1, ge=1, le=1)  # standard pillion: one seat
+    vehicle_type: Literal["bike", "scooter"] = "bike"
+    vehicle_model: str
+    vehicle_plate: str
+
+    @field_validator("pickup", "destination")
+    @classmethod
+    def validate_place(cls, v: str) -> str:
+        v = " ".join(v.split())
+        if len(v) < 3 or len(v) > 200:
+            raise ValueError("Locations must be 3 to 200 characters")
+        return v
+
+    @field_validator("stop")
+    @classmethod
+    def validate_stop(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        v = " ".join(v.split())
+        if not v:
+            return None
+        if len(v) < 2 or len(v) > 100:
+            raise ValueError("The stop must be 2 to 100 characters")
+        return v
+
+    @field_validator("outbound_time", "return_time")
+    @classmethod
+    def validate_time(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        v = v.strip()
+        if not _TIME_RE.match(v):
+            raise ValueError("Times must be in 24-hour HH:MM format")
+        return v
+
+    @field_validator("days")
+    @classmethod
+    def validate_days(cls, v: list[str]) -> list[str]:
+        cleaned = {d.strip().lower() for d in v}
+        unknown = cleaned - set(DAY_CODES)
+        if unknown:
+            raise ValueError("Days must be mon, tue, wed, thu, fri, sat or sun")
+        return [d for d in DAY_CODES if d in cleaned]  # week order, no duplicates
+
+    @field_validator("vehicle_model", "vehicle_plate")
+    @classmethod
+    def validate_vehicle(cls, v: str) -> str:
+        v = " ".join(v.split())
+        if len(v) < 2 or len(v) > 40:
+            raise ValueError("Vehicle details must be 2 to 40 characters")
+        return v
+
+    @model_validator(mode="after")
+    def validate_commute(self):
+        if self.pickup.casefold() == self.destination.casefold():
+            raise ValueError("Pickup and destination must be different")
+        if self.stop and self.stop.casefold() in (
+            self.pickup.casefold(),
+            self.destination.casefold(),
+        ):
+            raise ValueError("The stop must be different from pickup and destination")
+        if self.stop_offset_min is not None and self.stop_offset_min >= self.duration_min:
+            raise ValueError("The stop must be reached before the destination")
+
+        self.vehicle_plate = self.vehicle_plate.upper()
+
+        if self.return_enabled:
+            if not self.return_time:
+                raise ValueError("Choose a return time or turn the return trip off")
+            if self.return_time <= self.outbound_time:
+                raise ValueError("The return trip must be later than the outbound trip")
+        else:
+            self.return_time = None
+        return self
+
+
+class CommuteResponse(CommuteCreate):
+    id: str
+    status: str
+    created_at: datetime
+
+
+# ---------------------------------------------------------------------------
 #  Matches (what a lift taker sees on the Compatible Riders screen)
 # ---------------------------------------------------------------------------
 
