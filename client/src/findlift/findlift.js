@@ -210,9 +210,20 @@ export default function FindLift() {
   const [pickup, setPickup] = useState(location.state?.pickup || "");
   const [pickupCoords, setPickupCoords] = useState(null);
   const [destination, setDestination] = useState(location.state?.destination || "");
-  const [travelDate, setTravelDate] = useState(() => toISODate(new Date()));
-  const [windowStart, setWindowStart] = useState("");
-  const [flexible, setFlexible] = useState(true);
+  const [travelDate, setTravelDate] = useState(() =>
+    location.state?.travelDate && location.state.travelDate >= toISODate(new Date())
+      ? location.state.travelDate
+      : toISODate(new Date())
+  );
+  const [windowStart, setWindowStart] = useState(location.state?.windowStart || "");
+  const [flexible, setFlexible] = useState(location.state?.flexible ?? true);
+  // Trip filters carried over from Home / Edit Search (this screen has no controls for them)
+  const [filters] = useState(() => ({
+    sameGender: false,
+    twoWheeler: true,
+    zeroDetour: true,
+    ...(location.state?.filters || {}),
+  }));
 
   const [estimate, setEstimate] = useState({ status: "idle" }); // idle | loading | ready | unavailable
   const [zoom, setZoom] = useState(1);
@@ -452,9 +463,9 @@ export default function FindLift() {
           travel_date: travelDate,
           window_start: windowStart,
           window_end: addMinutes(windowStart, WINDOW_MINUTES),
-          same_gender_only: false,
-          two_wheeler_only: true,
-          zero_detour_only: true,
+          same_gender_only: filters.sameGender,
+          two_wheeler_only: filters.twoWheeler,
+          zero_detour_only: filters.zeroDetour,
           flexible_pickup: flexible,
         }),
       });
@@ -469,8 +480,8 @@ export default function FindLift() {
         return;
       }
 
-      setActiveRequest(data);
-      showToast("Searching for compatible riders on your route.");
+      // Show the riders whose routes fit this search
+      navigate(`/compatibleriders/${data.id}`);
     } catch {
       fail("Unable to connect to server. Please make sure the backend is running.");
     } finally {
@@ -981,6 +992,12 @@ export default function FindLift() {
                       , {windowLabel(activeRequest.window_start)}
                     </Typography>
                   </Box>
+                  <Button
+                    onClick={() => navigate(`/compatibleriders/${activeRequest.id}`)}
+                    style={{ textTransform: "none", fontWeight: 700, fontSize: 13, color: teal }}
+                  >
+                    View matches
+                  </Button>
                   <Button
                     disabled={cancelling}
                     onClick={handleCancel}

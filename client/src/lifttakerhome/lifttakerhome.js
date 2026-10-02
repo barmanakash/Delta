@@ -439,7 +439,8 @@ export default function LiftTakerHome() {
           ),
         ].slice(0, 5)
       );
-      showToast("Request sent. We're looking for riders on your route.");
+      // Show the riders whose routes fit this request
+      navigate(`/compatibleriders/${data.id}`);
     } catch {
       fail("Unable to connect to server. Please make sure the backend is running.");
     } finally {

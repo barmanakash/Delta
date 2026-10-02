@@ -309,6 +309,7 @@ const DEFAULT_FOOTER_COLUMNS = [
 export function LiftTakerFooter({
   description = DEFAULT_FOOTER_TEXT,
   columns = DEFAULT_FOOTER_COLUMNS,
+  copyright = "SafeRoute Technologies India Pvt Ltd. Intercity & Metro Commuter Network. All rights reserved.",
 }) {
   const year = new Date().getFullYear();
 
@@ -388,8 +389,7 @@ export function LiftTakerFooter({
           }}
         >
           <span>
-            © {year} SafeRoute Technologies India Pvt Ltd. Intercity &amp; Metro Commuter
-            Network. All rights reserved.
+            © {year} {copyright}
           </span>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
             <Box style={{ width: 7, height: 7, borderRadius: "50%", background: tealBright }} />

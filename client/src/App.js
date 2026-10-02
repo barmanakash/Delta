@@ -10,6 +10,7 @@ import Gender from './gender/gender';
 import Home from './home/home';
 import LiftTakerHome from './lifttakerhome/lifttakerhome';
 import FindLift from './findlift/findlift';
+import CompatibleRiders from './compatibleriders/compatibleriders';
 import LiftRequest from './liftrequest/liftrequest';
 import ViewRequest from './viewRequest/viewrequest';
 import ConfirmRequest from './confimrequest/confirmrequest'
@@ -32,6 +33,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/lifttakerhome" element={<LiftTakerHome />} />
         <Route path="/findlift" element={<FindLift />} />
+        <Route path="/compatibleriders/:requestId" element={<CompatibleRiders />} />
         <Route path="/liftrequest" element={<LiftRequest />} />
         <Route path="/viewRequest" element={<ViewRequest />} />
         <Route path="/confirmrequest" element={<ConfirmRequest />} />
