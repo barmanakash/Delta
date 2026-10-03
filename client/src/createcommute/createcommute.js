@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -18,6 +18,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import SwapVertOutlinedIcon from "@mui/icons-material/SwapVertOutlined";
+import MyLocationOutlinedIcon from "@mui/icons-material/MyLocationOutlined";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import AddCircleOutlinedIcon from "@mui/icons-material/AddCircleOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
@@ -80,6 +81,10 @@ const WEEKS_PER_MONTH = 4.2;
 // "PNT Naka" finds the one in Jabalpur. Viewbox is left,top,right,bottom.
 const CITY = "Jabalpur";
 const CITY_VIEWBOX = "79.80,23.35,80.10,23.00";
+const CITY_CENTER = { lat: 23.1815, lng: 79.9864 };
+
+// Suggestions start after this many characters
+const MIN_SUGGEST_CHARS = 3;
 
 const IDLE_ROUTE = { status: "idle" };
 
@@ -152,7 +157,7 @@ async function geocodeOnce(query) {
 
 // Try the full text first, then just its first part ("PNT Naka, Ranjhi
 // Sub-Post" -> "PNT Naka"), always within the city.
-async function geocode(text) {
+export async function geocode(text) {
   const key = text.toLowerCase();
   if (geoCache.has(key)) return geoCache.get(key);
 
@@ -168,7 +173,74 @@ async function geocode(text) {
   return point;
 }
 
-async function fetchRoute(points) {
+/* ---- place suggestions while typing (Photon, built for search-as-you-type) ---- */
+
+// One Photon result -> something the dropdown can show and the form can use
+function toSuggestion(feature) {
+  const p = feature.properties || {};
+  const coords = feature.geometry && feature.geometry.coordinates;
+  if (!coords || (p.countrycode && p.countrycode !== "IN")) return null;
+
+  const street = [p.housenumber, p.street].filter(Boolean).join(" ");
+  const title = p.name || street || p.locality || p.district || p.city;
+  if (!title) return null;
+
+  const areas = [street, p.locality, p.district, p.city || p.county, p.state]
+    .filter((a) => a && a !== title);
+  const where = [p.city, p.district, p.county, p.locality].find((a) => a && a !== title);
+
+  return {
+    key: `${feature.properties.osm_type || ""}${feature.properties.osm_id || coords.join(",")}`,
+    title,
+    subtitle: [...new Set(areas)].slice(0, 3).join(", "),
+    // What goes into the field once picked: short and easy to match, e.g. "Damoh Naka, Jabalpur"
+    label: where ? `${title}, ${where}` : title,
+    point: { lat: coords[1], lng: coords[0] },
+  };
+}
+
+export async function searchPlaces(query, signal) {
+  const params = new URLSearchParams({
+    q: query,
+    limit: "8",
+    lang: "en",
+    // Rank places near the city first, but still allow ones further away
+    lat: String(CITY_CENTER.lat),
+    lon: String(CITY_CENTER.lng),
+    zoom: "11",
+    location_bias_scale: "0.5",
+  });
+  const res = await fetch(`https://photon.komoot.io/api/?${params}`, { signal });
+  if (!res.ok) throw new Error("Place search failed");
+  const data = await res.json();
+
+  const seen = new Set();
+  const items = [];
+  for (const feature of data.features || []) {
+    const item = toSuggestion(feature);
+    if (item && !seen.has(item.label.toLowerCase())) {
+      seen.add(item.label.toLowerCase());
+      items.push(item);
+    }
+  }
+  return items.slice(0, 6);
+}
+
+// The place name for a GPS point, or null when it can't be found
+export async function reverseGeocode({ lat, lng }) {
+  try {
+    const res = await fetch(
+      `https://photon.komoot.io/reverse?lon=${lng}&lat=${lat}&lang=en&limit=1`
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data.features || []).map(toSuggestion).find(Boolean) || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchRoute(points) {
   const coords = points.map((p) => `${p.lng},${p.lat}`).join(";");
   const url =
     `https://router.project-osrm.org/route/v1/driving/${coords}` +
@@ -211,6 +283,11 @@ export default function CreateCommute() {
   const [destination, setDestination] = useState("");
   const [stop, setStop] = useState("");
   const [showStop, setShowStop] = useState(false);
+  const [locating, setLocating] = useState(false);
+  // Exact map points for places picked from the suggestions (null = typed by hand)
+  const [pickupPoint, setPickupPoint] = useState(null);
+  const [stopPoint, setStopPoint] = useState(null);
+  const [destPoint, setDestPoint] = useState(null);
   const [outboundTime, setOutboundTime] = useState("09:15");
   const [returnOn, setReturnOn] = useState(true);
   const [returnTime, setReturnTime] = useState("18:30");
@@ -288,9 +365,15 @@ export default function CreateCommute() {
 
         setPickup(active.pickup);
         setDestination(active.destination);
+        if (active.pickup_lat != null && active.pickup_lng != null)
+          setPickupPoint({ lat: active.pickup_lat, lng: active.pickup_lng });
+        if (active.destination_lat != null && active.destination_lng != null)
+          setDestPoint({ lat: active.destination_lat, lng: active.destination_lng });
         if (active.stop) {
           setStop(active.stop);
           setShowStop(true);
+          if (active.stop_lat != null && active.stop_lng != null)
+            setStopPoint({ lat: active.stop_lat, lng: active.stop_lng });
         }
         setOutboundTime(active.outbound_time);
         setReturnOn(active.return_enabled);
@@ -325,10 +408,15 @@ export default function CreateCommute() {
 
     const timer = setTimeout(async () => {
       try {
-        const labels = [p, ...(s.length >= 2 ? [s] : []), d];
+        const entries = [
+          [p, pickupPoint],
+          ...(s.length >= 2 ? [[s, stopPoint]] : []),
+          [d, destPoint],
+        ];
         const points = [];
-        for (const label of labels) {
-          const point = await geocode(label);
+        for (const [label, known] of entries) {
+          // A place picked from the suggestions already has its exact point
+          const point = known || (await geocode(label));
           if (cancelled) return;
           if (!point) {
             setRoute({
@@ -363,7 +451,7 @@ export default function CreateCommute() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [pickup, destination, stop, showStop]);
+  }, [pickup, destination, stop, showStop, pickupPoint, stopPoint, destPoint]);
 
   /* ---- derived values ---------------------------------------------- */
   const routeReady = route.status === "ready";
@@ -378,6 +466,81 @@ export default function CreateCommute() {
   const swapPlaces = () => {
     setPickup(destination);
     setDestination(pickup);
+    setPickupPoint(destPoint);
+    setDestPoint(pickupPoint);
+  };
+
+  // Typing by hand forgets any point picked earlier; picking a suggestion sets it
+  const changePickup = (value) => {
+    setPickup(value);
+    setPickupPoint(null);
+  };
+  const pickPickup = (item) => {
+    setPickup(item.label);
+    setPickupPoint(item.point);
+  };
+  const changeStop = (value) => {
+    setStop(value);
+    setStopPoint(null);
+  };
+  const pickStop = (item) => {
+    setStop(item.label);
+    setStopPoint(item.point);
+  };
+  const changeDestination = (value) => {
+    setDestination(value);
+    setDestPoint(null);
+  };
+  const pickDestination = (item) => {
+    setDestination(item.label);
+    setDestPoint(item.point);
+  };
+
+  // "Use current location": ask the device for its position, then name the spot
+  const locateMe = () => {
+    if (locating) return;
+    if (!navigator.geolocation) {
+      showToast("This browser can't share your location. Please type your pickup.", "warning");
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const point = { lat: coords.latitude, lng: coords.longitude };
+        const found = await reverseGeocode(point);
+
+        setPickup(
+          found
+            ? found.label
+            : `Current location (${point.lat.toFixed(4)}, ${point.lng.toFixed(4)})`
+        );
+        setPickupPoint(point);
+        setLocating(false);
+
+        if (!found) {
+          showToast(
+            "Got your location but couldn't find its name. Change the pickup to a landmark lift takers will recognise.",
+            "info"
+          );
+        } else if (coords.accuracy > 500) {
+          showToast(
+            `Your device could only find you roughly (within about ${Math.round(coords.accuracy)} m). Check the pickup name is right.`,
+            "warning"
+          );
+        }
+      },
+      (error) => {
+        setLocating(false);
+        const reasons = {
+          1: "Location access is blocked. Allow it from the lock icon in your browser's address bar, then try again.",
+          2: "Your device couldn't work out its location. Please type your pickup.",
+          3: "Finding your location took too long. Please try again.",
+        };
+        showToast(reasons[error.code] || "Couldn't get your location.", "warning");
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
   };
 
   const toggleDay = (code) =>
@@ -387,6 +550,7 @@ export default function CreateCommute() {
 
   const removeStop = () => {
     setStop("");
+    setStopPoint(null);
     setShowStop(false);
   };
 
@@ -438,6 +602,8 @@ export default function CreateCommute() {
           pickup_lng: routeReady ? route.start.lng : null,
           destination_lat: routeReady ? route.end.lat : null,
           destination_lng: routeReady ? route.end.lng : null,
+          stop_lat: routeReady && route.stop ? route.stop.lat : null,
+          stop_lng: routeReady && route.stop ? route.stop.lng : null,
           distance_km: routeReady ? Math.max(0.1, Math.round(route.distanceKm * 10) / 10) : null,
           duration_min: durationMin,
           stop_offset_min: routeReady && route.stopOffsetMin ? route.stopOffsetMin : null,
@@ -663,7 +829,8 @@ export default function CreateCommute() {
               {step === 1 && (
                 <StepOne
                   {...{
-                    pickup, setPickup, destination, setDestination, stop, setStop,
+                    pickup, changePickup, pickPickup, destination, changeDestination, pickDestination,
+                    stop, changeStop, pickStop, locateMe, locating,
                     showStop, setShowStop, removeStop, swapPlaces,
                     outboundTime, setOutboundTime, returnOn, setReturnOn,
                     returnTime, setReturnTime, days, setDays, toggleDay,
@@ -902,7 +1069,8 @@ export default function CreateCommute() {
 /* ------------------------------------------------------------------ */
 
 function StepOne({
-  pickup, setPickup, destination, setDestination, stop, setStop,
+  pickup, changePickup, pickPickup, destination, changeDestination, pickDestination,
+  stop, changeStop, pickStop, locateMe, locating,
   showStop, setShowStop, removeStop, swapPlaces,
   outboundTime, setOutboundTime, returnOn, setReturnOn,
   returnTime, setReturnTime, days, setDays, toggleDay,
@@ -929,11 +1097,50 @@ function StepOne({
       </Typography>
 
       {/* pickup */}
-      <Typography style={{ ...fieldLabel, marginTop: 22 }}>Pickup / Starting Point *</Typography>
-      <PlaceField
+      <Box
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+          marginTop: 22,
+          marginBottom: 8,
+        }}
+      >
+        <Typography style={{ ...fieldLabel, marginBottom: 0 }}>
+          Pickup / Starting Point *
+        </Typography>
+        <Box
+          className="cc-btn"
+          role="button"
+          tabIndex={0}
+          aria-disabled={locating}
+          onClick={locateMe}
+          onKeyDown={activateOnKey(locateMe)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            color: teal,
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: locating ? "default" : "pointer",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {locating ? (
+            <CircularProgress size={14} style={{ color: tealBright }} />
+          ) : (
+            <MyLocationOutlinedIcon style={{ fontSize: 17 }} />
+          )}
+          {locating ? "Locating…" : "Use current location"}
+        </Box>
+      </Box>
+      <PlaceSearchField
         label="Pickup / starting point"
         value={pickup}
-        onChange={setPickup}
+        onChange={changePickup}
+        onPick={pickPickup}
         placeholder="e.g. PNT Naka, Ranjhi Sub-Post"
         leading={
           <Box
@@ -962,10 +1169,11 @@ function StepOne({
       {showStop && (
         <>
           <Typography style={fieldLabel}>Stop along the way</Typography>
-          <PlaceField
+          <PlaceSearchField
             label="Stop along the corridor"
             value={stop}
-            onChange={setStop}
+            onChange={changeStop}
+            onPick={pickStop}
             placeholder="e.g. Ranjhi Transit Junction"
             leading={<AltRouteOutlinedIcon style={{ fontSize: 20, color: "#c28a00", flexShrink: 0 }} />}
             maxLength={100}
@@ -976,10 +1184,11 @@ function StepOne({
 
       {/* destination */}
       <Typography style={fieldLabel}>Destination *</Typography>
-      <PlaceField
+      <PlaceSearchField
         label="Destination"
         value={destination}
-        onChange={setDestination}
+        onChange={changeDestination}
+        onPick={pickDestination}
         placeholder="e.g. Madan Mahal Station, South Gate"
         leading={<LocationOnIcon style={{ fontSize: 22, color: "#d93025", flexShrink: 0 }} />}
       />
@@ -1437,6 +1646,213 @@ const inputReset = {
   fontFamily: "inherit",
   padding: 0,
 };
+
+/**
+ * A place input that suggests matching places while you type, like a map
+ * search box. Picking one fills the field and hands back its exact map point.
+ *
+ * `query` is only set by typing, so a value filled in from outside (editing a
+ * saved commute, swapping places) never triggers a search.
+ */
+function PlaceSearchField({ label, value, onChange, onPick, placeholder, leading, maxLength = 200 }) {
+  const listId = useId();
+  const requestId = useRef(0);
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const [result, setResult] = useState({ status: "idle", items: [] });
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < MIN_SUGGEST_CHARS) {
+      setResult({ status: "idle", items: [] });
+      return undefined;
+    }
+
+    const id = ++requestId.current;
+    const controller = new AbortController();
+    setResult((r) => ({ ...r, status: "loading" }));
+
+    const timer = setTimeout(async () => {
+      try {
+        const items = await searchPlaces(q, controller.signal);
+        if (id === requestId.current) {
+          setResult({ status: "done", items });
+          setActive(-1);
+        }
+      } catch (err) {
+        if (err.name !== "AbortError" && id === requestId.current) {
+          setResult({ status: "error", items: [] });
+        }
+      }
+    }, 350); // wait for a pause in typing
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
+  // Only while the field still holds what was typed: a value set from outside
+  // (current location, swap, a picked suggestion) shouldn't reopen an old list
+  const show = open && query === value && query.trim().length >= MIN_SUGGEST_CHARS;
+  const { status, items } = result;
+
+  const choose = (item) => {
+    onPick(item);
+    setQuery("");
+    setOpen(false);
+    setActive(-1);
+    setResult({ status: "idle", items: [] });
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      setOpen(false);
+      return;
+    }
+    if (!show || !items.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((i) => (i + 1) % items.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((i) => (i <= 0 ? items.length - 1 : i - 1));
+    } else if (e.key === "Enter" && active >= 0) {
+      e.preventDefault();
+      choose(items[active]);
+    }
+  };
+
+  const note = (text) => (
+    <Typography style={{ fontSize: 13, color: muted, padding: "10px 12px", lineHeight: 1.5 }}>
+      {text}
+    </Typography>
+  );
+
+  return (
+    <Box style={{ position: "relative" }}>
+      <Box
+        className="cc-focus"
+        style={{
+          background: fieldBg,
+          borderRadius: 12,
+          padding: "14px 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        {leading}
+        <input
+          className="cc-input"
+          role="combobox"
+          aria-label={label}
+          aria-expanded={show}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
+          autoComplete="off"
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          maxLength={maxLength}
+          style={inputReset}
+        />
+        {value && (
+          <IconButton
+            aria-label={`Clear ${label.toLowerCase()}`}
+            onClick={() => {
+              onChange("");
+              setQuery("");
+              setResult({ status: "idle", items: [] });
+            }}
+            size="small"
+            style={{ color: "#4b5468", padding: 2 }}
+          >
+            <CancelOutlinedIcon style={{ fontSize: 20 }} />
+          </IconButton>
+        )}
+      </Box>
+
+      {show && (
+        <Box
+          id={listId}
+          role="listbox"
+          aria-label={`${label} suggestions`}
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            right: 0,
+            zIndex: 40,
+            background: "#fff",
+            borderRadius: 14,
+            padding: 6,
+            maxHeight: 300,
+            overflowY: "auto",
+            boxShadow: "0 10px 30px rgba(30,35,90,0.22)",
+            border: "1px solid #e4e6f3",
+          }}
+        >
+          {items.map((item, i) => (
+            <Box
+              key={item.key}
+              id={`${listId}-${i}`}
+              role="option"
+              aria-selected={i === active}
+              // mousedown (not click) so the input doesn't lose focus first
+              onMouseDown={(e) => {
+                e.preventDefault();
+                choose(item);
+              }}
+              onMouseEnter={() => setActive(i)}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 12,
+                padding: "10px 12px",
+                borderRadius: 10,
+                cursor: "pointer",
+                background: i === active ? fieldBg : "transparent",
+              }}
+            >
+              <LocationOnIcon style={{ fontSize: 20, color: "#7b8294", marginTop: 2, flexShrink: 0 }} />
+              <Box style={{ minWidth: 0 }}>
+                <Typography style={{ fontSize: 14.5, fontWeight: 700, wordBreak: "break-word" }}>
+                  {item.title}
+                </Typography>
+                {item.subtitle && (
+                  <Typography style={{ fontSize: 12.5, color: muted, wordBreak: "break-word" }}>
+                    {item.subtitle}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          ))}
+
+          {status === "loading" && !items.length && (
+            <Box style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px" }}>
+              <CircularProgress size={16} style={{ color: tealBright }} />
+              <Typography style={{ fontSize: 13, color: muted }}>Searching places…</Typography>
+            </Box>
+          )}
+          {status === "done" && !items.length &&
+            note(`No places found for "${query.trim()}". Try a nearby landmark or a shorter name.`)}
+          {status === "error" &&
+            note("Suggestions are unavailable right now. You can still type the place and continue.")}
+        </Box>
+      )}
+    </Box>
+  );
+}
 
 function PlaceField({ label, value, onChange, placeholder, leading, maxLength = 200, clearable = true }) {
   return (

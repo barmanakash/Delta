@@ -134,6 +134,14 @@ def build_match(offer: dict, request: dict, now: Optional[datetime] = None) -> O
 
     fare = max(MIN_FARE, round(duration * float(offer.get("rate_per_min", 1.65))))
 
+    # The rider's route on the map, when every stop was located
+    located = all(s.get("lat") is not None and s.get("lng") is not None for s in stops)
+    route = (
+        [{"name": s["name"], "lat": s["lat"], "lng": s["lng"]} for s in stops]
+        if located
+        else []
+    )
+
     return {
         "offer_id": str(offer["_id"]),
         "rider_name": offer.get("rider_name", "Rider"),
@@ -155,4 +163,7 @@ def build_match(offer: dict, request: dict, now: Optional[datetime] = None) -> O
         "route_note": offer.get("route_note", "Direct Safe Corridor"),
         "corridor": offer.get("corridor"),
         "is_demo": bool(offer.get("is_demo", False)),
+        "route": route,
+        "board_index": pick_idx if route else None,
+        "alight_index": drop_idx if route else None,
     }

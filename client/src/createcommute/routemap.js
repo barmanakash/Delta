@@ -15,6 +15,9 @@ import MyLocationOutlinedIcon from "@mui/icons-material/MyLocationOutlined";
  *   start, stop, end - { lat, lng } or null
  *   line             - [[lat, lng], ...] route geometry, or null
  *   children         - overlays drawn on top of the map (info cards etc.)
+ *   minHeight, padTop, padBottom - size and fit padding (smaller for cards)
+ *   startName/startTag, endName/endTag - optional name labels (with a small
+ *                      tag such as "PICKUP") shown above the start / end pins
  */
 
 const LEAFLET_JS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
@@ -54,6 +57,31 @@ const markerHtml = (color) =>
   `<div style="width:18px;height:18px;border-radius:50%;background:${color};` +
   `border:3px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,0.35)"></div>`;
 
+const TAG_COLORS = {
+  start: { bg: "#cdeeea", fg: "#00695f" },
+  end: { bg: "#dcdffb", fg: "#3c40c8" },
+};
+
+// Built with DOM nodes (not an HTML string) so place names can't inject markup
+function labelNode(name, tag, kind) {
+  const box = document.createElement("div");
+  box.style.cssText =
+    "display:flex;align-items:center;gap:8px;white-space:nowrap;" +
+    "font:700 12.5px Inter,Arial,sans-serif;color:#141b34";
+  const text = document.createElement("span");
+  text.textContent = name;
+  box.appendChild(text);
+  if (tag) {
+    const chip = document.createElement("span");
+    chip.textContent = tag;
+    chip.style.cssText =
+      `background:${TAG_COLORS[kind].bg};color:${TAG_COLORS[kind].fg};` +
+      "border-radius:5px;padding:2px 7px;font-size:9.5px;letter-spacing:0.4px";
+    box.appendChild(chip);
+  }
+  return box;
+}
+
 const controlStyle = {
   width: 40,
   height: 40,
@@ -63,7 +91,20 @@ const controlStyle = {
   boxShadow: "0 2px 8px rgba(30,35,90,0.18)",
 };
 
-export default function RouteMap({ start, stop, end, line, children }) {
+export default function RouteMap({
+  start,
+  stop,
+  end,
+  line,
+  children,
+  minHeight = 520,
+  padTop = 190, // room kept clear for overlays when fitting the route
+  padBottom = 80,
+  startName = "",
+  startTag = "",
+  endName = "",
+  endTag = "",
+}) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
@@ -115,12 +156,12 @@ export default function RouteMap({ start, stop, end, line, children }) {
     } else {
       // Extra padding on top / bottom keeps the route clear of the overlays
       map.fitBounds(bounds, {
-        paddingTopLeft: [40, 190],
-        paddingBottomRight: [40, 80],
+        paddingTopLeft: [40, padTop],
+        paddingBottomRight: [40, padBottom],
         maxZoom: 16,
       });
     }
-  }, []);
+  }, [padTop, padBottom]);
 
   // Redraw whenever the route changes
   useEffect(() => {
@@ -137,12 +178,12 @@ export default function RouteMap({ start, stop, end, line, children }) {
     }
 
     [
-      [start, "#007d73"],
-      [stop, "#c28a00"],
-      [end, "#141b34"],
-    ].forEach(([point, color]) => {
+      [start, "#007d73", startName, startTag, "start"],
+      [stop, "#c28a00", "", "", "start"],
+      [end, "#141b34", endName, endTag, "end"],
+    ].forEach(([point, color, name, tag, kind]) => {
       if (!point) return;
-      L.marker([point.lat, point.lng], {
+      const marker = L.marker([point.lat, point.lng], {
         icon: L.divIcon({
           className: "",
           html: markerHtml(color),
@@ -151,12 +192,20 @@ export default function RouteMap({ start, stop, end, line, children }) {
         }),
         interactive: false,
       }).addTo(layer);
+      if (name) {
+        marker.bindTooltip(labelNode(name, tag, kind), {
+          permanent: true,
+          direction: "top",
+          offset: [0, -12],
+          opacity: 1,
+        });
+      }
       bounds.push([point.lat, point.lng]);
     });
 
     boundsRef.current = bounds;
     if (bounds.length) fitToRoute();
-  }, [ready, start, stop, end, line, fitToRoute]);
+  }, [ready, start, stop, end, line, fitToRoute, startName, startTag, endName, endTag]);
 
   return (
     <Box
@@ -164,7 +213,7 @@ export default function RouteMap({ start, stop, end, line, children }) {
         position: "relative",
         isolation: "isolate",
         height: "100%",
-        minHeight: 520,
+        minHeight,
         borderRadius: 20,
         overflow: "hidden",
         background: "#e8ecf2",

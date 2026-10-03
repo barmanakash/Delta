@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -26,10 +26,12 @@ import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import BoltOutlinedIcon from "@mui/icons-material/BoltOutlined";
 import CurrencyRupeeOutlinedIcon from "@mui/icons-material/CurrencyRupeeOutlined";
 import HubOutlinedIcon from "@mui/icons-material/HubOutlined";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
 
 import { LT, LiftTakerHeader, LiftTakerFooter } from "../lifttakerlayout/lifttakerlayout";
+// Place suggestions, geocoding and road routing are shared with the rider's
+// "Create Your Commute" screen, so both sides find the same places.
+import { geocode, searchPlaces, reverseGeocode, fetchRoute } from "../createcommute/createcommute";
+import RouteMap from "../createcommute/routemap";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -43,10 +45,12 @@ const WINDOW_MINUTES = 15;
 const MAX_DAYS_AHEAD = 30;
 const FLEX_BUFFER_MINUTES = 15;
 
-// Rough urban estimate: road distance is ~1.3x the straight line,
-// travelled at ~22 km/h through city traffic.
-const ROAD_FACTOR = 1.3;
-const AVG_SPEED_KMH = 22;
+// Suggestions start after this many characters
+const MIN_SUGGEST_CHARS = 3;
+
+const IDLE_ROUTE = { status: "idle" };
+
+const fieldBg = "#f0f2fb";
 
 const cardStyle = {
   background: "#fff",
@@ -68,7 +72,7 @@ const bareInput = {
   outline: "none",
   background: "transparent",
   width: "100%",
-  fontSize: 17,
+  fontSize: 16,
   fontWeight: 700,
   color: dark,
   fontFamily: "inherit",
@@ -160,33 +164,7 @@ const shortName = (value, fallback) => {
   return first.length > 24 ? `${first.slice(0, 23).trimEnd()}…` : first;
 };
 
-const haversineKm = (a, b) => {
-  const rad = (deg) => (deg * Math.PI) / 180;
-  const dLat = rad(b.lat - a.lat);
-  const dLng = rad(b.lng - a.lng);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
-  return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-};
-
-// Free OpenStreetMap geocoder. If it is unreachable the estimate shows "—".
-const geocode = async (query, signal) => {
-  const url =
-    "https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in&q=" +
-    encodeURIComponent(query);
-  const res = await fetch(url, { signal, headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error("geocoding failed");
-  const rows = await res.json();
-  return rows.length
-    ? { lat: parseFloat(rows[0].lat), lng: parseFloat(rows[0].lon) }
-    : null;
-};
-
-const durationRange = (minutes) => {
-  const mid = Math.round(minutes);
-  return `${Math.max(1, mid - 1)}–${mid + 1} mins`;
-};
+const durationRange = (minutes) => `${Math.max(1, minutes - 1)}–${minutes + 1} mins`;
 
 // Commute peaks: 7-10 AM and 5-8 PM
 const corridorDensity = (windowStart) => {
@@ -208,8 +186,10 @@ export default function FindLift() {
   const [photoUrl, setPhotoUrl] = useState(null);
 
   const [pickup, setPickup] = useState(location.state?.pickup || "");
-  const [pickupCoords, setPickupCoords] = useState(null);
   const [destination, setDestination] = useState(location.state?.destination || "");
+  // Exact map points for places picked from the suggestions (null = typed by hand)
+  const [pickupPoint, setPickupPoint] = useState(location.state?.pickupCoords || null);
+  const [destPoint, setDestPoint] = useState(null);
   const [travelDate, setTravelDate] = useState(() =>
     location.state?.travelDate && location.state.travelDate >= toISODate(new Date())
       ? location.state.travelDate
@@ -225,8 +205,7 @@ export default function FindLift() {
     ...(location.state?.filters || {}),
   }));
 
-  const [estimate, setEstimate] = useState({ status: "idle" }); // idle | loading | ready | unavailable
-  const [zoom, setZoom] = useState(1);
+  const [route, setRoute] = useState(IDLE_ROUTE);
 
   const [locating, setLocating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -235,7 +214,6 @@ export default function FindLift() {
   const [activeRequest, setActiveRequest] = useState(null);
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
 
-  const geoCache = useRef(new Map());
   const prefilled = useRef(Boolean(location.state?.pickup));
 
   const today = toISODate(now);
@@ -345,7 +323,7 @@ export default function FindLift() {
         const [latest] = await res.json();
         if (!latest) return;
         if (latest.status === "searching") setActiveRequest(latest);
-        // Start from the last pickup used, unless Home already passed one in
+        // Start from the last pickup used, unless another screen already passed one in
         if (!prefilled.current) {
           prefilled.current = true;
           setPickup((p) => p || latest.pickup);
@@ -360,78 +338,129 @@ export default function FindLift() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ---- distance / duration estimate -------------------------------- */
+  /* ---- route preview: find the places, then the road between them -- */
   useEffect(() => {
     const p = pickup.trim();
     const d = destination.trim();
+
     if (p.length < 3 || d.length < 3 || p.toLowerCase() === d.toLowerCase()) {
-      setEstimate({ status: "idle" });
+      setRoute(IDLE_ROUTE);
       return undefined;
     }
 
-    const controller = new AbortController();
-    setEstimate({ status: "loading" });
-
-    const lookup = async (query) => {
-      const key = query.toLowerCase();
-      if (geoCache.current.has(key)) return geoCache.current.get(key);
-      const result = await geocode(query, controller.signal);
-      geoCache.current.set(key, result);
-      return result;
-    };
+    let cancelled = false;
+    setRoute({ status: "loading" });
 
     const timer = setTimeout(async () => {
       try {
-        const from = pickupCoords || (await lookup(p));
-        const to = await lookup(d);
-        if (!from || !to) {
-          setEstimate({ status: "unavailable" });
-          return;
+        const points = [];
+        for (const [label, known] of [
+          [p, pickupPoint],
+          [d, destPoint],
+        ]) {
+          // A place picked from the suggestions already has its exact point
+          const point = known || (await geocode(label));
+          if (cancelled) return;
+          if (!point) {
+            setRoute({
+              status: "error",
+              message: `Couldn't find "${label}" on the map. Try a nearby landmark.`,
+            });
+            return;
+          }
+          points.push(point);
         }
-        const km = haversineKm(from, to) * ROAD_FACTOR;
-        setEstimate({ status: "ready", km, minutes: (km / AVG_SPEED_KMH) * 60 });
-      } catch (err) {
-        if (err.name !== "AbortError") setEstimate({ status: "unavailable" });
+
+        const result = await fetchRoute(points);
+        if (cancelled) return;
+        setRoute({ status: "ready", start: points[0], end: points[1], ...result });
+      } catch {
+        if (!cancelled) {
+          setRoute({
+            status: "error",
+            message: "Route preview is unavailable right now. You can still search for rides.",
+          });
+        }
       }
     }, 900);
 
     return () => {
+      cancelled = true;
       clearTimeout(timer);
-      controller.abort();
     };
-  }, [pickup, destination, pickupCoords]);
+  }, [pickup, destination, pickupPoint, destPoint]);
 
   /* ---- handlers ---------------------------------------------------- */
+
+  // Typing by hand forgets any point picked earlier; picking a suggestion sets it
+  const changePickup = (value) => {
+    setPickup(value);
+    setPickupPoint(null);
+  };
+  const pickPickup = (item) => {
+    setPickup(item.label);
+    setPickupPoint(item.point);
+  };
+  const changeDestination = (value) => {
+    setDestination(value);
+    setDestPoint(null);
+  };
+  const pickDestination = (item) => {
+    setDestination(item.label);
+    setDestPoint(item.point);
+  };
 
   const swapPlaces = () => {
     setPickup(destination);
     setDestination(pickup);
-    setPickupCoords(null);
+    setPickupPoint(destPoint);
+    setDestPoint(pickupPoint);
   };
 
+  // GPS: ask the device for its position, then name the spot
   const fillCurrentLocation = () => {
     if (locating) return;
     if (!navigator.geolocation) {
-      showToast("Your browser doesn't support location access.", "warning");
+      showToast("This browser can't share your location. Please type your pickup.", "warning");
       return;
     }
+
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
+      async ({ coords }) => {
+        const point = { lat: coords.latitude, lng: coords.longitude };
+        const found = await reverseGeocode(point);
+
         setPickup(
-          `Current location (${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)})`
+          found
+            ? found.label
+            : `Current location (${point.lat.toFixed(4)}, ${point.lng.toFixed(4)})`
         );
-        setPickupCoords({ lat: coords.latitude, lng: coords.longitude });
+        setPickupPoint(point);
         setLocating(false);
+
+        if (!found) {
+          showToast(
+            "Got your location but couldn't find its name. Change the pickup to a landmark riders will recognise.",
+            "info"
+          );
+        } else if (coords.accuracy > 500) {
+          showToast(
+            `Your device could only find you roughly (within about ${Math.round(coords.accuracy)} m). Check the pickup name is right.`,
+            "warning"
+          );
+        }
       },
-      () => {
+      (error) => {
         setLocating(false);
-        showToast(
-          "Couldn't get your location. Allow location access or type your pickup.",
-          "warning"
-        );
+        const reasons = {
+          1: "Location access is blocked. Allow it from the lock icon in your browser's address bar, then try again.",
+          2: "Your device couldn't work out its location. Please type your pickup.",
+          3: "Finding your location took too long. Please try again.",
+        };
+        showToast(reasons[error.code] || "Couldn't get your location.", "warning");
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   };
 
@@ -449,6 +478,8 @@ export default function FindLift() {
     if (!windowStart)
       return fail("No pickup windows are left today. Choose a later date.");
 
+    const start = pickupPoint || (route.status === "ready" ? route.start : null);
+
     setFormError("");
     setSubmitting(true);
     try {
@@ -458,8 +489,8 @@ export default function FindLift() {
         body: JSON.stringify({
           pickup: p,
           destination: d,
-          pickup_lat: pickupCoords ? pickupCoords.lat : null,
-          pickup_lng: pickupCoords ? pickupCoords.lng : null,
+          pickup_lat: start ? start.lat : null,
+          pickup_lng: start ? start.lng : null,
           travel_date: travelDate,
           window_start: windowStart,
           window_end: addMinutes(windowStart, WINDOW_MINUTES),
@@ -516,11 +547,7 @@ export default function FindLift() {
   };
 
   /* ---- derived values ---------------------------------------------- */
-  const placeholderStat = estimate.status === "loading" ? "…" : "—";
-  const distanceText =
-    estimate.status === "ready" ? `${estimate.km.toFixed(1)} km` : placeholderStat;
-  const durationText =
-    estimate.status === "ready" ? durationRange(estimate.minutes) : placeholderStat;
+  const routeReady = route.status === "ready";
 
   const flexNote = windowStart
     ? `Within 30 minutes (±${FLEX_BUFFER_MINUTES} mins buffer around ${formatTime(windowStart)})`
@@ -636,8 +663,14 @@ export default function FindLift() {
           }}
         >
           {/* ------------------------ LEFT: FORM ------------------------ */}
-          <Box style={{ ...cardStyle, overflow: "hidden" }}>
-            <Box style={{ height: 5, background: `linear-gradient(90deg, ${teal}, #4fd1c5 55%, ${indigo})` }} />
+          <Box style={{ ...cardStyle, overflow: "visible" }}>
+            <Box
+              style={{
+                height: 5,
+                borderRadius: "22px 22px 0 0",
+                background: `linear-gradient(90deg, ${teal}, #4fd1c5 55%, ${indigo})`,
+              }}
+            />
 
             <Box style={{ padding: "26px 28px 28px" }}>
               <Typography component="h1" style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.4px" }}>
@@ -654,7 +687,8 @@ export default function FindLift() {
               <Box
                 className="fl-focus"
                 style={{
-                  background: "#f0f2fb",
+                  position: "relative", // anchors the suggestion list
+                  background: fieldBg,
                   borderRadius: 14,
                   padding: "14px 16px",
                   display: "flex",
@@ -687,17 +721,12 @@ export default function FindLift() {
                 </Box>
 
                 <Box style={{ flex: 1, minWidth: 0 }}>
-                  <input
-                    className="fl-input"
-                    aria-label="Pickup location"
+                  <PlaceSearchInput
+                    label="Pickup location"
                     value={pickup}
-                    onChange={(e) => {
-                      setPickup(e.target.value);
-                      setPickupCoords(null);
-                    }}
+                    onChange={changePickup}
+                    onPick={pickPickup}
                     placeholder="Where should we pick you up?"
-                    maxLength={200}
-                    style={{ ...bareInput, fontSize: 16 }}
                   />
                   <Box
                     style={{
@@ -720,6 +749,7 @@ export default function FindLift() {
                   role="button"
                   tabIndex={0}
                   aria-label="Use current GPS location"
+                  aria-disabled={locating}
                   onClick={fillCurrentLocation}
                   onKeyDown={activateOnKey(fillCurrentLocation)}
                   style={{
@@ -732,7 +762,7 @@ export default function FindLift() {
                     padding: "5px 9px",
                     fontSize: 11.5,
                     fontWeight: 700,
-                    cursor: "pointer",
+                    cursor: locating ? "default" : "pointer",
                     flexShrink: 0,
                   }}
                 >
@@ -769,7 +799,8 @@ export default function FindLift() {
               <Box
                 className="fl-focus"
                 style={{
-                  background: "#f0f2fb",
+                  position: "relative", // anchors the suggestion list
+                  background: fieldBg,
                   borderRadius: 14,
                   padding: "14px 16px",
                   display: "flex",
@@ -794,17 +825,13 @@ export default function FindLift() {
                 </Box>
 
                 <Box style={{ flex: 1, minWidth: 0 }}>
-                  <input
-                    className="fl-input"
-                    aria-label="Destination"
+                  <PlaceSearchInput
+                    label="Destination"
                     value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSearch();
-                    }}
+                    onChange={changeDestination}
+                    onPick={pickDestination}
+                    onEnter={handleSearch}
                     placeholder="Where do you want to go?"
-                    maxLength={200}
-                    style={{ ...bareInput, fontSize: 16 }}
                   />
                   <Box
                     style={{
@@ -826,7 +853,7 @@ export default function FindLift() {
                   <IconButton
                     aria-label="Clear destination"
                     size="small"
-                    onClick={() => setDestination("")}
+                    onClick={() => changeDestination("")}
                     style={{ color: "#8b92a6", flexShrink: 0 }}
                   >
                     <CloseIcon style={{ fontSize: 16 }} />
@@ -1071,196 +1098,22 @@ export default function FindLift() {
 
           {/* ------------------- RIGHT: MAP + INFO --------------------- */}
           <Box style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0 }}>
-            {/* map */}
-            <Box
-              style={{
-                ...cardStyle,
-                position: "relative",
-                overflow: "hidden",
-                aspectRatio: "700 / 450",
-                minHeight: 320,
-                background: "#eef0fb",
-              }}
-            >
-              <Box
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  transform: `scale(${zoom})`,
-                  transformOrigin: "50% 55%",
-                  transition: "transform 0.2s ease",
-                }}
+            {/* live route map */}
+            <Box style={{ ...cardStyle, overflow: "hidden", height: 460 }}>
+              <RouteMap
+                start={routeReady ? route.start : null}
+                end={routeReady ? route.end : null}
+                line={routeReady ? route.line : null}
+                minHeight={460}
+                padTop={120}
+                padBottom={50}
+                startName={routeReady ? shortName(pickup, "Pickup") : ""}
+                startTag="PICKUP"
+                endName={routeReady ? shortName(destination, "Destination") : ""}
+                endTag="DROP-OFF"
               >
-                <svg
-                  viewBox="0 0 700 450"
-                  width="100%"
-                  height="100%"
-                  preserveAspectRatio="xMidYMid slice"
-                  aria-hidden="true"
-                  style={{ position: "absolute", inset: 0 }}
-                >
-                  {/* parks */}
-                  <path d="M40 60 C110 40 170 90 150 150 C135 200 70 215 30 180 Z" fill="#dff3ea" />
-                  <path d="M470 330 C540 290 640 310 700 280 L700 450 L440 450 C430 400 440 360 470 330 Z" fill="#e1f3ec" />
-
-                  {/* roads */}
-                  <g stroke="#d8dbec" strokeWidth="2.5" fill="none" strokeLinecap="round">
-                    <path d="M290 0 L290 450" />
-                    <path d="M520 0 L520 190" />
-                    <path d="M0 305 L450 305" />
-                    <path d="M420 120 L700 120" />
-                    <path d="M180 450 L470 140" />
-                    <path d="M520 190 L700 235" />
-                    <path d="M330 150 L400 100" />
-                  </g>
-                </svg>
-
-                {/* route */}
-                <svg
-                  viewBox="0 0 700 450"
-                  width="100%"
-                  height="100%"
-                  preserveAspectRatio="xMidYMid slice"
-                  aria-hidden="true"
-                  style={{ position: "absolute", inset: 0 }}
-                >
-                  <path
-                    d="M115 350 C210 340 280 300 340 250 S470 175 595 130"
-                    fill="none"
-                    stroke="#9fe0d8"
-                    strokeWidth="14"
-                    strokeLinecap="round"
-                    opacity="0.55"
-                  />
-                  <path
-                    d="M115 350 C210 340 280 300 340 250 S470 175 595 130"
-                    fill="none"
-                    stroke={teal}
-                    strokeWidth="5"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M115 350 C210 340 280 300 340 250 S470 175 595 130"
-                    fill="none"
-                    stroke="#fff"
-                    strokeWidth="1.6"
-                    strokeDasharray="7 6"
-                    strokeLinecap="round"
-                  />
-
-                  {/* pickup pin */}
-                  <circle cx="115" cy="350" r="20" fill="rgba(0,105,95,0.18)" />
-                  <circle cx="115" cy="350" r="10" fill={teal} />
-                  <circle cx="115" cy="350" r="4.5" fill="#fff" />
-
-                  {/* drop pin */}
-                  <circle cx="595" cy="130" r="20" fill="rgba(85,89,226,0.2)" />
-                  <circle cx="595" cy="130" r="10" fill={indigo} />
-                  <circle cx="595" cy="130" r="4.5" fill="#fff" />
-                </svg>
-
-                <MapLabel
-                  style={{ left: "16.4%", top: "70%", transform: "translate(-12%, -100%)" }}
-                  dot={teal}
-                  name={shortName(pickup, "Pickup")}
-                  tag="PICKUP"
-                  tagBg="#cdeeea"
-                  tagColor={teal}
-                />
-                <MapLabel
-                  style={{ left: "85%", top: "21%", transform: "translate(-62%, -100%)" }}
-                  dot={indigo}
-                  name={shortName(destination, "Destination")}
-                  tag="DROP-OFF"
-                  tagBg="#dcdffb"
-                  tagColor="#3c40c8"
-                />
-              </Box>
-
-              {/* trip stats */}
-              <Box
-                className="fl-map-stats"
-                style={{
-                  position: "absolute",
-                  top: 16,
-                  left: 16,
-                  maxWidth: "calc(100% - 32px)",
-                  background: "#fff",
-                  borderRadius: 14,
-                  boxShadow: "0 6px 20px rgba(30,35,90,0.14)",
-                  padding: "12px 18px",
-                  display: "flex",
-                  gap: 26,
-                }}
-              >
-                <MapStat label="Distance" value={distanceText} />
-                <MapStat label="Est. Duration" value={durationText} accent />
-                <Box>
-                  <Typography style={mapStatLabel}>Corridor Density</Typography>
-                  <Typography
-                    component="div"
-                    style={{ fontSize: 14, fontWeight: 700, marginTop: 5, display: "flex", alignItems: "center", gap: 6 }}
-                  >
-                    <Box style={{ width: 8, height: 8, borderRadius: "50%", background: tealBright }} />
-                    {corridorDensity(windowStart)}
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* zoom controls */}
-              <Box
-                style={{
-                  position: "absolute",
-                  right: 16,
-                  bottom: 16,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 10,
-                }}
-              >
-                <Box
-                  style={{
-                    background: "#fff",
-                    borderRadius: 12,
-                    boxShadow: "0 3px 12px rgba(30,35,90,0.16)",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <IconButton
-                    aria-label="Zoom in"
-                    size="small"
-                    disabled={zoom >= 1.6}
-                    onClick={() => setZoom((z) => Math.min(1.6, +(z + 0.2).toFixed(1)))}
-                    style={{ color: dark }}
-                  >
-                    <AddIcon style={{ fontSize: 20 }} />
-                  </IconButton>
-                  <Box style={{ height: 1, background: "#e6e8f3", margin: "0 8px" }} />
-                  <IconButton
-                    aria-label="Zoom out"
-                    size="small"
-                    disabled={zoom <= 1}
-                    onClick={() => setZoom((z) => Math.max(1, +(z - 0.2).toFixed(1)))}
-                    style={{ color: dark }}
-                  >
-                    <RemoveIcon style={{ fontSize: 20 }} />
-                  </IconButton>
-                </Box>
-                <IconButton
-                  aria-label="Reset map view"
-                  size="small"
-                  onClick={() => setZoom(1)}
-                  style={{
-                    background: "#fff",
-                    color: dark,
-                    borderRadius: 12,
-                    boxShadow: "0 3px 12px rgba(30,35,90,0.16)",
-                  }}
-                >
-                  <MyLocationOutlinedIcon style={{ fontSize: 20 }} />
-                </IconButton>
-              </Box>
+                <RouteStats route={route} windowStart={windowStart} />
+              </RouteMap>
             </Box>
 
             {/* matching architecture */}
@@ -1348,7 +1201,7 @@ export default function FindLift() {
 
       <Snackbar
         open={toast.open}
-        autoHideDuration={4500}
+        autoHideDuration={5000}
         onClose={() => setToast((t) => ({ ...t, open: false }))}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
@@ -1366,11 +1219,203 @@ export default function FindLift() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Place input with suggestions                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A text input that suggests matching places while you type, like a map
+ * search box. Picking one fills the field and hands back its exact map point.
+ * The suggestion list is positioned against the nearest `position: relative`
+ * ancestor (the grey field box around it).
+ *
+ * `query` is only set by typing, so a value filled in from outside (GPS,
+ * swapping places, a picked suggestion) never triggers a search.
+ */
+function PlaceSearchInput({ label, value, onChange, onPick, onEnter, placeholder, maxLength = 200 }) {
+  const listId = useId();
+  const requestId = useRef(0);
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const [result, setResult] = useState({ status: "idle", items: [] });
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < MIN_SUGGEST_CHARS) {
+      setResult({ status: "idle", items: [] });
+      return undefined;
+    }
+
+    const id = ++requestId.current;
+    const controller = new AbortController();
+    setResult((r) => ({ ...r, status: "loading" }));
+
+    const timer = setTimeout(async () => {
+      try {
+        const items = await searchPlaces(q, controller.signal);
+        if (id === requestId.current) {
+          setResult({ status: "done", items });
+          setActive(-1);
+        }
+      } catch (err) {
+        if (err.name !== "AbortError" && id === requestId.current) {
+          setResult({ status: "error", items: [] });
+        }
+      }
+    }, 350); // wait for a pause in typing
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
+  // Only while the field still holds what was typed
+  const show = open && query === value && query.trim().length >= MIN_SUGGEST_CHARS;
+  const { status, items } = result;
+
+  const choose = (item) => {
+    onPick(item);
+    setQuery("");
+    setOpen(false);
+    setActive(-1);
+    setResult({ status: "idle", items: [] });
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      setOpen(false);
+      return;
+    }
+    if (show && items.length) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActive((i) => (i + 1) % items.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActive((i) => (i <= 0 ? items.length - 1 : i - 1));
+        return;
+      }
+      if (e.key === "Enter" && active >= 0) {
+        e.preventDefault();
+        choose(items[active]);
+        return;
+      }
+    }
+    if (e.key === "Enter" && onEnter) onEnter();
+  };
+
+  const note = (text) => (
+    <Typography style={{ fontSize: 13, color: muted, padding: "10px 12px", lineHeight: 1.5 }}>
+      {text}
+    </Typography>
+  );
+
+  return (
+    <>
+      <input
+        className="fl-input"
+        role="combobox"
+        aria-label={label}
+        aria-expanded={show}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
+        autoComplete="off"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setQuery(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        style={bareInput}
+      />
+
+      {show && (
+        <Box
+          id={listId}
+          role="listbox"
+          aria-label={`${label} suggestions`}
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            right: 0,
+            zIndex: 1200,
+            background: "#fff",
+            borderRadius: 14,
+            padding: 6,
+            maxHeight: 300,
+            overflowY: "auto",
+            boxShadow: "0 10px 30px rgba(30,35,90,0.22)",
+            border: "1px solid #e4e6f3",
+          }}
+        >
+          {items.map((item, i) => (
+            <Box
+              key={item.key}
+              id={`${listId}-${i}`}
+              role="option"
+              aria-selected={i === active}
+              // mousedown (not click) so the input doesn't lose focus first
+              onMouseDown={(e) => {
+                e.preventDefault();
+                choose(item);
+              }}
+              onMouseEnter={() => setActive(i)}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 12,
+                padding: "10px 12px",
+                borderRadius: 10,
+                cursor: "pointer",
+                background: i === active ? fieldBg : "transparent",
+              }}
+            >
+              <LocationOnIcon style={{ fontSize: 20, color: "#7b8294", marginTop: 2, flexShrink: 0 }} />
+              <Box style={{ minWidth: 0 }}>
+                <Typography style={{ fontSize: 14.5, fontWeight: 700, wordBreak: "break-word" }}>
+                  {item.title}
+                </Typography>
+                {item.subtitle && (
+                  <Typography style={{ fontSize: 12.5, color: muted, wordBreak: "break-word" }}>
+                    {item.subtitle}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          ))}
+
+          {status === "loading" && !items.length && (
+            <Box style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px" }}>
+              <CircularProgress size={16} style={{ color: tealBright }} />
+              <Typography style={{ fontSize: 13, color: muted }}>Searching places…</Typography>
+            </Box>
+          )}
+          {status === "done" && !items.length &&
+            note(`No places found for "${query.trim()}". Try a nearby landmark or a shorter name.`)}
+          {status === "error" &&
+            note("Suggestions are unavailable right now. You can still type the place and search.")}
+        </Box>
+      )}
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Small pieces                                                       */
 /* ------------------------------------------------------------------ */
 
 const tileStyle = {
-  background: "#f0f2fb",
+  background: fieldBg,
   borderRadius: 14,
   padding: "12px 14px",
   display: "flex",
@@ -1405,57 +1450,76 @@ const mapStatLabel = {
   lineHeight: 1.2,
 };
 
-function MapStat({ label, value, accent }) {
-  return (
-    <Box>
-      <Typography style={mapStatLabel}>{label}</Typography>
-      <Typography
-        style={{
-          fontSize: 20,
-          fontWeight: 800,
-          marginTop: 3,
-          color: accent ? tealBright : dark,
-          whiteSpace: "nowrap",
-        }}
-      >
-        {value}
-      </Typography>
-    </Box>
-  );
-}
+// Route summary drawn on top of the map
+function RouteStats({ route, windowStart }) {
+  const wrapper = {
+    position: "absolute",
+    top: 16,
+    left: 16,
+    zIndex: 1000,
+    maxWidth: "calc(100% - 84px)", // leaves room for the zoom buttons
+    background: "#fff",
+    borderRadius: 14,
+    boxShadow: "0 6px 20px rgba(30,35,90,0.18)",
+    padding: "12px 18px",
+    boxSizing: "border-box",
+  };
 
-function MapLabel({ style, dot, name, tag, tagBg, tagColor }) {
+  if (route.status === "ready") {
+    return (
+      <Box className="fl-map-stats" style={{ ...wrapper, display: "flex", gap: 26 }}>
+        <Box>
+          <Typography style={mapStatLabel}>Distance</Typography>
+          <Typography style={{ fontSize: 20, fontWeight: 800, marginTop: 3, whiteSpace: "nowrap" }}>
+            {route.distanceKm.toFixed(1)} km
+          </Typography>
+        </Box>
+        <Box>
+          <Typography style={mapStatLabel}>Est. Duration</Typography>
+          <Typography style={{ fontSize: 20, fontWeight: 800, marginTop: 3, color: tealBright, whiteSpace: "nowrap" }}>
+            {durationRange(route.durationMin)}
+          </Typography>
+        </Box>
+        <Box>
+          <Typography style={mapStatLabel}>Corridor Density</Typography>
+          <Typography
+            component="div"
+            style={{ fontSize: 14, fontWeight: 700, marginTop: 5, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}
+          >
+            <Box style={{ width: 8, height: 8, borderRadius: "50%", background: tealBright }} />
+            {corridorDensity(windowStart)}
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (route.status === "loading") {
+    return (
+      <Box style={{ ...wrapper, display: "flex", alignItems: "center", gap: 12 }}>
+        <CircularProgress size={20} style={{ color: tealBright }} />
+        <Typography style={{ fontSize: 13.5, fontWeight: 600 }}>Finding the best route…</Typography>
+      </Box>
+    );
+  }
+
+  if (route.status === "error") {
+    return (
+      <Box style={wrapper} role="status">
+        <Typography style={{ fontSize: 13, color: "#9a3412", lineHeight: 1.5 }}>
+          {route.message}
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
-    <Box
-      style={{
-        position: "absolute",
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        background: "#fff",
-        borderRadius: 10,
-        padding: "7px 12px",
-        boxShadow: "0 4px 14px rgba(30,35,90,0.16)",
-        whiteSpace: "nowrap",
-        marginTop: -18,
-        ...style,
-      }}
-    >
-      <Box style={{ width: 8, height: 8, borderRadius: "50%", background: dot, flexShrink: 0 }} />
-      <span style={{ fontSize: 13.5, fontWeight: 700 }}>{name}</span>
-      <span
-        style={{
-          background: tagBg,
-          color: tagColor,
-          borderRadius: 5,
-          padding: "2px 7px",
-          fontSize: 9.5,
-          fontWeight: 800,
-          letterSpacing: "0.4px",
-        }}
-      >
-        {tag}
-      </span>
+    <Box style={wrapper}>
+      <Typography style={{ fontSize: 14, fontWeight: 700 }}>Route preview</Typography>
+      <Typography style={{ fontSize: 13, color: muted, marginTop: 4, lineHeight: 1.5 }}>
+        Enter your pickup and destination to see your route, distance and
+        travel time.
+      </Typography>
     </Box>
   );
 }

@@ -18,6 +18,9 @@ class RideStop(BaseModel):
     name: str
     # Minutes after the rider departs that they reach this stop
     offset_min: int = Field(ge=0, le=300)
+    # Map point of the stop, when the rider picked it from the map search
+    lat: Optional[float] = Field(default=None, ge=-90, le=90)
+    lng: Optional[float] = Field(default=None, ge=-180, le=180)
 
     @field_validator("name")
     @classmethod
@@ -124,6 +127,8 @@ class CommuteCreate(BaseModel):
     pickup_lng: Optional[float] = Field(default=None, ge=-180, le=180)
     destination_lat: Optional[float] = Field(default=None, ge=-90, le=90)
     destination_lng: Optional[float] = Field(default=None, ge=-180, le=180)
+    stop_lat: Optional[float] = Field(default=None, ge=-90, le=90)
+    stop_lng: Optional[float] = Field(default=None, ge=-180, le=180)
     distance_km: Optional[float] = Field(default=None, gt=0, le=500)
 
     # One-way travel time; sets when the rider reaches each stop
@@ -222,6 +227,14 @@ class CommuteResponse(CommuteCreate):
 #  Matches (what a lift taker sees on the Compatible Riders screen)
 # ---------------------------------------------------------------------------
 
+class RoutePoint(BaseModel):
+    """One located stop of a rider's route."""
+
+    name: str
+    lat: float
+    lng: float
+
+
 class RideMatch(BaseModel):
     """One rider whose route fits a lift request."""
 
@@ -247,3 +260,56 @@ class RideMatch(BaseModel):
     route_note: str
     corridor: Optional[str] = None
     is_demo: bool = False
+    # The rider's stops with map points, so the lift taker can see the route.
+    # Empty when the rider's stops were typed rather than located.
+    route: list[RoutePoint] = []
+    board_index: Optional[int] = None  # this lift taker's pickup within `route`
+    alight_index: Optional[int] = None  # this lift taker's drop within `route`
+
+
+# ---------------------------------------------------------------------------
+#  Incoming requests (what a rider sees on their Lift Requests screens)
+# ---------------------------------------------------------------------------
+
+class IncomingRequest(BaseModel):
+    """A lift taker's request that fits one of the rider's commutes."""
+
+    id: str  # the lift request's id
+    offer_id: str  # which of the rider's trips it fits
+    status: str  # pending | accepted
+
+    # Lift takers are shown by first name only
+    requester_name: str
+    requester_photo_url: Optional[str] = None
+    requester_gender: Optional[str] = None
+    same_gender: bool = False
+    requester_verification: str
+    member_since: Optional[str] = None
+
+    pickup: str
+    destination: str
+    pickup_lat: Optional[float] = None
+    pickup_lng: Optional[float] = None
+    destination_lat: Optional[float] = None
+    destination_lng: Optional[float] = None
+
+    travel_date: str
+    window_start: str
+    window_end: str
+    expires_in_min: int
+    created_at: datetime
+
+    overlap_pct: int
+    pickup_time: str  # when the rider reaches the lift taker's pickup
+    arrival_time: str
+    duration_min: int
+    fare: int
+    walk_note: str
+    route_note: str
+
+
+class IncomingRequestsResponse(BaseModel):
+    requests: list[IncomingRequest]
+    pending_count: int
+    accepted_count: int
+    earnings: int  # rupees from completed lifts

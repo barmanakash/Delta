@@ -21,6 +21,9 @@ class LiftRequestCreate(BaseModel):
     # Only set when the user used the "Current GPS" button
     pickup_lat: Optional[float] = Field(default=None, ge=-90, le=90)
     pickup_lng: Optional[float] = Field(default=None, ge=-180, le=180)
+    # Map point of the destination, when it was picked from the place search
+    destination_lat: Optional[float] = Field(default=None, ge=-90, le=90)
+    destination_lng: Optional[float] = Field(default=None, ge=-180, le=180)
 
     travel_date: str  # ISO format: YYYY-MM-DD
     window_start: str  # 24h "HH:MM"
@@ -56,6 +59,16 @@ class LiftRequestCreate(BaseModel):
             raise ValueError("The end of the time window must be after its start")
         return self
 
+    @model_validator(mode="after")
+    def validate_coordinates(self):
+        for lat, lng in (
+            (self.pickup_lat, self.pickup_lng),
+            (self.destination_lat, self.destination_lng),
+        ):
+            if (lat is None) != (lng is None):
+                raise ValueError("Latitude and longitude must be sent together")
+        return self
+
 
 # ---------------------------------------------------------------------------
 #  Response Models
@@ -77,6 +90,15 @@ class LiftRequestResponse(BaseModel):
     # searching | cancelled | expired  (matched / completed arrive with matching)
     status: str
     created_at: datetime
+    # Map points (null when a place was only typed, not located)
+    pickup_lat: Optional[float] = None
+    pickup_lng: Optional[float] = None
+    destination_lat: Optional[float] = None
+    destination_lng: Optional[float] = None
+    # Filled in once a rider accepts the request
+    matched_offer_id: Optional[str] = None
+    matched_rider_name: Optional[str] = None
+    matched_pickup_time: Optional[str] = None
 
 
 class LiftMatchesResponse(BaseModel):

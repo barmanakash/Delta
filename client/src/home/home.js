@@ -7,7 +7,6 @@ import {
   Button,
   Avatar,
   Chip,
-  IconButton,
 } from "@mui/material";
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
@@ -31,18 +30,32 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import NearMeOutlinedIcon from "@mui/icons-material/NearMeOutlined";
-import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
-import RemoveOutlinedIcon from "@mui/icons-material/RemoveOutlined";
-import FullscreenOutlinedIcon from "@mui/icons-material/FullscreenOutlined";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import ProfileMenu from "../profilemenu/profilemenu";
+import RouteMap from "../createcommute/routemap";
 
 const teal = "#007d73";
 const dark = "#182136";
 const lightBg = "#f8f8ff";
 const lavender = "#f0f1fc";
 const API_BASE_URL = "http://localhost:8000";
+
+const DAY_LABELS = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
+const WEEKDAY_CODES = ["mon", "tue", "wed", "thu", "fri"];
+
+// ["mon","tue","wed","thu","fri"] -> "Mon–Fri"
+function describeDays(days = []) {
+  if (days.length === 7) return "Every day";
+  if (days.length === 5 && WEEKDAY_CODES.every((d) => days.includes(d))) return "Mon–Fri";
+  return days.map((d) => DAY_LABELS[d] || d).join(", ");
+}
+
+// "18:30" -> "6:30 PM"
+function formatClock(t) {
+  const [h, m] = t.split(":").map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+}
 
 export default function App() {
   const navigate = useNavigate();
@@ -51,6 +64,9 @@ export default function App() {
   const [photoUrl, setPhotoUrl] = useState(null);
   const [role, setRole] = useState("rider");
   const [user, setUser] = useState(null); // full profile, shown in the profile menu
+  const [commute, setCommute] = useState(null); // the rider's active commute (null = none yet)
+  const [commuteLoading, setCommuteLoading] = useState(true);
+  const [routeLine, setRouteLine] = useState(null); // road geometry for the map
 
   const firstName = fullName.trim().split(/\s+/)[0] || "there";
 
@@ -113,9 +129,58 @@ export default function App() {
       }
     };
 
+    // The commute the rider created on the Create Your Commute screen
+    const loadCommute = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/rides/commutes/active`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) setCommute(await response.json());
+      } catch {
+        // backend offline: the card shows its empty state
+      } finally {
+        setCommuteLoading(false);
+      }
+    };
+
     fetchUser();
+    loadCommute();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Draw the commute's real road route on the map (needs the saved coordinates)
+  useEffect(() => {
+    if (!commute || commute.pickup_lat == null || commute.destination_lat == null) {
+      setRouteLine(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const points = [
+      [commute.pickup_lng, commute.pickup_lat],
+      ...(commute.stop_lat != null ? [[commute.stop_lng, commute.stop_lat]] : []),
+      [commute.destination_lng, commute.destination_lat],
+    ];
+    const url =
+      `https://router.project-osrm.org/route/v1/driving/${points.map((p) => p.join(",")).join(";")}` +
+      "?overview=full&geometries=geojson";
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        const route = data.routes && data.routes[0];
+        if (!cancelled && route) {
+          setRouteLine(route.geometry.coordinates.map(([lng, lat]) => [lat, lng]));
+        }
+      })
+      .catch(() => {
+        // no line: the map still shows the pickup and destination markers
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [commute]);
 
   return (
     <Box
@@ -461,6 +526,49 @@ export default function App() {
                 marginBottom: 22,
               }}
             >
+              {commuteLoading ? (
+                <Box style={{ display: "flex", justifyContent: "center", padding: "40px 0" }}>
+                  <Typography style={{ fontSize: 13, color: "#626a6d" }}>
+                    Loading your commute…
+                  </Typography>
+                </Box>
+              ) : !commute ? (
+                <Box
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    textAlign: "center",
+                    padding: "28px 12px",
+                  }}
+                >
+                  <TwoWheelerOutlinedIcon style={{ fontSize: 40, color: teal }} />
+                  <Typography style={{ fontSize: 18, fontWeight: 700, marginTop: 10 }}>
+                    No active commute yet
+                  </Typography>
+                  <Typography style={{ fontSize: 12, color: "#626a6d", marginTop: 6, maxWidth: 360 }}>
+                    Create your daily commute so verified lift takers on your route can find you.
+                  </Typography>
+                  <Button
+                    onClick={() => navigate("/createcommute")}
+                    startIcon={<AddRoadOutlinedIcon />}
+                    style={{
+                      marginTop: 18,
+                      height: 38,
+                      padding: "0 20px",
+                      borderRadius: 20,
+                      background: teal,
+                      color: "#fff",
+                      textTransform: "none",
+                      fontWeight: 700,
+                      fontSize: 13,
+                    }}
+                  >
+                    + Create Route
+                  </Button>
+                </Box>
+              ) : (
+                <>
               <Box
                 style={{
                   display: "flex",
@@ -515,7 +623,7 @@ export default function App() {
                             color: "#4b5361",
                           }}
                         >
-                          ROUTE #SR-4092
+                          {`ROUTE #SR-${commute.id.slice(-4).toUpperCase()}`}
                         </Typography>
                       </Box>
 
@@ -533,7 +641,7 @@ export default function App() {
                 </Box>
 
                 <Chip
-                  label="♙ 1 Seat Available"
+                  label={`♙ ${commute.seats} Seat${commute.seats === 1 ? "" : "s"} Available`}
                   style={{
                     height: 25,
                     background: "#75e7df",
@@ -597,12 +705,16 @@ export default function App() {
                   </Typography>
 
                   <Typography
+                    title={commute.pickup}
                     style={{
                       fontSize: 14,
                       fontWeight: 700,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    PNT Naka
+                    {commute.pickup}
                   </Typography>
 
                   <Box
@@ -631,12 +743,16 @@ export default function App() {
                   </Typography>
 
                   <Typography
+                    title={commute.destination}
                     style={{
                       fontSize: 14,
                       fontWeight: 700,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    Madan Mahal Station
+                    {commute.destination}
                   </Typography>
                 </Box>
 
@@ -648,8 +764,11 @@ export default function App() {
                   }}
                 />
 
-                <Metric title="Est. Distance" value="8.4 km" />
-                <Metric title="Travel Time" value="22 mins" teal />
+                <Metric
+                  title="Est. Distance"
+                  value={commute.distance_km ? `${commute.distance_km} km` : "—"}
+                />
+                <Metric title="Travel Time" value={`${commute.duration_min} mins`} teal />
                 <Box style={{ marginLeft: 19 }}>
                   <Typography
                     style={{
@@ -667,7 +786,7 @@ export default function App() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    Bajaj Pulsar NS200
+                    {commute.vehicle_model}
                   </Typography>
 
                   <Typography
@@ -676,7 +795,7 @@ export default function App() {
                       color: "#555c62",
                     }}
                   >
-                    MP 20 ZB 4821
+                    {commute.vehicle_plate}
                   </Typography>
                 </Box>
               </Box>
@@ -714,7 +833,7 @@ export default function App() {
                       fontWeight: 700,
                     }}
                   >
-                    Via Napier Town Corridor
+                    {commute.stop ? `Via ${commute.stop}` : "Direct route"}
                   </Typography>
 
                   <Typography
@@ -723,12 +842,16 @@ export default function App() {
                       color: "#60666b",
                     }}
                   >
-                    • No roadblocks reported
+                    {`• ${formatClock(commute.outbound_time)}${
+                      commute.return_enabled && commute.return_time
+                        ? `, return ${formatClock(commute.return_time)}`
+                        : ""
+                    }`}
                   </Typography>
                 </Box>
 
                 <Chip
-                  label="Optimal Corridor"
+                  label={describeDays(commute.days)}
                   style={{
                     height: 20,
                     background: "#dddfff",
@@ -806,6 +929,8 @@ export default function App() {
                   </Typography>
                 </Box>
               </Box>
+                </>
+              )}
             </Box>
 
             {/* LIFT REQUESTS */}
@@ -1061,26 +1186,6 @@ export default function App() {
                     Jabalpur Metro Transit Spine
                   </Typography>
                 </Box>
-
-                <Box
-                  style={{
-                    height: 35,
-                    display: "flex",
-                    alignItems: "center",
-                    background: "#e9ebfb",
-                    borderRadius: 8,
-                  }}
-                >
-                  <IconButton size="small">
-                    <AddOutlinedIcon style={{ fontSize: 17 }} />
-                  </IconButton>
-                  <IconButton size="small">
-                    <RemoveOutlinedIcon style={{ fontSize: 17 }} />
-                  </IconButton>
-                  <IconButton size="small">
-                    <FullscreenOutlinedIcon style={{ fontSize: 17 }} />
-                  </IconButton>
-                </Box>
               </Box>
 
               <Box
@@ -1094,135 +1199,66 @@ export default function App() {
                   border: "1px solid #e0e3f2",
                 }}
               >
-                {/* MAP GRID */}
-                <Box
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    backgroundImage:
-                      "linear-gradient(#d8ddec 1px, transparent 1px), linear-gradient(90deg,#d8ddec 1px,transparent 1px)",
-                    backgroundSize: "74px 64px",
-                    opacity: 0.75,
-                  }}
-                />
-
-                <svg
-                  width="100%"
-                  height="100%"
-                  viewBox="0 0 350 270"
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                  }}
-                >
-                  <path
-                    d="M50 65 C95 78 125 120 170 140 C220 165 230 185 295 215"
-                    fill="none"
-                    stroke="#159d91"
-                    strokeWidth="5"
-                    strokeLinecap="round"
-                  />
-
-                  <path
-                    d="M50 65 C95 78 125 120 170 140 C220 165 230 185 295 215"
-                    fill="none"
-                    stroke="#b6eee8"
-                    strokeWidth="9"
-                    strokeLinecap="round"
-                    opacity="0.28"
-                  />
-
-                  <circle
-                    cx="50"
-                    cy="65"
-                    r="9"
-                    fill="#504fd7"
-                    stroke="#fff"
-                    strokeWidth="4"
-                  />
-
-                  <circle
-                    cx="205"
-                    cy="164"
-                    r="9"
-                    fill="#b67808"
-                    stroke="#fff"
-                    strokeWidth="4"
-                  />
-
-                  <circle
-                    cx="295"
-                    cy="215"
-                    r="9"
-                    fill="#007c74"
-                    stroke="#fff"
-                    strokeWidth="4"
-                  />
-                </svg>
-
-                <MapLabel
-                  text="PNT Naka"
-                  style={{
-                    left: 23,
-                    top: 38,
-                  }}
-                />
-
-                <MapLabel
-                  text="◉ Ranjhi Pickup"
-                  style={{
-                    left: 174,
-                    top: 119,
-                    color: "#514ad8",
-                  }}
-                />
-
-                <MapLabel
-                  text="⚑ Madan Mahal"
-                  style={{
-                    right: 29,
-                    bottom: 46,
-                    background: teal,
-                    color: "#fff",
-                  }}
-                />
-
-                <Box
-                  style={{
-                    position: "absolute",
-                    left: 11,
-                    right: 11,
-                    bottom: 10,
-                    height: 34,
-                    background: "#fff",
-                    borderRadius: 17,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "0 13px",
-                    boxSizing: "border-box",
-                    boxShadow: "0 2px 5px rgba(0,0,0,0.08)",
-                  }}
-                >
-                  <Typography
+                {commute && commute.pickup_lat != null && commute.destination_lat != null ? (
+                  <RouteMap
+                    start={{ lat: commute.pickup_lat, lng: commute.pickup_lng }}
+                    stop={
+                      commute.stop_lat != null
+                        ? { lat: commute.stop_lat, lng: commute.stop_lng }
+                        : null
+                    }
+                    end={{ lat: commute.destination_lat, lng: commute.destination_lng }}
+                    line={routeLine}
+                    minHeight={270}
+                    padTop={50}
+                    padBottom={30}
+                  >
+                    <Box
+                      style={{
+                        position: "absolute",
+                        top: 10,
+                        left: 11,
+                        right: 66,
+                        zIndex: 1000,
+                        height: 34,
+                        background: "#fff",
+                        borderRadius: 17,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "0 13px",
+                        boxSizing: "border-box",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.08)",
+                      }}
+                    >
+                      <Typography style={{ fontSize: 10, fontWeight: 700 }}>
+                        <span style={{ color: teal }}>●</span> Fastest road route
+                      </Typography>
+                      <Typography style={{ fontSize: 10, fontWeight: 700, color: teal }}>
+                        {commute.duration_min} min ETA
+                      </Typography>
+                    </Box>
+                  </RouteMap>
+                ) : (
+                  <Box
                     style={{
-                      fontSize: 10,
-                      fontWeight: 700,
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 24,
+                      textAlign: "center",
                     }}
                   >
-                    <span style={{ color: teal }}>●</span> Live Traffic: Moderate
-                  </Typography>
-
-                  <Typography
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: teal,
-                    }}
-                  >
-                    22 min ETA
-                  </Typography>
-                </Box>
+                    <Typography style={{ fontSize: 12, color: "#626a6d", maxWidth: 260 }}>
+                      {commuteLoading
+                        ? "Loading your route…"
+                        : commute
+                        ? "No map preview was saved for this route. Edit your route to add one."
+                        : "Create a commute to see your route on the map."}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
 
               <Box
@@ -1249,7 +1285,7 @@ export default function App() {
                     fontWeight: 700,
                   }}
                 >
-                  Congestion-Free Route
+                  {commute && commute.distance_km ? `${commute.distance_km} km route` : "Route preview"}
                 </Typography>
               </Box>
             </Box>
@@ -1951,26 +1987,6 @@ function SafetyItem({ text }) {
       >
         {text}
       </Typography>
-    </Box>
-  );
-}
-
-function MapLabel({ text, style }) {
-  return (
-    <Box
-      style={{
-        position: "absolute",
-        background: "#fff",
-        borderRadius: 4,
-        padding: "3px 7px",
-        boxShadow: "0 1px 4px rgba(0,0,0,.12)",
-        fontSize: 9,
-        fontWeight: 700,
-        color: "#303746",
-        ...style,
-      }}
-    >
-      {text}
     </Box>
   );
 }
