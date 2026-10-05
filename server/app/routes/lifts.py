@@ -40,6 +40,9 @@ def _to_response(doc: dict) -> LiftRequestResponse:
     if state == "searching" and _window_has_passed(doc):
         state = "expired"
 
+    # Once a rider accepts, the request carries who they are and when they arrive
+    accepted = (doc.get("accepted_match") or {}) if state == "matched" else {}
+
     return LiftRequestResponse(
         id=str(doc["_id"]),
         pickup=doc["pickup"],
@@ -53,6 +56,13 @@ def _to_response(doc: dict) -> LiftRequestResponse:
         flexible_pickup=doc.get("flexible_pickup", False),
         status=state,
         created_at=doc["created_at"],
+        pickup_lat=doc.get("pickup_lat"),
+        pickup_lng=doc.get("pickup_lng"),
+        destination_lat=doc.get("destination_lat"),
+        destination_lng=doc.get("destination_lng"),
+        matched_offer_id=accepted.get("offer_id"),
+        matched_rider_name=accepted.get("rider_name"),
+        matched_pickup_time=accepted.get("pickup_time"),
     )
 
 
@@ -186,6 +196,8 @@ async def create_lift_request(
         "pickup_lat": payload.pickup_lat,
         "pickup_lng": payload.pickup_lng,
         "destination": payload.destination,
+        "destination_lat": payload.destination_lat,
+        "destination_lng": payload.destination_lng,
         "travel_date": travel.isoformat(),
         "window_start": payload.window_start,
         "window_end": payload.window_end,
@@ -298,6 +310,11 @@ async def get_request_matches(
 
     response = _to_response(doc)
     matches: list[RideMatch] = []
+    accepted_match: RideMatch | None = None
+
+    # A rider has accepted: show who, with the details they were matched on
+    if response.status == "matched" and doc.get("accepted_match"):
+        accepted_match = RideMatch(**doc["accepted_match"])
 
     if response.status == "searching":
         cursor = get_ride_offers_collection().find(
@@ -311,7 +328,22 @@ async def get_request_matches(
             }
         )
         now = datetime.now()
+        declined = set(doc.get("declined_by", []))  # riders who said no to this request
+        requests_col = get_lift_requests_collection()
         for offer in await cursor.to_list(length=200):
+            if offer.get("user_id") in declined:
+                continue
+            # One pillion seat per trip per day: skip a ride another lift taker
+            # has already been accepted on for this date
+            booked = await requests_col.count_documents(
+                {
+                    "status": "matched",
+                    "accepted_offer_id": offer["_id"],
+                    "travel_date": doc["travel_date"],
+                }
+            )
+            if booked >= offer["seats_available"]:
+                continue
             found = build_match(offer, doc, now)
             if found:
                 matches.append(RideMatch(**found))
@@ -322,4 +354,5 @@ async def get_request_matches(
         search_window_start=doc.get("search_window_start", doc["window_start"]),
         search_window_end=doc.get("search_window_end", doc["window_end"]),
         matches=matches,
+        accepted_match=accepted_match,
     )

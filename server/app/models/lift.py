@@ -109,3 +109,5 @@ class LiftMatchesResponse(BaseModel):
     search_window_start: str
     search_window_end: str
     matches: list[RideMatch]
+    # Set once a rider has accepted this request (status "matched")
+    accepted_match: Optional[RideMatch] = None

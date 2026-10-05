@@ -7,6 +7,8 @@ import {
   Button,
   Avatar,
   Chip,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
@@ -34,6 +36,13 @@ import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import ProfileMenu from "../profilemenu/profilemenu";
 import RouteMap from "../createcommute/routemap";
+import {
+  useIncomingRequests,
+  declineRequest,
+  formatExpiry,
+  initialsOf,
+  toAbsoluteUrl as absoluteUrl,
+} from "../riderrequests/riderrequests";
 
 const teal = "#007d73";
 const dark = "#182136";
@@ -67,6 +76,28 @@ export default function App() {
   const [commute, setCommute] = useState(null); // the rider's active commute (null = none yet)
   const [commuteLoading, setCommuteLoading] = useState(true);
   const [routeLine, setRouteLine] = useState(null); // road geometry for the map
+
+  // Lift requests from lift takers whose trips fit this rider's commute
+  const incoming = useIncomingRequests();
+  const pendingRequests = incoming.requests.filter((r) => r.status === "pending");
+  const [busyId, setBusyId] = useState(null);
+  const [toast, setToast] = useState({ open: false, message: "", severity: "info" });
+
+  const todayCode = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
+  const runsToday = Boolean(commute && commute.days.includes(todayCode));
+
+  const handleDecline = async (requestId) => {
+    if (busyId) return;
+    setBusyId(requestId);
+    const result = await declineRequest(requestId);
+    setBusyId(null);
+    setToast({
+      open: true,
+      message: result.ok ? "Request declined. It stays open for other riders." : result.message,
+      severity: result.ok ? "info" : "error",
+    });
+    incoming.reload();
+  };
 
   const firstName = fullName.trim().split(/\s+/)[0] || "there";
 
@@ -311,7 +342,7 @@ export default function App() {
               <NavItem
                 icon={<PeopleAltOutlinedIcon style={{ fontSize: 17 }} />}
                 text="Requests"
-                badge="2"
+                badge={incoming.pendingCount > 0 ? String(incoming.pendingCount) : undefined}
               />
             </div>
             <div
@@ -490,7 +521,7 @@ export default function App() {
                   color: dark,
                 }}
               >
-                ₹1,480
+                {`₹${incoming.earnings.toLocaleString("en-IN")}`}
               </Typography>
 
               <Typography
@@ -968,10 +999,14 @@ export default function App() {
                   </Typography>
 
                   <Chip
-                    label="2 New Requests"
+                    label={
+                      pendingRequests.length
+                        ? `${pendingRequests.length} New Request${pendingRequests.length === 1 ? "" : "s"}`
+                        : "No new requests"
+                    }
                     style={{
                       height: 21,
-                      background: "#5753df",
+                      background: pendingRequests.length ? "#5753df" : "#9aa1b5",
                       color: "#fff",
                       fontSize: 9,
                       fontWeight: 700,
@@ -989,24 +1024,55 @@ export default function App() {
                 </Typography>
               </Box>
 
-              <RequestCard
-                first
-                name="Rohit Sharma"
-                rating="4.9"
-                route="Pickup: Ranjhi Crossing"
-                drop="Dropoff: Madan Mahal Gate 2"
-                match="98% Route Match"
-                fare="₹45"
-              />
-
-              <RequestCard
-                name="Ankit Verma"
-                rating="4.8"
-                route="Damoh Naka → Wright Town"
-                match="92% Match"
-                fare="₹40 Split"
-                second
-              />
+              {incoming.loading ? (
+                <Typography style={{ fontSize: 12, color: "#687075", textAlign: "center", padding: "26px 0" }}>
+                  Loading lift requests…
+                </Typography>
+              ) : incoming.error ? (
+                <Typography style={{ fontSize: 12, color: "#b42318", textAlign: "center", padding: "26px 0" }}>
+                  {incoming.error}
+                </Typography>
+              ) : pendingRequests.length === 0 ? (
+                <Box style={{ background: lavender, borderRadius: 9, padding: "26px 18px", textAlign: "center" }}>
+                  <Typography style={{ fontSize: 14, fontWeight: 700 }}>
+                    No lift requests right now
+                  </Typography>
+                  <Typography style={{ fontSize: 11, color: "#626a6e", marginTop: 5 }}>
+                    {commute
+                      ? "When a verified commuter's trip fits your route, it will show up here."
+                      : "Create your commute so lift takers on your route can find you."}
+                  </Typography>
+                </Box>
+              ) : (
+                pendingRequests.slice(0, 3).map((request, index) => (
+                  <RequestCard
+                    key={request.id}
+                    first={index === 0}
+                    second={index > 0}
+                    name={request.requester_name}
+                    initials={initialsOf(request.requester_name)}
+                    photoUrl={absoluteUrl(request.requester_photo_url)}
+                    verified={request.requester_verification}
+                    sameGender={request.same_gender}
+                    route={
+                      index === 0
+                        ? `Pickup: ${request.pickup}`
+                        : `${request.pickup} → ${request.destination}`
+                    }
+                    drop={`Dropoff: ${request.destination}`}
+                    match={
+                      index === 0 ? `${request.overlap_pct}% Route Match` : `${request.overlap_pct}% Match`
+                    }
+                    fare={index === 0 ? `₹${request.fare}` : `₹${request.fare} Split`}
+                    diversion={request.walk_note}
+                    expires={`Expires in ${formatExpiry(request.expires_in_min)}`}
+                    busy={busyId === request.id}
+                    onAccept={() => navigate(`/confirmrequest/${request.id}`)}
+                    onDecline={() => handleDecline(request.id)}
+                    onView={() => navigate(`/viewRequest/${request.id}`)}
+                  />
+                ))
+              )}
 
               <Box
                 style={{
@@ -1016,13 +1082,15 @@ export default function App() {
                 }}
               >
                 <Typography
+                  onClick={() => navigate("/liftrequest")}
                   style={{
                     fontSize: 12,
                     fontWeight: 700,
                     color: teal,
+                    cursor: "pointer",
                   }}
                 >
-                  View All Incoming Requests (2) →
+                  {`View All Incoming Requests (${pendingRequests.length}) →`}
                 </Typography>
               </Box>
             </Box>
@@ -1102,7 +1170,11 @@ export default function App() {
                       marginTop: 3,
                     }}
                   >
-                    Morning Departure: 09:15 AM (Today) &nbsp; •
+                    {commute
+                      ? `Morning Departure: ${formatClock(commute.outbound_time)} (${
+                          runsToday ? "Today" : describeDays(commute.days)
+                        }) •`
+                      : "No commute scheduled yet"}
                   </Typography>
 
                   <Typography
@@ -1112,7 +1184,11 @@ export default function App() {
                       marginTop: 3,
                     }}
                   >
-                    Return Slot: 06:30 PM (Evening Commute)
+                    {commute
+                      ? commute.return_enabled && commute.return_time
+                        ? `Return Slot: ${formatClock(commute.return_time)} (Evening Commute)`
+                        : "No evening return offered"
+                      : "Create a route to start sharing rides"}
                   </Typography>
 
                   <Typography
@@ -1129,6 +1205,7 @@ export default function App() {
               </Box>
 
               <Button
+                onClick={() => navigate("/createcommute")}
                 startIcon={<EditOutlinedIcon />}
                 style={{
                   height: 34,
@@ -1539,6 +1616,21 @@ export default function App() {
           <Typography style={footerLink}>Support Desk</Typography>
         </Box>
       </Box>
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setToast((t) => ({ ...t, open: false }))}
+          severity={toast.severity}
+          variant="filled"
+          style={{ width: "100%" }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
