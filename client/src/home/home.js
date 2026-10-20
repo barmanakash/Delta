@@ -1716,13 +1716,22 @@ function Metric({ title, value, teal: isTeal }) {
 
 function RequestCard({
   first,
+  second,
   name,
-  rating,
+  initials,
+  photoUrl,
+  verified,
+  sameGender,
   route,
   drop,
   match,
   fare,
-  second,
+  diversion,
+  expires,
+  busy,
+  onAccept,
+  onDecline,
+  onView,
 }) {
   if (second) {
     return (
@@ -1747,6 +1756,7 @@ function RequestCard({
           }}
         >
           <Avatar
+            src={photoUrl || undefined}
             style={{
               width: 38,
               height: 38,
@@ -1754,7 +1764,7 @@ function RequestCard({
               fontSize: 11,
             }}
           >
-            AV
+            {!photoUrl && initials}
           </Avatar>
 
           <Box>
@@ -1777,10 +1787,11 @@ function RequestCard({
               <Typography
                 style={{
                   fontSize: 10,
-                  color: "#99731b",
+                  color: teal,
+                  fontWeight: 600,
                 }}
               >
-                ☆{rating}
+                {verified}
               </Typography>
             </Box>
 
@@ -1827,6 +1838,7 @@ function RequestCard({
           </Box>
 
           <Button
+            onClick={onView}
             style={{
               height: 32,
               background: "#e5e8fa",
@@ -1868,6 +1880,7 @@ function RequestCard({
           }}
         >
           <Avatar
+            src={photoUrl || undefined}
             style={{
               width: 42,
               height: 42,
@@ -1875,7 +1888,7 @@ function RequestCard({
               fontSize: 11,
             }}
           >
-            RS
+            {!photoUrl && initials}
           </Avatar>
 
           <Box>
@@ -1895,18 +1908,6 @@ function RequestCard({
                 {name}
               </Typography>
 
-              <Typography
-                style={{
-                  fontSize: 10,
-                  color: "#9b741b",
-                  fontWeight: 700,
-                  background: "#fff2cb",
-                  padding: "2px 5px",
-                  borderRadius: 4,
-                }}
-              >
-                ★ {rating}
-              </Typography>
             </Box>
 
             <Typography
@@ -1916,10 +1917,15 @@ function RequestCard({
                 marginTop: 3,
               }}
             >
-              Verified Commuter&nbsp;&nbsp; • &nbsp;
-              <span style={{ color: teal, fontWeight: 700 }}>
-                Same-Gender Verified
-              </span>
+              {verified}
+              {sameGender && (
+                <>
+                  &nbsp;&nbsp; • &nbsp;
+                  <span style={{ color: teal, fontWeight: 700 }}>
+                    Same-Gender Verified
+                  </span>
+                </>
+              )}
             </Typography>
           </Box>
         </Box>
@@ -1999,7 +2005,7 @@ function RequestCard({
               marginTop: 4,
             }}
           >
-            Along corridor • 0.3 km diversion
+            {diversion}
           </Typography>
         </Box>
       </Box>
@@ -2012,6 +2018,8 @@ function RequestCard({
         }}
       >
         <Button
+          onClick={onAccept}
+          disabled={busy}
           startIcon={<CheckCircleOutlineIcon />}
           style={{
             height: 32,
@@ -2028,6 +2036,8 @@ function RequestCard({
         </Button>
 
         <Button
+          onClick={onDecline}
+          disabled={busy}
           style={{
             height: 32,
             color: "#555e64",
@@ -2047,7 +2057,7 @@ function RequestCard({
             color: "#525a5e",
           }}
         >
-          Expires in 14 mins
+          {expires}
         </Typography>
       </Box>
     </Box>

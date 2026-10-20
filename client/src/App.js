@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./LandingPage";
 import Login from "./login/login";
 import SignIn from "./signin/signin";
@@ -37,9 +37,13 @@ function App() {
         <Route path="/findlift" element={<FindLift />} />
         <Route path="/compatibleriders/:requestId" element={<CompatibleRiders />} />
         <Route path="/liftrequest" element={<LiftRequest />} />
-        <Route path="/viewRequest" element={<ViewRequest />} />
-        <Route path="/confirmrequest" element={<ConfirmRequest />} />
-        <Route path="/matchrequest" element={<MatchRequest />} />
+        <Route path="/viewRequest/:requestId" element={<ViewRequest />} />
+        <Route path="/confirmrequest/:requestId" element={<ConfirmRequest />} />
+        <Route path="/matchrequest/:requestId" element={<MatchRequest />} />
+        {/* Old links without a request id lead back to the list */}
+        <Route path="/viewRequest" element={<Navigate to="/liftrequest" replace />} />
+        <Route path="/confirmrequest" element={<Navigate to="/liftrequest" replace />} />
+        <Route path="/matchrequest" element={<Navigate to="/liftrequest" replace />} />
         <Route path="/trips" element={<Trips />} />
         <Route path="/verifypassanger" element={<VerifyPassanger />} />
       </Routes>
