@@ -308,56 +308,79 @@ export default function App() {
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            height: "100%",
-            flex: 1,
-            minWidth: 0,
+            gap: 4,
             margin: "0 20px",
+            padding: 4,
+            height: 48,
+            boxSizing: "border-box",
+            borderRadius: 30,
+            background: "#f1f2fb",
           }}
         >
-          <Box style={{ flexShrink: 0 }}>
-            <NavItem
-              active
-              icon={<HomeOutlinedIcon style={{ fontSize: 17 }} />}
-              text="Home"
-            />
-          </Box>
-
-          <Box
-            onClick={() => navigate("/createcommute")}
-            style={{ cursor: "pointer", flexShrink: 0 }}
-          >
-            <NavItem
-              icon={<RouteOutlinedIcon style={{ fontSize: 17 }} />}
-              text="My Route"
-            />
-          </Box>
-
-          <Box
-            onClick={() => navigate("/liftrequest")}
-            style={{ cursor: "pointer", flexShrink: 0 }}
-          >
-            <NavItem
-              icon={<PeopleAltOutlinedIcon style={{ fontSize: 17 }} />}
-              text="Requests"
-              badge={
-                incoming.pendingCount > 0
-                  ? String(incoming.pendingCount)
-                  : undefined
-              }
-            />
-          </Box>
-
-          <Box
-            onClick={() => navigate("/trips")}
-            style={{ cursor: "pointer", flexShrink: 0 }}
-          >
-            <NavItem
-              icon={<DirectionsCarOutlinedIcon style={{ fontSize: 17 }} />}
-              text="Trips"
-            />
-          </Box>
+          {[
+            { label: "Home", path: "/home", icon: <HomeOutlinedIcon style={{ fontSize: 17 }} /> },
+            { label: "My Route", path: "/createcommute", icon: <RouteOutlinedIcon style={{ fontSize: 17 }} /> },
+            { label: "Requests", path: "/liftrequest", icon: <PeopleAltOutlinedIcon style={{ fontSize: 17 }} /> },
+            { label: "Trips", path: "/trips", icon: <DirectionsCarOutlinedIcon style={{ fontSize: 17 }} /> },
+          ].map(({ label, path, icon }) => {
+            const active = path === "/home";
+            const badge = label === "Requests" && incoming.pendingCount > 0
+              ? String(incoming.pendingCount)
+              : undefined;
+            return (
+              <Box
+                key={path}
+                role="button"
+                tabIndex={0}
+                aria-current={active ? "page" : undefined}
+                onClick={() => navigate(path)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    navigate(path);
+                  }
+                }}
+                style={{
+                  height: 40,
+                  minWidth: active ? 74 : 88,
+                  padding: active ? "0 13px" : "0 10px",
+                  borderRadius: 24,
+                  background: active ? teal : "transparent",
+                  color: active ? "#fff" : "#2b3347",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 5,
+                  boxSizing: "border-box",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {icon}
+                <Typography style={{ fontSize: 12, fontWeight: active ? 700 : 600 }}>
+                  {label}
+                </Typography>
+                {badge && (
+                  <Box
+                    style={{
+                      minWidth: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      background: "#71e7df",
+                      color: "#006c66",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 11,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {badge}
+                  </Box>
+                )}
+              </Box>
+            );
+          })}
         </Box>
 
         {/* Right section: Notifications and profile */}
@@ -1650,56 +1673,6 @@ export default function App() {
 }
 
 /* ---------------- COMPONENTS ---------------- */
-
-function NavItem({ active, icon, text, badge }) {
-  return (
-    <Box
-      style={{
-        height: 40,
-        minWidth: active ? 74 : 88,
-        padding: active ? "0 13px" : "0 10px",
-        borderRadius: active ? 8 : 0,
-        background: active ? teal : "transparent",
-        color: active ? "#fff" : "#3f474c",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 5,
-        boxSizing: "border-box",
-      }}
-    >
-      {icon}
-
-      <Typography
-        style={{
-          fontSize: 12,
-          fontWeight: active ? 700 : 600,
-        }}
-      >
-        {text}
-      </Typography>
-
-      {badge && (
-        <Box
-          style={{
-            minWidth: 17,
-            height: 17,
-            borderRadius: 9,
-            background: "#5b52dc",
-            color: "#fff",
-            fontSize: 9,
-            fontWeight: 700,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {badge}
-        </Box>
-      )}
-    </Box>
-  );
-}
 
 function Metric({ title, value, teal: isTeal }) {
   return (
