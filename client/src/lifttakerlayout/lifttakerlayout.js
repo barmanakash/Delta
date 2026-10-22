@@ -105,7 +105,7 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
                 <ShieldOutlinedIcon style={{ color: "#fff", fontSize: 20 }} />
               </Box>
               <Typography style={{ fontSize: 18, fontWeight: 800, color: dark }}>
-                Safe<span style={{ color: tealBright }}>Route</span>
+                Friend<span style={{ color: tealBright }}>Ride</span>
               </Typography>
             </Box>
 
