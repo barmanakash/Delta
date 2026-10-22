@@ -10,6 +10,10 @@ import {
 } from "@mui/material";
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import RouteOutlinedIcon from "@mui/icons-material/RouteOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
+import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
@@ -84,142 +88,150 @@ function App() {
       {/* HEADER */}
       <Box
         sx={{
-          height: 70,
+          minHeight: 70,
           background: "#fff",
           borderBottom: "1px solid #e9e9f1",
+          position: "sticky",
+          top: 0,
+          zIndex: 30,
           display: "flex",
           alignItems: "center",
-          px: 3,
           justifyContent: "space-between",
+          gap: 2,
+          px: 3,
+          py: 1,
+          boxSizing: "border-box",
+          flexWrap: "wrap",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexShrink: 0 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Box
               sx={{
                 width: 30,
                 height: 30,
-                borderRadius: "7px",
-                background: "#07947f",
+                borderRadius: 1,
+                background: "#007d73",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                flexShrink: 0,
               }}
             >
-              <ShieldOutlinedIcon
-                sx={{ color: "#fff", fontSize: 21 }}
-              />
+              <ShieldOutlinedIcon sx={{ color: "#fff", fontSize: 20 }} />
             </Box>
-
             <Typography
               sx={{
-                fontWeight: 700,
-                fontSize: 17,
-                color: "#182133",
+                fontSize: 18,
+                fontWeight: 800,
+                color: dark,
+                whiteSpace: "nowrap",
               }}
             >
-              Safe
-              <span style={{ color: "#008f7d" }}>Route</span>
+              FriendRide
             </Typography>
           </Box>
-
-          <Typography
-            sx={{
-              fontSize: 18,
-              fontWeight: 700,
-              color: "#182033",
-            }}
-          >
-            FriendRide
-          </Typography>
 
           <Chip
             label="RIDER"
             size="small"
             sx={{
               height: 25,
-              fontSize: 12,
-              fontWeight: 700,
+              fontSize: 10,
+              fontWeight: 800,
               letterSpacing: ".5px",
-              background: "#bdf5ed",
-              color: "#007d70",
+              background: "#71e7df",
+              color: "#006c66",
             }}
           />
-
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              ml: 1,
-            }}
-          >
-            {["Home", "My Route"].map((item) => (
-              <Typography
-                key={item}
-                sx={{
-                  fontSize: 14.5,
-                  fontWeight: 600,
-                  color: "#3e4149",
-                }}
-              >
-                {item}
-              </Typography>
-            ))}
-
-            <Box
-              sx={{
-                height: 40,
-                px: 2,
-                borderRadius: 5,
-                background: "#008b7d",
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
-                Requests
-              </Typography>
-
-              <Box
-                sx={{
-                  width: 23,
-                  height: 23,
-                  borderRadius: "50%",
-                  background: "#67cfc5",
-                  color: "#006f65",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 13,
-                  fontWeight: 700,
-                }}
-              >
-                3
-              </Box>
-            </Box>
-
-            <Typography
-              sx={{
-                fontSize: 14.5,
-                fontWeight: 600,
-                color: "#3e4149",
-              }}
-            >
-              Trips
-            </Typography>
-          </Box>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <IconButton size="small">
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            background: "#f1f2fb",
+            borderRadius: 30,
+            padding: 0.5,
+            flex: "0 1 auto",
+            overflowX: "auto",
+          }}
+        >
+          {[
+            { label: "Home", path: "/home", icon: <HomeOutlinedIcon sx={{ fontSize: 17 }} /> },
+            { label: "My Route", path: "/createcommute", icon: <RouteOutlinedIcon sx={{ fontSize: 17 }} /> },
+            { label: "Requests", path: "/liftrequest", icon: <PeopleAltOutlinedIcon sx={{ fontSize: 17 }} /> },
+            { label: "Trips", path: "/trips", icon: <DirectionsCarOutlinedIcon sx={{ fontSize: 17 }} /> },
+          ].map(({ label, path, icon }) => {
+            const active = path === "/liftrequest";
+            return (
+              <Box
+                key={path}
+                role="button"
+                tabIndex={0}
+                aria-current={active ? "page" : undefined}
+                onClick={() => navigate(path)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    navigate(path);
+                  }
+                }}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.6,
+                  borderRadius: 24,
+                  px: 1.5,
+                  py: 1,
+                  background: active ? "#007d73" : "transparent",
+                  color: active ? "#fff" : "#2b3347",
+                  fontSize: 12,
+                  fontWeight: active ? 700 : 600,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {icon}
+                {label}
+                {active && (
+                  <Box
+                    component="span"
+                    sx={{
+                      minWidth: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      background: "#71e7df",
+                      color: "#006c66",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 11,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {requests.length}
+                  </Box>
+                )}
+              </Box>
+            );
+          })}
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            flexShrink: 0,
+          }}
+        >
+          <IconButton size="small" aria-label="Notifications">
             <NotificationsNoneOutlinedIcon
-              sx={{ fontSize: 21, color: "#4b4b4b" }}
+              sx={{ fontSize: 21, color: "#343b43" }}
             />
           </IconButton>
-
           <Avatar
             sx={{
               width: 34,
@@ -232,11 +244,11 @@ function App() {
           >
             HB
           </Avatar>
-
           <Typography
             sx={{
-              fontSize: 14.5,
+              fontSize: 14,
               fontWeight: 700,
+              whiteSpace: "nowrap",
             }}
           >
             Harshit Bhargava
