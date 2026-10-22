@@ -35,7 +35,7 @@ const ConfirmRequest = () => {
         background:
           "linear-gradient(135deg, #f8f8ff 0%, #f7f7ff 45%, #eeeeff 100%)",
         color: "#182238",
-        fontFamily: "Arial, Helvetica, sans-serif",
+        fontFamily: "Inter, Arial, sans-serif",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -117,7 +117,7 @@ const ConfirmRequest = () => {
               borderRadius: "10px",
               background: "#c9f8f4",
               color: "#00796f",
-              fontSize: "10px",
+              fontSize: "12px",
               fontWeight: 700,
             }}
           >
@@ -136,7 +136,7 @@ const ConfirmRequest = () => {
         >
           <Typography
             sx={{
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: 600,
               color: "#343941",
             }}
@@ -146,7 +146,7 @@ const ConfirmRequest = () => {
 
           <Typography
             sx={{
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: 600,
               color: "#343941",
             }}
@@ -168,7 +168,7 @@ const ConfirmRequest = () => {
           >
             <Typography
               sx={{
-                fontSize: 14,
+                fontSize: 14.5,
                 fontWeight: 600,
               }}
             >
@@ -185,7 +185,7 @@ const ConfirmRequest = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 11,
+                fontSize: 12.5,
                 fontWeight: 700,
               }}
             >
@@ -195,7 +195,7 @@ const ConfirmRequest = () => {
 
           <Typography
             sx={{
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: 600,
               color: "#343941",
             }}
@@ -225,7 +225,7 @@ const ConfirmRequest = () => {
             sx={{
               width: 36,
               height: 36,
-              fontSize: 14,
+              fontSize: 14.5,
               background: "#b9b9c7",
               color: "#fff",
               border: "2px solid #e9e9f5",
@@ -237,7 +237,7 @@ const ConfirmRequest = () => {
           <Box sx={{ display: { xs: "none", sm: "block" } }}>
             <Typography
               sx={{
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: 700,
                 color: "#252b38",
                 lineHeight: 1.2,
@@ -248,7 +248,7 @@ const ConfirmRequest = () => {
 
             <Typography
               sx={{
-                fontSize: 11,
+                fontSize: 12.5,
                 color: "#737887",
                 lineHeight: 1.3,
               }}
@@ -356,7 +356,7 @@ const ConfirmRequest = () => {
                   <DirectionsBikeOutlinedIcon
                     sx={{
                       color: "#4a48d8",
-                      fontSize: 15,
+                      fontSize: 15.5,
                     }}
                   />
                 </Box>
@@ -367,7 +367,7 @@ const ConfirmRequest = () => {
             <Typography
               sx={{
                 textAlign: "center",
-                fontFamily: "Georgia, serif",
+                fontFamily: "Inter, Arial, sans-serif",
                 fontSize: { xs: 24, md: 25 },
                 fontWeight: 700,
                 color: "#172038",
@@ -381,8 +381,8 @@ const ConfirmRequest = () => {
               sx={{
                 textAlign: "center",
                 color: "#63666d",
-                fontFamily: "Georgia, serif",
-                fontSize: 14,
+                fontFamily: "Inter, Arial, sans-serif",
+                fontSize: 14.5,
                 lineHeight: 1.5,
                 maxWidth: 430,
                 mx: "auto",
@@ -447,7 +447,7 @@ const ConfirmRequest = () => {
                         justifyContent: "center",
                         alignItems: "center",
                         border: "2px solid #fff",
-                        fontSize: 9,
+                        fontSize: 11.5,
                       }}
                     >
                       ✓
@@ -464,7 +464,7 @@ const ConfirmRequest = () => {
                     >
                       <Typography
                         sx={{
-                          fontSize: 15,
+                          fontSize: 15.5,
                           fontWeight: 700,
                           color: "#1c2437",
                         }}
@@ -480,7 +480,7 @@ const ConfirmRequest = () => {
                           borderRadius: "10px",
                           background: "#dce1fa",
                           color: "#4d5871",
-                          fontSize: 9,
+                          fontSize: 11.5,
                           fontWeight: 500,
                         }}
                       />
@@ -496,7 +496,7 @@ const ConfirmRequest = () => {
                     >
                       <Typography
                         sx={{
-                          fontSize: 11,
+                          fontSize: 12.5,
                           color: "#4e5360",
                         }}
                       >
@@ -506,13 +506,13 @@ const ConfirmRequest = () => {
                       <StarIcon
                         sx={{
                           color: "#b47b13",
-                          fontSize: 13,
+                          fontSize: 14,
                         }}
                       />
 
                       <Typography
                         sx={{
-                          fontSize: 10,
+                          fontSize: 12,
                           color: "#707580",
                         }}
                       >
@@ -535,14 +535,14 @@ const ConfirmRequest = () => {
                 >
                   <ShieldOutlinedIcon
                     sx={{
-                      fontSize: 12,
+                      fontSize: 13,
                       color: "#007b70",
                     }}
                   />
 
                   <Typography
                     sx={{
-                      fontSize: 9,
+                      fontSize: 11.5,
                       fontWeight: 700,
                       color: "#007b70",
                     }}
@@ -585,7 +585,7 @@ const ConfirmRequest = () => {
                   <Box sx={{ flex: 1 }}>
                     <Typography
                       sx={{
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: 700,
                         color: "#273044",
                       }}
@@ -595,7 +595,7 @@ const ConfirmRequest = () => {
 
                     <Typography
                       sx={{
-                        fontSize: 10.5,
+                        fontSize: 12,
                         color: "#646873",
                         mt: 0.15,
                       }}
@@ -606,7 +606,7 @@ const ConfirmRequest = () => {
 
                   <Typography
                     sx={{
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: 700,
                       color: "#007c70",
                       pt: 0.2,
@@ -649,7 +649,7 @@ const ConfirmRequest = () => {
                   <Box sx={{ flex: 1 }}>
                     <Typography
                       sx={{
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: 700,
                         color: "#273044",
                       }}
@@ -659,7 +659,7 @@ const ConfirmRequest = () => {
 
                     <Typography
                       sx={{
-                        fontSize: 10.5,
+                        fontSize: 12,
                         color: "#646873",
                         mt: 0.15,
                       }}
@@ -670,7 +670,7 @@ const ConfirmRequest = () => {
 
                   <Typography
                     sx={{
-                      fontSize: 10,
+                      fontSize: 12,
                       color: "#555b67",
                       pt: 0.2,
                     }}
@@ -709,7 +709,7 @@ const ConfirmRequest = () => {
 
                   <Typography
                     sx={{
-                      fontSize: 11,
+                      fontSize: 12.5,
                       color: "#555b68",
                     }}
                   >
@@ -727,7 +727,7 @@ const ConfirmRequest = () => {
                 >
                   <Typography
                     sx={{
-                      fontSize: 11,
+                      fontSize: 12.5,
                       fontWeight: 700,
                       color: "#26304a",
                     }}
@@ -758,7 +758,7 @@ const ConfirmRequest = () => {
               >
                 <Typography
                   sx={{
-                    fontSize: 11,
+                    fontSize: 12.5,
                     fontWeight: 700,
                     color: "#007b70",
                   }}
@@ -768,7 +768,7 @@ const ConfirmRequest = () => {
 
                 <Typography
                   sx={{
-                    fontSize: 10,
+                    fontSize: 12,
                     color: "#666b77",
                   }}
                 >
@@ -860,7 +860,7 @@ const ConfirmRequest = () => {
               >
                 <Typography
                   sx={{
-                    fontSize: 9,
+                    fontSize: 11.5,
                     color: "#626978",
                   }}
                 >
@@ -869,7 +869,7 @@ const ConfirmRequest = () => {
 
                 <Typography
                   sx={{
-                    fontSize: 9,
+                    fontSize: 11.5,
                     color: "#007b70",
                     fontWeight: 700,
                   }}
@@ -879,7 +879,7 @@ const ConfirmRequest = () => {
 
                 <Typography
                   sx={{
-                    fontSize: 9,
+                    fontSize: 11.5,
                     color: "#4b48dd",
                     fontWeight: 700,
                   }}
@@ -911,7 +911,7 @@ const ConfirmRequest = () => {
 
               <Typography
                 sx={{
-                  fontSize: 10.5,
+                  fontSize: 12,
                   lineHeight: 1.55,
                   color: "#596169",
                 }}
@@ -937,7 +937,7 @@ const ConfirmRequest = () => {
                   borderRadius: "10px 0 0 10px",
                   background: "#e0e3ff",
                   color: "#242b42",
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 700,
                   textTransform: "none",
                   boxShadow: "none",
@@ -964,7 +964,7 @@ const ConfirmRequest = () => {
                   borderRadius: "0 10px 10px 0",
                   background: "#007d72",
                   color: "#ffffff",
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 700,
                   textTransform: "none",
                   boxShadow: "none",
@@ -1004,7 +1004,7 @@ const ConfirmRequest = () => {
         >
           <Typography
             sx={{
-              fontSize: 10.5,
+              fontSize: 12,
               color: "#3d4a4c",
               fontWeight: 600,
             }}
@@ -1015,7 +1015,7 @@ const ConfirmRequest = () => {
           <Typography
             sx={{
               color: "#b7b9c0",
-              fontSize: 11,
+              fontSize: 12.5,
             }}
           >
             •
@@ -1023,7 +1023,7 @@ const ConfirmRequest = () => {
 
           <Typography
             sx={{
-              fontSize: 10.5,
+              fontSize: 12,
               color: "#3d4a4c",
               fontWeight: 600,
             }}
@@ -1034,7 +1034,7 @@ const ConfirmRequest = () => {
           <Typography
             sx={{
               color: "#b7b9c0",
-              fontSize: 11,
+              fontSize: 12.5,
             }}
           >
             •
@@ -1042,7 +1042,7 @@ const ConfirmRequest = () => {
 
           <Typography
             sx={{
-              fontSize: 10.5,
+              fontSize: 12,
               color: "#e53535",
               fontWeight: 600,
             }}
@@ -1053,7 +1053,7 @@ const ConfirmRequest = () => {
 
         <Typography
           sx={{
-            fontSize: 10.5,
+            fontSize: 12,
             color: "#555b63",
           }}
         >

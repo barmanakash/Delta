@@ -223,7 +223,7 @@ const MapPanel = () => {
         />
         <Typography
           sx={{
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: 700,
             color: "#20283b",
           }}
@@ -264,7 +264,7 @@ const MapPanel = () => {
           py: 0.8,
           borderRadius: "8px",
           zIndex: 10,
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: 700,
           whiteSpace: "nowrap",
         }}
@@ -290,7 +290,7 @@ const MapPanel = () => {
       >
         <Typography
           sx={{
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: 800,
             color: "#00796b",
           }}
@@ -300,7 +300,7 @@ const MapPanel = () => {
 
         <Typography
           sx={{
-            fontSize: 10,
+            fontSize: 12,
             color: "#657080",
             mt: 0.3,
           }}
@@ -320,7 +320,7 @@ const MapPanel = () => {
           px: 1.5,
           py: 0.8,
           zIndex: 10,
-          fontSize: 11,
+          fontSize: 12.5,
           fontWeight: 700,
           color: "#344054",
         }}
@@ -334,7 +334,7 @@ const MapPanel = () => {
           position: "absolute",
           right: 20,
           bottom: 20,
-          fontSize: 10,
+          fontSize: 12,
           color: "#687386",
           zIndex: 10,
         }}
@@ -403,7 +403,7 @@ const Header = () => {
 
           <Typography
             sx={{
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 800,
               letterSpacing: ".04em",
               color: "#00796b",
@@ -421,7 +421,7 @@ const Header = () => {
             height: 25,
             background: "#e7f8f5",
             color: "#00796b",
-            fontSize: 11,
+            fontSize: 12.5,
             fontWeight: 700,
           }}
         />
@@ -446,7 +446,7 @@ const Header = () => {
               background: item === "Trips" ? "#008577" : "transparent",
               color: item === "Trips" ? "#fff" : "#344054",
               fontWeight: item === "Trips" ? 800 : 600,
-              fontSize: 14,
+              fontSize: 14.5,
             }}
           >
             {item}
@@ -467,7 +467,7 @@ const Header = () => {
             background: "#ffe4e1",
             color: "#d92d20",
             fontWeight: 800,
-            fontSize: 11,
+            fontSize: 12.5,
           }}
         />
 
@@ -494,7 +494,7 @@ const Header = () => {
             background: "#d6e8e6",
             color: "#00796b",
             fontWeight: 800,
-            fontSize: 14,
+            fontSize: 14.5,
           }}
         >
           H
@@ -503,7 +503,7 @@ const Header = () => {
         <Box>
           <Typography
             sx={{
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: 800,
               color: "#172033",
             }}
@@ -513,7 +513,7 @@ const Header = () => {
 
           <Typography
             sx={{
-              fontSize: 10,
+              fontSize: 12,
               color: "#00796b",
               fontWeight: 700,
             }}
@@ -548,7 +548,7 @@ const StatusBar = () => {
       <Stack direction="row" spacing={1.5} alignItems="center">
         <Typography
           sx={{
-            fontSize: 13,
+            fontSize: 14,
             color: "#344054",
             fontWeight: 600,
           }}
@@ -560,7 +560,7 @@ const StatusBar = () => {
 
         <Typography
           sx={{
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: 800,
             color: "#172033",
           }}
@@ -575,7 +575,7 @@ const StatusBar = () => {
             background: "#e5f8f4",
             color: "#00796b",
             fontWeight: 700,
-            fontSize: 10,
+            fontSize: 12,
           }}
         />
       </Stack>
@@ -587,7 +587,7 @@ const StatusBar = () => {
             background: "#fff",
             border: "1px solid #e5e8f1",
             color: "#344054",
-            fontSize: 11,
+            fontSize: 12.5,
             fontWeight: 700,
           }}
         />
@@ -597,7 +597,7 @@ const StatusBar = () => {
           sx={{
             background: "#fffaf0",
             color: "#695500",
-            fontSize: 11,
+            fontSize: 12.5,
             fontWeight: 700,
           }}
         />
@@ -624,7 +624,7 @@ const InspectorBar = () => {
     >
       <Typography
         sx={{
-          fontSize: 11,
+          fontSize: 12.5,
           color: "#6b7280",
           fontWeight: 700,
           letterSpacing: ".05em",
@@ -656,7 +656,7 @@ const InspectorBar = () => {
               borderRadius: "12px",
               background: index === 0 ? "#fff" : "transparent",
               color: index === 0 ? "#344054" : "#667085",
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: index === 0 ? 800 : 600,
               boxShadow:
                 index === 0 ? "0 1px 4px rgba(20,30,80,.08)" : "none",
@@ -723,7 +723,7 @@ const PassengerCard = () => {
                   height: 20,
                   background: "#e8f8f5",
                   color: "#00796b",
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: 800,
                 }}
               />
@@ -731,7 +731,7 @@ const PassengerCard = () => {
 
             <Typography
               sx={{
-                fontSize: 12,
+                fontSize: 13,
                 color: "#344054",
                 mt: 0.3,
               }}
@@ -741,7 +741,7 @@ const PassengerCard = () => {
 
             <Typography
               sx={{
-                fontSize: 11,
+                fontSize: 12.5,
                 color: "#5548db",
                 fontWeight: 700,
               }}
@@ -765,7 +765,7 @@ const PassengerCard = () => {
         >
           <Typography
             sx={{
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 900,
               color: "#29325c",
             }}
@@ -775,7 +775,7 @@ const PassengerCard = () => {
 
           <Typography
             sx={{
-              fontSize: 10,
+              fontSize: 12,
               color: "#667085",
             }}
           >
@@ -796,7 +796,7 @@ const PassengerCard = () => {
           <Box>
             <Typography
               sx={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "#667085",
                 fontWeight: 700,
                 textTransform: "uppercase",
@@ -807,7 +807,7 @@ const PassengerCard = () => {
 
             <Typography
               sx={{
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 800,
                 color: "#20283b",
                 ml: 1.5,
@@ -818,7 +818,7 @@ const PassengerCard = () => {
 
             <Typography
               sx={{
-                fontSize: 11,
+                fontSize: 12.5,
                 color: "#00796b",
                 fontWeight: 700,
                 ml: 1.5,
@@ -832,7 +832,7 @@ const PassengerCard = () => {
           <Box>
             <Typography
               sx={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "#667085",
                 fontWeight: 700,
                 textTransform: "uppercase",
@@ -843,7 +843,7 @@ const PassengerCard = () => {
 
             <Typography
               sx={{
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 800,
                 color: "#20283b",
                 ml: 1.5,
@@ -858,7 +858,7 @@ const PassengerCard = () => {
       <Typography
         sx={{
           mt: 1.5,
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: 700,
           color: "#475467",
         }}
@@ -874,7 +874,7 @@ const PassengerCard = () => {
           borderRadius: "8px",
           background: "#e9eaff",
           color: "#697386",
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: 600,
         }}
       >
@@ -952,7 +952,7 @@ const SafeHubProtocols = () => {
 
         <Typography
           sx={{
-            fontSize: 11,
+            fontSize: 12.5,
             color: "#00796b",
             fontWeight: 900,
             letterSpacing: ".04em",
@@ -996,7 +996,7 @@ const SafeHubProtocols = () => {
               <Box>
                 <Typography
                   sx={{
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: 800,
                     color: "#344054",
                   }}
@@ -1007,7 +1007,7 @@ const SafeHubProtocols = () => {
                 <Typography
                   sx={{
                     mt: 0.4,
-                    fontSize: 11,
+                    fontSize: 12.5,
                     lineHeight: 1.4,
                     color: "#667085",
                   }}
@@ -1028,7 +1028,7 @@ const SafeHubProtocols = () => {
       >
         <Typography
           sx={{
-            fontSize: 11,
+            fontSize: 12.5,
             fontWeight: 700,
             color: "#475467",
           }}
@@ -1040,7 +1040,7 @@ const SafeHubProtocols = () => {
           variant="text"
           sx={{
             color: "#00796b",
-            fontSize: 11,
+            fontSize: 12.5,
             fontWeight: 800,
             textTransform: "none",
           }}
@@ -1080,7 +1080,7 @@ const VerificationCard = () => {
       <Typography
         sx={{
           mt: 0.5,
-          fontSize: 12,
+          fontSize: 13,
           color: "#667085",
         }}
       >
@@ -1120,7 +1120,7 @@ const VerificationCard = () => {
         sx={{
           textAlign: "center",
           mt: 1.5,
-          fontSize: 10,
+          fontSize: 12,
           color: "#667085",
         }}
       >
@@ -1142,7 +1142,7 @@ const VerificationCard = () => {
 
         <Typography
           sx={{
-            fontSize: 11,
+            fontSize: 12.5,
             fontWeight: 700,
             lineHeight: 1.35,
             color: "#344054",
@@ -1162,7 +1162,7 @@ const VerificationCard = () => {
           borderRadius: "11px",
           background: "#00796b",
           textTransform: "none",
-          fontSize: 14,
+          fontSize: 14.5,
           fontWeight: 800,
           boxShadow: "0 5px 12px rgba(0,121,107,.15)",
           "&:hover": {
@@ -1182,7 +1182,7 @@ const VerificationCard = () => {
           background: "#f0f1ff",
           color: "#475467",
           textTransform: "none",
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: 700,
           "&:hover": {
             background: "#e9eaff",
@@ -1241,7 +1241,7 @@ const ProgressCard = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 14,
+                  fontSize: 14.5,
                   fontWeight: 900,
                   boxShadow: step.active
                     ? "0 0 0 5px rgba(69,201,187,.16)"
@@ -1254,7 +1254,7 @@ const ProgressCard = () => {
               <Typography
                 sx={{
                   mt: 0.7,
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: 800,
                   color: step.active ? "#00796b" : "#344054",
                 }}
@@ -1264,7 +1264,7 @@ const ProgressCard = () => {
 
               <Typography
                 sx={{
-                  fontSize: 9,
+                  fontSize: 11.5,
                   color: step.active ? "#00796b" : "#98a2b3",
                 }}
               >
@@ -1317,7 +1317,7 @@ const Footer = () => {
         >
           <Typography
             sx={{
-              fontSize: 11,
+              fontSize: 12.5,
               color: "#344054",
               fontWeight: 700,
             }}
@@ -1327,7 +1327,7 @@ const Footer = () => {
 
           <Typography
             sx={{
-              fontSize: 11,
+              fontSize: 12.5,
               color: "#344054",
               fontWeight: 700,
             }}
@@ -1337,7 +1337,7 @@ const Footer = () => {
 
           <Typography
             sx={{
-              fontSize: 11,
+              fontSize: 12.5,
               color: "#d92d20",
               fontWeight: 700,
             }}
@@ -1347,15 +1347,15 @@ const Footer = () => {
         </Stack>
 
         <Stack direction="row" spacing={2.5}>
-          <Typography sx={{ fontSize: 11, color: "#475467" }}>
+          <Typography sx={{ fontSize: 12.5, color: "#475467" }}>
             Emergency Protocols
           </Typography>
 
-          <Typography sx={{ fontSize: 11, color: "#475467" }}>
+          <Typography sx={{ fontSize: 12.5, color: "#475467" }}>
             Terms of Transit
           </Typography>
 
-          <Typography sx={{ fontSize: 11, color: "#475467" }}>
+          <Typography sx={{ fontSize: 12.5, color: "#475467" }}>
             Safety Guidelines
           </Typography>
         </Stack>
@@ -1370,7 +1370,7 @@ const Footer = () => {
       >
         <Typography
           sx={{
-            fontSize: 10,
+            fontSize: 12,
             color: "#667085",
           }}
         >
@@ -1380,7 +1380,7 @@ const Footer = () => {
 
         <Typography
           sx={{
-            fontSize: 10,
+            fontSize: 12,
             color: "#667085",
           }}
         >
@@ -1413,7 +1413,7 @@ export default function VerifyPassenger() {
           "linear-gradient(135deg, #fbfbff 0%, #f6f6fc 45%, #f3f3ff 100%)",
         color: "#172033",
         fontFamily:
-          '"Inter", "Roboto", "Helvetica Neue", Arial, sans-serif',
+          "Inter, Arial, sans-serif",
       }}
     >
       <Header />
@@ -1425,7 +1425,7 @@ export default function VerifyPassenger() {
       <Box
         component="main"
         sx={{
-          maxWidth: 1200,
+          maxWidth: 1560,
           mx: "auto",
           px: { xs: 2, sm: 3, md: 4 },
           py: 2.2,
@@ -1455,7 +1455,7 @@ export default function VerifyPassenger() {
               <Typography
                 sx={{
                   color: "#00796b",
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 900,
                   letterSpacing: ".05em",
                 }}
@@ -1478,7 +1478,7 @@ export default function VerifyPassenger() {
               <Typography
                 sx={{
                   mt: 0.7,
-                  fontSize: 14,
+                  fontSize: 14.5,
                   lineHeight: 1.45,
                   color: "#667085",
                   maxWidth: 500,

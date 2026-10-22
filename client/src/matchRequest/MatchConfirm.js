@@ -22,7 +22,7 @@ export default function MatchConfirm() {
         background:
           "linear-gradient(135deg, #eefcff 0%, #faf9ff 35%, #f2f1ff 100%)",
         color: dark,
-        fontFamily: "Arial, sans-serif",
+        fontFamily: "Inter, Arial, sans-serif",
         display: "flex",
         flexDirection: "column",
       }}
@@ -97,7 +97,7 @@ export default function MatchConfirm() {
 
           <Typography
             sx={{
-              fontSize: 10,
+              fontSize: 12,
               color: "#008577",
               fontWeight: 600,
               letterSpacing: 0.3,
@@ -119,7 +119,7 @@ export default function MatchConfirm() {
         >
           <Typography
             sx={{
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: 600,
               color: "#31343B",
             }}
@@ -129,7 +129,7 @@ export default function MatchConfirm() {
 
           <Typography
             sx={{
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: 600,
               color: "#31343B",
             }}
@@ -147,7 +147,7 @@ export default function MatchConfirm() {
           >
             <Typography
               sx={{
-                fontSize: 14,
+                fontSize: 14.5,
                 fontWeight: 600,
               }}
             >
@@ -164,7 +164,7 @@ export default function MatchConfirm() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 11,
+                fontSize: 12.5,
                 fontWeight: 700,
               }}
             >
@@ -174,7 +174,7 @@ export default function MatchConfirm() {
 
           <Typography
             sx={{
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: 600,
               color: "#31343B",
             }}
@@ -221,7 +221,7 @@ export default function MatchConfirm() {
           >
             <Typography
               sx={{
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 700,
                 color: "#172033",
               }}
@@ -231,7 +231,7 @@ export default function MatchConfirm() {
 
             <Typography
               sx={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "#6D7480",
               }}
             >
@@ -241,7 +241,7 @@ export default function MatchConfirm() {
 
           <Typography
             sx={{
-              fontSize: 15,
+              fontSize: 15.5,
               color: "#626873",
             }}
           >
@@ -337,7 +337,7 @@ export default function MatchConfirm() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 12,
+                  fontSize: 13,
                 }}
               >
                 ♧
@@ -359,7 +359,7 @@ export default function MatchConfirm() {
               sx={{
                 backgroundColor: "#E1F8F5",
                 color: "#00796B",
-                fontSize: 11,
+                fontSize: 12.5,
                 fontWeight: 700,
                 height: 24,
                 "& .MuiChip-label": {
@@ -373,7 +373,7 @@ export default function MatchConfirm() {
           <Typography
             sx={{
               textAlign: "center",
-              fontFamily: "Georgia, serif",
+              fontFamily: "Inter, Arial, sans-serif",
               fontSize: { xs: 27, md: 30 },
               fontWeight: 700,
               color: "#172033",
@@ -387,8 +387,8 @@ export default function MatchConfirm() {
             sx={{
               textAlign: "center",
               color: "#5D626B",
-              fontFamily: "Georgia, serif",
-              fontSize: 13,
+              fontFamily: "Inter, Arial, sans-serif",
+              fontSize: 14,
               mt: 0.5,
             }}
           >
@@ -452,7 +452,7 @@ export default function MatchConfirm() {
                       size="small"
                       sx={{
                         height: 20,
-                        fontSize: 9,
+                        fontSize: 11.5,
                         backgroundColor: "#E4E8FA",
                         color: "#56617A",
                       }}
@@ -461,7 +461,7 @@ export default function MatchConfirm() {
 
                   <Typography
                     sx={{
-                      fontSize: 11,
+                      fontSize: 12.5,
                       color: "#656A72",
                       mt: 0.2,
                     }}
@@ -477,7 +477,7 @@ export default function MatchConfirm() {
                 sx={{
                   backgroundColor: "#CFF7F0",
                   color: "#00796B",
-                  fontSize: 9,
+                  fontSize: 11.5,
                   fontWeight: 700,
                 }}
               />
@@ -516,7 +516,7 @@ export default function MatchConfirm() {
                 <Box sx={{ flex: 1 }}>
                   <Typography
                     sx={{
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: 700,
                       color: "#202738",
                     }}
@@ -526,7 +526,7 @@ export default function MatchConfirm() {
 
                   <Typography
                     sx={{
-                      fontSize: 10,
+                      fontSize: 12,
                       color: "#686D76",
                     }}
                   >
@@ -536,7 +536,7 @@ export default function MatchConfirm() {
 
                 <Typography
                   sx={{
-                    fontSize: 11,
+                    fontSize: 12.5,
                     fontWeight: 700,
                     color: "#00796B",
                   }}
@@ -576,7 +576,7 @@ export default function MatchConfirm() {
                 <Box sx={{ flex: 1 }}>
                   <Typography
                     sx={{
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: 700,
                       color: "#202738",
                     }}
@@ -586,7 +586,7 @@ export default function MatchConfirm() {
 
                   <Typography
                     sx={{
-                      fontSize: 10,
+                      fontSize: 12,
                       color: "#686D76",
                     }}
                   >
@@ -596,7 +596,7 @@ export default function MatchConfirm() {
 
                 <Typography
                   sx={{
-                    fontSize: 10,
+                    fontSize: 12,
                     color: "#666C75",
                   }}
                 >
@@ -620,7 +620,7 @@ export default function MatchConfirm() {
             >
               <Typography
                 sx={{
-                  fontSize: 10,
+                  fontSize: 12,
                   color: "#596070",
                 }}
               >
@@ -633,7 +633,7 @@ export default function MatchConfirm() {
                   borderRadius: 5,
                   px: 1.2,
                   py: 0.4,
-                  fontSize: 11,
+                  fontSize: 12.5,
                   fontWeight: 700,
                   color: "#242B42",
                 }}
@@ -662,7 +662,7 @@ export default function MatchConfirm() {
             >
               <Typography
                 sx={{
-                  fontSize: 11,
+                  fontSize: 12.5,
                   fontWeight: 700,
                   color: "#00796B",
                 }}
@@ -672,7 +672,7 @@ export default function MatchConfirm() {
 
               <Typography
                 sx={{
-                  fontSize: 10,
+                  fontSize: 12,
                   color: "#646A76",
                 }}
               >
@@ -746,7 +746,7 @@ export default function MatchConfirm() {
                   position: "absolute",
                   top: 28,
                   left: 0,
-                  fontSize: 8,
+                  fontSize: 11,
                   color: "#777C84",
                 }}
               >
@@ -758,7 +758,7 @@ export default function MatchConfirm() {
                   position: "absolute",
                   top: 28,
                   left: "39%",
-                  fontSize: 8,
+                  fontSize: 11,
                   color: "#00796B",
                   fontWeight: 700,
                 }}
@@ -771,7 +771,7 @@ export default function MatchConfirm() {
                   position: "absolute",
                   top: 28,
                   right: 0,
-                  fontSize: 8,
+                  fontSize: 11,
                   color: "#777C84",
                 }}
               >
@@ -802,7 +802,7 @@ export default function MatchConfirm() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 14,
+                fontSize: 14.5,
                 flexShrink: 0,
               }}
             >
@@ -811,8 +811,8 @@ export default function MatchConfirm() {
 
             <Typography
               sx={{
-                fontFamily: "Georgia, serif",
-                fontSize: 10.5,
+                fontFamily: "Inter, Arial, sans-serif",
+                fontSize: 12,
                 lineHeight: 1.55,
                 color: "#515963",
               }}
@@ -839,7 +839,7 @@ export default function MatchConfirm() {
                 color: "#29304A",
                 borderRadius: "10px 0 0 10px",
                 textTransform: "none",
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: 700,
                 "&:hover": {
                   backgroundColor: "#E0E4FF",
@@ -857,7 +857,7 @@ export default function MatchConfirm() {
                 color: "#fff",
                 borderRadius: "0 10px 10px 0",
                 textTransform: "none",
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: 700,
                 "&:hover": {
                   backgroundColor: "#00796B",
@@ -894,7 +894,7 @@ export default function MatchConfirm() {
         >
           <Typography
             sx={{
-              fontSize: 10,
+              fontSize: 12,
               color: "#424952",
               fontWeight: 600,
             }}
@@ -908,7 +908,7 @@ export default function MatchConfirm() {
 
           <Typography
             sx={{
-              fontSize: 10,
+              fontSize: 12,
               color: "#424952",
               fontWeight: 600,
             }}
@@ -922,7 +922,7 @@ export default function MatchConfirm() {
 
           <Typography
             sx={{
-              fontSize: 10,
+              fontSize: 12,
               color: "#E53935",
               fontWeight: 600,
             }}
@@ -933,7 +933,7 @@ export default function MatchConfirm() {
 
         <Typography
           sx={{
-            fontSize: 10,
+            fontSize: 12,
             color: "#686D76",
           }}
         >

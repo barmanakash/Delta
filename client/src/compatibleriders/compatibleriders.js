@@ -422,7 +422,7 @@ export default function CompatibleRiders() {
       <LiftTakerHeader active="find" user={user} photoUrl={photoUrl} />
 
       {/* ========================= BREADCRUMB BAR ======================== */}
-      <Box className="ltl-pad" style={{ maxWidth: 1280, margin: "0 auto", width: "100%", padding: "14px 32px 0", boxSizing: "border-box" }}>
+      <Box className="ltl-pad" style={{ maxWidth: 1560, margin: "0 auto", width: "100%", padding: "14px 32px 0", boxSizing: "border-box" }}>
         <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <Box style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: muted }}>
             <span
@@ -462,7 +462,7 @@ export default function CompatibleRiders() {
         {/* ----- title ----- */}
         <Box
           className="ltl-pad"
-          style={{ maxWidth: 1280, margin: "0 auto", padding: "10px 32px 0", boxSizing: "border-box" }}
+          style={{ maxWidth: 1560, margin: "0 auto", padding: "10px 32px 0", boxSizing: "border-box" }}
         >
           <Box className="cr-head-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16 }}>
             <Box>
@@ -542,7 +542,7 @@ export default function CompatibleRiders() {
         {data && (
           <>
             {/* ----- trip summary ----- */}
-            <Box className="ltl-pad" style={{ maxWidth: 1280, margin: "0 auto", padding: "22px 32px 0", boxSizing: "border-box" }}>
+            <Box className="ltl-pad" style={{ maxWidth: 1560, margin: "0 auto", padding: "22px 32px 0", boxSizing: "border-box" }}>
               <Box
                 style={{
                   ...cardStyle,
@@ -624,7 +624,7 @@ export default function CompatibleRiders() {
               <Box
                 className="ltl-pad cr-scroll"
                 style={{
-                  maxWidth: 1280,
+                  maxWidth: 1560,
                   margin: "0 auto",
                   padding: "14px 32px",
                   boxSizing: "border-box",
@@ -702,7 +702,7 @@ export default function CompatibleRiders() {
             <Box
               className="ltl-pad cr-grid"
               style={{
-                maxWidth: 1280,
+                maxWidth: 1560,
                 margin: "0 auto",
                 padding: "36px 32px 0",
                 boxSizing: "border-box",

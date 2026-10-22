@@ -55,7 +55,7 @@ const SmallBadge = ({ children, bg = "#E7F7F5", color = teal }) => (
             borderRadius: 14,
             background: bg,
             color,
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: 600,
             whiteSpace: "nowrap",
         }}
@@ -84,7 +84,7 @@ const CheckRow = ({ children }) => (
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 11,
+                fontSize: 12.5,
                 fontWeight: 700,
             }}
         >
@@ -93,7 +93,7 @@ const CheckRow = ({ children }) => (
 
         <Typography
             style={{
-                fontSize: 12,
+                fontSize: 13,
                 lineHeight: 1.35,
                 color: "#20283A",
             }}
@@ -181,11 +181,11 @@ function Header() {
                         marginLeft: 25,
                     }}
                 >
-                    <Typography style={{ fontSize: 14, color: "#3F4652" }}>
+                    <Typography style={{ fontSize: 14.5, color: "#3F4652" }}>
                         Home
                     </Typography>
 
-                    <Typography style={{ fontSize: 14, color: "#3F4652" }}>
+                    <Typography style={{ fontSize: 14.5, color: "#3F4652" }}>
                         My Route
                     </Typography>
 
@@ -195,7 +195,7 @@ function Header() {
                             alignItems: "center",
                             gap: 5,
                             color: "#343A48",
-                            fontSize: 14,
+                            fontSize: 14.5,
                         }}
                     >
                         Requests
@@ -209,7 +209,7 @@ function Header() {
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                fontSize: 11,
+                                fontSize: 12.5,
                                 fontWeight: 700,
                             }}
                         >
@@ -217,7 +217,7 @@ function Header() {
                         </span>
                     </Box>
 
-                    <Typography style={{ fontSize: 14, color: "#3F4652" }}>
+                    <Typography style={{ fontSize: 14.5, color: "#3F4652" }}>
                         Trips
                     </Typography>
                 </Box>
@@ -243,7 +243,7 @@ function Header() {
                     style={{
                         width: 34,
                         height: 34,
-                        fontSize: 13,
+                        fontSize: 14,
                         background: "#D9E7E7",
                         color: "#145E5A",
                     }}
@@ -254,7 +254,7 @@ function Header() {
                 <Typography
                     style={{
                         fontWeight: 600,
-                        fontSize: 14,
+                        fontSize: 14.5,
                         color: dark,
                     }}
                 >
@@ -317,7 +317,7 @@ function ProfileCard() {
                                 borderRadius: "50%",
                                 background: teal,
                                 color: "#fff",
-                                fontSize: 10,
+                                fontSize: 12,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -352,7 +352,7 @@ function ProfileCard() {
 
                         <Typography
                             style={{
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: "#505866",
                                 marginTop: 2,
                             }}
@@ -368,7 +368,7 @@ function ProfileCard() {
                                 gap: 8,
                                 alignItems: "center",
                                 marginTop: 6,
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: "#666",
                             }}
                         >
@@ -405,7 +405,7 @@ function ProfileCard() {
                 >
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             fontWeight: 700,
                             color: "#343A4C",
                         }}
@@ -415,7 +415,7 @@ function ProfileCard() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             color: "#707788",
                             marginTop: 3,
                         }}
@@ -433,7 +433,7 @@ function ProfileCard() {
                 >
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             fontWeight: 700,
                             color: "#343A4C",
                         }}
@@ -443,7 +443,7 @@ function ProfileCard() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             color: "#707788",
                             marginTop: 3,
                         }}
@@ -460,7 +460,7 @@ function ProfileCard() {
                     borderRadius: 7,
                     background: "#DFF9F4",
                     color: "#087A70",
-                    fontSize: 11,
+                    fontSize: 12.5,
                     fontWeight: 600,
                 }}
             >
@@ -528,7 +528,7 @@ function RequestedJourney() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             fontWeight: 700,
                             color: teal,
                         }}
@@ -555,7 +555,7 @@ function RequestedJourney() {
 
                         <Typography
                             style={{
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: 700,
                                 color: dark,
                             }}
@@ -566,7 +566,7 @@ function RequestedJourney() {
 
                     <Typography
                         style={{
-                            fontSize: 12,
+                            fontSize: 13,
                             color: "#6A7180",
                         }}
                     >
@@ -575,7 +575,7 @@ function RequestedJourney() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             color: teal,
                             marginTop: 6,
                         }}
@@ -600,7 +600,7 @@ function RequestedJourney() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             fontWeight: 700,
                             color: "#4F46E5",
                         }}
@@ -627,7 +627,7 @@ function RequestedJourney() {
 
                         <Typography
                             style={{
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: 700,
                                 color: "#333",
                             }}
@@ -638,7 +638,7 @@ function RequestedJourney() {
 
                     <Typography
                         style={{
-                            fontSize: 12,
+                            fontSize: 13,
                             color: "#6A7180",
                         }}
                     >
@@ -647,7 +647,7 @@ function RequestedJourney() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             color: "#59606F",
                             marginTop: 6,
                         }}
@@ -672,19 +672,19 @@ function RequestedJourney() {
                         padding: 10,
                     }}
                 >
-                    <Typography style={{ fontSize: 11, color: "#707788" }}>
+                    <Typography style={{ fontSize: 12.5, color: "#707788" }}>
                         Shared Time
                     </Typography>
                     <Typography
                         style={{
-                            fontSize: 15,
+                            fontSize: 15.5,
                             fontWeight: 700,
                             color: dark,
                         }}
                     >
                         18 mins
                     </Typography>
-                    <Typography style={{ fontSize: 10, color: teal }}>
+                    <Typography style={{ fontSize: 12, color: teal }}>
                         +2m total vs solo
                     </Typography>
                 </Box>
@@ -696,12 +696,12 @@ function RequestedJourney() {
                         padding: 10,
                     }}
                 >
-                    <Typography style={{ fontSize: 11, color: "#707788" }}>
+                    <Typography style={{ fontSize: 12.5, color: "#707788" }}>
                         Fuel Split
                     </Typography>
                     <Typography
                         style={{
-                            fontSize: 15,
+                            fontSize: 15.5,
                             fontWeight: 700,
                             color: teal,
                         }}
@@ -709,7 +709,7 @@ function RequestedJourney() {
                         ₹45
                         <span
                             style={{
-                                fontSize: 10,
+                                fontSize: 12,
                                 color: "#707788",
                                 marginLeft: 3,
                             }}
@@ -717,7 +717,7 @@ function RequestedJourney() {
                             fixed
                         </span>
                     </Typography>
-                    <Typography style={{ fontSize: 10, color: "#707788" }}>
+                    <Typography style={{ fontSize: 12, color: "#707788" }}>
                         UPI escrow credit
                     </Typography>
                 </Box>
@@ -729,19 +729,19 @@ function RequestedJourney() {
                         padding: 10,
                     }}
                 >
-                    <Typography style={{ fontSize: 11, color: "#707788" }}>
+                    <Typography style={{ fontSize: 12.5, color: "#707788" }}>
                         Pillion Gear
                     </Typography>
                     <Typography
                         style={{
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: 700,
                             color: dark,
                         }}
                     >
                         ◯ Own ISI Helmet
                     </Typography>
-                    <Typography style={{ fontSize: 10, color: "#707788" }}>
+                    <Typography style={{ fontSize: 12, color: "#707788" }}>
                         1 Laptop backpack
                     </Typography>
                 </Box>
@@ -798,7 +798,7 @@ function SafetyCard() {
                     padding: "7px 10px",
                     display: "flex",
                     justifyContent: "space-between",
-                    fontSize: 11,
+                    fontSize: 12.5,
                     color: "#50586A",
                 }}
             >
@@ -948,7 +948,7 @@ function CorridorMap() {
                         background: "#fff",
                         borderRadius: 8,
                         boxShadow: "0 2px 7px rgba(20,30,70,.12)",
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: 700,
                         color: dark,
                     }}
@@ -973,7 +973,7 @@ function CorridorMap() {
                         background: "#fff",
                         padding: "9px 13px",
                         borderRadius: 18,
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: 700,
                         boxShadow: "0 2px 6px rgba(20,30,70,.08)",
                     }}
@@ -1079,7 +1079,7 @@ function CorridorMap() {
                 >
                     <Typography
                         style={{
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: 700,
                             color: teal,
                         }}
@@ -1089,7 +1089,7 @@ function CorridorMap() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             color: "#65707D",
                             marginTop: 3,
                         }}
@@ -1114,7 +1114,7 @@ function CorridorMap() {
                 >
                     <Typography
                         style={{
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: 700,
                             color: "#4F46E5",
                         }}
@@ -1124,7 +1124,7 @@ function CorridorMap() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             color: "#65707D",
                             marginTop: 3,
                         }}
@@ -1141,7 +1141,7 @@ function CorridorMap() {
                         background: "#fff",
                         padding: "6px 10px",
                         borderRadius: 12,
-                        fontSize: 10,
+                        fontSize: 12,
                         color: "#6A7180",
                     }}
                 >
@@ -1158,7 +1158,7 @@ function CorridorMap() {
                     borderRadius: 7,
                     display: "flex",
                     justifyContent: "space-between",
-                    fontSize: 11,
+                    fontSize: 12.5,
                 }}
             >
                 <span>
@@ -1207,7 +1207,7 @@ function StatCards() {
                 </Box>
 
                 <Box>
-                    <Typography style={{ fontSize: 11, color: "#717886" }}>
+                    <Typography style={{ fontSize: 12.5, color: "#717886" }}>
                         Environmental Impact
                     </Typography>
 
@@ -1221,7 +1221,7 @@ function StatCards() {
                         1.4 kg CO₂
                     </Typography>
 
-                    <Typography style={{ fontSize: 11, color: "#666" }}>
+                    <Typography style={{ fontSize: 12.5, color: "#666" }}>
                         Prevented through this shared ride
                     </Typography>
                 </Box>
@@ -1252,7 +1252,7 @@ function StatCards() {
                 </Box>
 
                 <Box>
-                    <Typography style={{ fontSize: 11, color: "#717886" }}>
+                    <Typography style={{ fontSize: 12.5, color: "#717886" }}>
                         Capacity Utilization
                     </Typography>
 
@@ -1266,7 +1266,7 @@ function StatCards() {
                         1 of 1 Pillion
                     </Typography>
 
-                    <Typography style={{ fontSize: 11, color: "#666" }}>
+                    <Typography style={{ fontSize: 12.5, color: "#666" }}>
                         Solo ETA 22m → Shared ETA 24m (+2m)
                     </Typography>
                 </Box>
@@ -1296,7 +1296,7 @@ function PrivacyCard() {
             <Box>
                 <Typography
                     style={{
-                        fontSize: 15,
+                        fontSize: 15.5,
                         fontWeight: 700,
                         color: dark,
                     }}
@@ -1306,7 +1306,7 @@ function PrivacyCard() {
 
                 <Typography
                     style={{
-                        fontSize: 12,
+                        fontSize: 13,
                         color: "#68707B",
                         lineHeight: 1.45,
                         marginTop: 4,
@@ -1362,7 +1362,7 @@ function OfferCard() {
                     >
                         <Typography
                             style={{
-                                fontSize: 15,
+                                fontSize: 15.5,
                                 fontWeight: 700,
                                 color: dark,
                             }}
@@ -1377,7 +1377,7 @@ function OfferCard() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12.5,
                             color: "#656D79",
                             marginTop: 4,
                         }}
@@ -1396,7 +1396,7 @@ function OfferCard() {
                         borderRadius: 8,
                         padding: "11px 23px",
                         textTransform: "none",
-                        fontSize: 14,
+                        fontSize: 14.5,
                         fontWeight: 600,
                     }}
                 >
@@ -1411,7 +1411,7 @@ function OfferCard() {
                         borderRadius: 8,
                         padding: "11px 23px",
                         textTransform: "none",
-                        fontSize: 14,
+                        fontSize: 14.5,
                         fontWeight: 700,
                         boxShadow: "none",
                     }}
@@ -1434,7 +1434,7 @@ function Footer() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 padding: "0 25px",
-                fontSize: 11,
+                fontSize: 12.5,
                 color: "#505866",
             }}
         >
@@ -1462,7 +1462,7 @@ function Footer() {
                 </span>
             </Box>
 
-            <Typography style={{ fontSize: 11, color: "#505866" }}>
+            <Typography style={{ fontSize: 12.5, color: "#505866" }}>
                 © 2025 SafeRoute Technologies Inc. All rights reserved.
             </Typography>
         </Box>
@@ -1477,7 +1477,7 @@ export default function Home() {
                 background: "#F8F8FF",
                 color: dark,
                 fontFamily:
-                    "Inter, Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+                    "Inter, Arial, sans-serif",
             }}
         >
             <Header />
@@ -1499,7 +1499,7 @@ export default function Home() {
                         display: "flex",
                         alignItems: "center",
                         gap: 10,
-                        fontSize: 14,
+                        fontSize: 14.5,
                         color: "#273043",
                     }}
                 >
@@ -1542,7 +1542,7 @@ export default function Home() {
                         display: "grid",
                         gridTemplateColumns: "40.5% 59.5%",
                         gap: 22,
-                        maxWidth: 1240,
+                        maxWidth: 1560,
                         margin: "0 auto",
                     }}
                 >
@@ -1579,7 +1579,7 @@ export default function Home() {
 
                 <Box
                     style={{
-                        maxWidth: 1240,
+                        maxWidth: 1560,
                         margin: "24px auto 0",
                     }}
                 >

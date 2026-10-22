@@ -677,7 +677,7 @@ export default function CreateCommute() {
         <Box
           className="cc-pad"
           style={{
-            maxWidth: 1360,
+            maxWidth: 1560,
             margin: "0 auto",
             height: 68,
             padding: "0 32px",
@@ -753,7 +753,7 @@ export default function CreateCommute() {
         <Box
           className="cc-pad"
           style={{
-            maxWidth: 1360,
+            maxWidth: 1560,
             margin: "0 auto",
             padding: "14px 32px",
             boxSizing: "border-box",
@@ -813,7 +813,7 @@ export default function CreateCommute() {
         <Box
           className="cc-pad cc-grid"
           style={{
-            maxWidth: 1360,
+            maxWidth: 1560,
             margin: "0 auto",
             padding: "32px 32px 0",
             boxSizing: "border-box",
@@ -978,7 +978,7 @@ export default function CreateCommute() {
         <Box
           className="cc-pad"
           style={{
-            maxWidth: 1360,
+            maxWidth: 1560,
             margin: "0 auto",
             padding: "20px 32px",
             boxSizing: "border-box",

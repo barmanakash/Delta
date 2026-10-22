@@ -24,12 +24,13 @@ function Footer() {
       <Container
         maxWidth={false}
         sx={{
-          maxWidth: "1180px",
+          maxWidth: "1560px", // same width + gutters as the landing page content
           mx: "auto",
           px: {
             xs: 3,
             sm: 4,
             md: 5,
+            lg: 6,
           },
           pt: {
             xs: 5,
@@ -358,20 +359,21 @@ function Footer() {
       <Box
         sx={{
           borderTop: "1px dotted #1890FF",
-          px: {
-            xs: 3,
-            sm: 4,
-            md: 5,
-          },
           py: 1.5,
         }}
       >
         <Container
           maxWidth={false}
           sx={{
-            maxWidth: "1180px",
+            maxWidth: "1560px",
             mx: "auto",
-            p: 0,
+            px: {
+              xs: 3,
+              sm: 4,
+              md: 5,
+              lg: 6,
+            },
+            py: 0,
           }}
         >
           <Box

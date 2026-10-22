@@ -7,7 +7,7 @@ const styles = {
     background: "#f7f7ff",
     color: "#182238",
     fontFamily:
-      "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "Inter, Arial, sans-serif",
     boxSizing: "border-box",
   },
 
@@ -53,7 +53,7 @@ const styles = {
   },
 
   ridePool: {
-    fontSize: "9px",
+    fontSize: "11.5px",
     color: "#008477",
     fontWeight: 700,
     letterSpacing: ".3px",
@@ -69,7 +69,7 @@ const styles = {
   },
 
   navItem: {
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: 600,
     color: "#263044",
     whiteSpace: "nowrap",
@@ -86,7 +86,7 @@ const styles = {
     background: "#ffd9d7",
     color: "#d74b48",
     borderRadius: "50%",
-    fontSize: "10px",
+    fontSize: "12px",
     minWidth: "19px",
     height: "19px",
     display: "inline-flex",
@@ -128,12 +128,12 @@ const styles = {
   },
 
   userName: {
-    fontSize: "12px",
+    fontSize: "13px",
     fontWeight: 700,
   },
 
   userStatus: {
-    fontSize: "9px",
+    fontSize: "11.5px",
     color: "#68717e",
     marginTop: "3px",
   },
@@ -159,14 +159,14 @@ const styles = {
   back: {
     color: "#087d75",
     fontWeight: 700,
-    fontSize: "13px",
+    fontSize: "14px",
   },
 
   tripTag: {
     background: "#e9ebf9",
     padding: "5px 9px",
     borderRadius: "4px",
-    fontSize: "11px",
+    fontSize: "12.5px",
     fontWeight: 700,
     color: "#47506b",
   },
@@ -183,7 +183,7 @@ const styles = {
     color: "#007a70",
     borderRadius: "18px",
     padding: "9px 14px",
-    fontSize: "11px",
+    fontSize: "12.5px",
     fontWeight: 700,
   },
 
@@ -192,7 +192,7 @@ const styles = {
     color: "#414d9c",
     borderRadius: "18px",
     padding: "8px 13px",
-    fontSize: "11px",
+    fontSize: "12.5px",
     fontWeight: 600,
   },
 
@@ -201,7 +201,7 @@ const styles = {
     color: "#4b52a2",
     borderRadius: "18px",
     padding: "8px 13px",
-    fontSize: "11px",
+    fontSize: "12.5px",
     fontWeight: 600,
   },
 
@@ -252,7 +252,7 @@ const styles = {
     position: "absolute",
     color: "#596873",
     fontWeight: 600,
-    fontSize: "13px",
+    fontSize: "14px",
   },
 
   bigCity: {
@@ -330,7 +330,7 @@ const styles = {
     borderRadius: "20px",
     padding: "8px 14px",
     boxShadow: "0 3px 12px rgba(0,0,0,.14)",
-    fontSize: "11px",
+    fontSize: "12.5px",
     fontWeight: 700,
     color: "#21333b",
     zIndex: 5,
@@ -364,7 +364,7 @@ const styles = {
   },
 
   maneuverSmall: {
-    fontSize: "10px",
+    fontSize: "12px",
     color: "#007e74",
     fontWeight: 700,
     marginBottom: "3px",
@@ -379,7 +379,7 @@ const styles = {
   maneuverText: {
     clear: "both",
     paddingTop: "10px",
-    fontSize: "11px",
+    fontSize: "12.5px",
     color: "#53606a",
     lineHeight: 1.45,
   },
@@ -394,13 +394,13 @@ const styles = {
   },
 
   statValue: {
-    fontSize: "14px",
+    fontSize: "14.5px",
     fontWeight: 800,
     color: "#192438",
   },
 
   statLabel: {
-    fontSize: "9px",
+    fontSize: "11.5px",
     color: "#727b85",
     marginBottom: "3px",
   },
@@ -419,7 +419,7 @@ const styles = {
     padding: "9px 13px",
     borderRadius: "18px",
     boxShadow: "0 2px 8px rgba(0,0,0,.12)",
-    fontSize: "10px",
+    fontSize: "12px",
     fontWeight: 700,
     color: "#13776e",
   },
@@ -450,12 +450,12 @@ const styles = {
   },
 
   protocolSmall: {
-    fontSize: "10px",
+    fontSize: "12px",
     color: "#65717b",
   },
 
   protocolTitle: {
-    fontSize: "14px",
+    fontSize: "14.5px",
     fontWeight: 800,
     marginTop: "3px",
   },
@@ -464,13 +464,13 @@ const styles = {
     background: "#eceefe",
     padding: "6px 9px",
     borderRadius: "5px",
-    fontSize: "10px",
+    fontSize: "12px",
     color: "#4b568a",
   },
 
   inspect: {
     color: "#007b71",
-    fontSize: "11px",
+    fontSize: "12.5px",
     fontWeight: 700,
   },
 
@@ -500,7 +500,7 @@ const styles = {
     color: "#087c72",
     borderRadius: "16px",
     padding: "8px 11px",
-    fontSize: "10px",
+    fontSize: "12px",
     fontWeight: 700,
   },
 
@@ -537,7 +537,7 @@ const styles = {
   },
 
   verified: {
-    fontSize: "10px",
+    fontSize: "12px",
     color: "#5260a7",
     marginTop: "3px",
   },
@@ -548,7 +548,7 @@ const styles = {
     background: "#fff",
     borderRadius: "15px",
     padding: "5px 8px",
-    fontSize: "9px",
+    fontSize: "11.5px",
     fontWeight: 700,
   },
 
@@ -568,17 +568,17 @@ const styles = {
   detailIcon: {
     width: "21px",
     color: "#00877b",
-    fontSize: "15px",
+    fontSize: "15.5px",
   },
 
   detailLabel: {
-    fontSize: "9px",
+    fontSize: "11.5px",
     color: "#69737b",
     fontWeight: 600,
   },
 
   detailValue: {
-    fontSize: "12px",
+    fontSize: "13px",
     fontWeight: 800,
     color: "#1c2638",
     marginTop: "2px",
@@ -591,7 +591,7 @@ const styles = {
     color: "#008176",
     padding: "6px 9px",
     borderRadius: "15px",
-    fontSize: "9px",
+    fontSize: "11.5px",
     fontWeight: 800,
   },
 
@@ -600,13 +600,13 @@ const styles = {
     background: "#e5e8fa",
     borderRadius: "8px",
     padding: "12px",
-    fontSize: "10px",
+    fontSize: "12px",
     color: "#394253",
     lineHeight: 1.35,
   },
 
   progressionTitle: {
-    fontSize: "10px",
+    fontSize: "12px",
     fontWeight: 800,
     letterSpacing: ".5px",
     color: "#69737a",
@@ -631,7 +631,7 @@ const styles = {
     justifyContent: "center",
     background: "#e8ebef",
     color: "#87909a",
-    fontSize: "13px",
+    fontSize: "14px",
     zIndex: 2,
   },
 
@@ -660,12 +660,12 @@ const styles = {
   },
 
   stepName: {
-    fontSize: "12px",
+    fontSize: "13px",
     fontWeight: 800,
   },
 
   stepDescription: {
-    fontSize: "10px",
+    fontSize: "12px",
     color: "#737c83",
     marginTop: "3px",
   },
@@ -681,7 +681,7 @@ const styles = {
   activeTag: {
     marginLeft: "auto",
     color: "#00786f",
-    fontSize: "9px",
+    fontSize: "11.5px",
     fontWeight: 800,
     alignSelf: "center",
   },
@@ -691,13 +691,13 @@ const styles = {
     borderRadius: "11px",
     padding: "14px",
     marginTop: "4px",
-    fontSize: "10px",
+    fontSize: "12px",
     lineHeight: 1.45,
     color: "#454d62",
   },
 
   safetyTitle: {
-    fontSize: "12px",
+    fontSize: "13px",
     fontWeight: 800,
     color: "#26324b",
     marginBottom: "6px",
@@ -710,7 +710,7 @@ const styles = {
     borderRadius: "9px",
     background: "#008277",
     color: "#fff",
-    fontSize: "15px",
+    fontSize: "15.5px",
     fontWeight: 800,
     marginTop: "18px",
     cursor: "pointer",
@@ -722,7 +722,7 @@ const styles = {
     alignItems: "center",
     marginTop: "14px",
     padding: "0 28px",
-    fontSize: "10px",
+    fontSize: "12px",
     fontWeight: 700,
   },
 
@@ -742,7 +742,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     padding: "0 24px",
-    fontSize: "10px",
+    fontSize: "12px",
     color: "#59616a",
     boxSizing: "border-box",
   },
@@ -817,7 +817,7 @@ function Home() {
             <div style={styles.userStatus}>✓ Verified Daily Pooler</div>
           </div>
 
-          <div style={{ fontSize: "14px" }}>⌄</div>
+          <div style={{ fontSize: "14.5px" }}>⌄</div>
         </div>
       </header>
 
@@ -937,7 +937,7 @@ function Home() {
                 ✚ &nbsp; City Hospital Gate 1 Bay
                 <div
                   style={{
-                    fontSize: "9px",
+                    fontSize: "11.5px",
                     color: "#008277",
                     marginTop: "2px",
                   }}
@@ -987,7 +987,7 @@ function Home() {
                     <div
                       style={{
                         ...styles.statValue,
-                        fontSize: "11px",
+                        fontSize: "12.5px",
                         color: "#008277",
                       }}
                     >
@@ -1054,7 +1054,7 @@ function Home() {
                   <div
                     style={{
                       color: "#c48a20",
-                      fontSize: "10px",
+                      fontSize: "12px",
                       marginTop: "4px",
                     }}
                   >
@@ -1078,7 +1078,7 @@ function Home() {
 
                     <div
                       style={{
-                        fontSize: "9px",
+                        fontSize: "11.5px",
                         color: "#008277",
                         fontWeight: 700,
                         marginTop: "3px",
@@ -1189,7 +1189,7 @@ function Home() {
               <div
                 style={{
                   marginLeft: "auto",
-                  fontSize: "9px",
+                  fontSize: "11.5px",
                   color: "#7d858c",
                   alignSelf: "center",
                 }}
@@ -1214,7 +1214,7 @@ function Home() {
               <div
                 style={{
                   marginLeft: "auto",
-                  fontSize: "9px",
+                  fontSize: "11.5px",
                   color: "#7d858c",
                   alignSelf: "center",
                 }}

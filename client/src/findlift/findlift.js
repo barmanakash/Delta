@@ -588,7 +588,7 @@ export default function FindLift() {
         <Box
           className="ltl-pad fl-banner"
           style={{
-            maxWidth: 1280,
+            maxWidth: 1560,
             margin: "0 auto",
             padding: "12px 32px",
             boxSizing: "border-box",
@@ -652,7 +652,7 @@ export default function FindLift() {
         <Box
           className="ltl-pad fl-grid"
           style={{
-            maxWidth: 1280,
+            maxWidth: 1560,
             margin: "0 auto",
             padding: "28px 32px 0",
             boxSizing: "border-box",

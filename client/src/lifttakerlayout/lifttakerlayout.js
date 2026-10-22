@@ -70,7 +70,7 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
         <Box
           className="ltl-pad"
           style={{
-            maxWidth: 1280,
+            maxWidth: 1560,
             margin: "0 auto",
             height: 72,
             padding: "0 32px",
@@ -327,7 +327,7 @@ export function LiftTakerFooter({
       <Box
         className="ltl-pad"
         style={{
-          maxWidth: 1280,
+          maxWidth: 1560,
           margin: "0 auto",
           padding: "48px 32px 24px",
           boxSizing: "border-box",

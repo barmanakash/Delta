@@ -174,7 +174,7 @@ function App() {
   };
 
   const errorTextStyle = {
-    fontSize: "11px",
+    fontSize: "12px",
     color: "#d32f2f",
     marginTop: "4px",
   };
@@ -351,7 +351,7 @@ function App() {
 
               <Typography
                 style={{
-                  fontSize: "11px",
+                  fontSize: "12px",
                   color: "#006f68",
                   fontWeight: 500,
                 }}
@@ -407,7 +407,7 @@ function App() {
               >
                 <Typography
                   style={{
-                    fontSize: "10px",
+                    fontSize: "12px",
                     fontWeight: 500,
                     color: "#454b52",
                     letterSpacing: "0.4px",
@@ -434,7 +434,7 @@ function App() {
 
                   <Typography
                     style={{
-                      fontSize: "10px",
+                      fontSize: "12px",
                       color: "#00766e",
                       fontWeight: 600,
                     }}
@@ -542,7 +542,7 @@ function App() {
                     position: "absolute",
                     left: "4px",
                     bottom: "0px",
-                    fontSize: "9px",
+                    fontSize: "12px",
                     fontWeight: 600,
                     color: "#41484d",
                   }}
@@ -555,7 +555,7 @@ function App() {
                     position: "absolute",
                     right: "5px",
                     bottom: "0px",
-                    fontSize: "9px",
+                    fontSize: "12px",
                     fontWeight: 600,
                     color: "#41484d",
                   }}
@@ -805,7 +805,7 @@ function App() {
               ) : (
                 <Typography
                   style={{
-                    fontSize: "11px",
+                    fontSize: "12px",
                     color: "#555d62",
                     marginTop: "7px",
                   }}
@@ -947,7 +947,7 @@ function App() {
 
               <Typography
                 style={{
-                  fontSize: "11px",
+                  fontSize: "12px",
                   color: "#4e595d",
                 }}
               >
@@ -1071,7 +1071,7 @@ function App() {
 
               <Typography
                 style={{
-                  fontSize: "11px",
+                  fontSize: "12px",
                   color: "#737a7d",
                 }}
               >
@@ -1095,7 +1095,7 @@ function App() {
       >
         <Typography
           style={{
-            fontSize: "11px",
+            fontSize: "12px",
             color: "#343b40",
           }}
         >
@@ -1112,7 +1112,7 @@ function App() {
         >
           <Typography
             style={{
-              fontSize: "11px",
+              fontSize: "12px",
               color: "#343b40",
             }}
           >
@@ -1121,7 +1121,7 @@ function App() {
 
           <Typography
             style={{
-              fontSize: "11px",
+              fontSize: "12px",
               color: "#343b40",
             }}
           >
@@ -1130,7 +1130,7 @@ function App() {
 
           <Typography
             style={{
-              fontSize: "11px",
+              fontSize: "12px",
               color: "#343b40",
             }}
           >
@@ -1192,7 +1192,7 @@ function Feature({ title, description }) {
 
         <Typography
           style={{
-            fontSize: "11px",
+            fontSize: "12px",
             color: "#59636a",
             lineHeight: 1.35,
           }}

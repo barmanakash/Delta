@@ -76,7 +76,7 @@ function App() {
         minHeight: "100vh",
         background: "#f8f8fd",
         color: dark,
-        fontFamily: "Arial, Helvetica, sans-serif",
+        fontFamily: "Inter, Arial, sans-serif",
         display: "flex",
         flexDirection: "column",
       }}
@@ -138,7 +138,7 @@ function App() {
             size="small"
             sx={{
               height: 25,
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 700,
               letterSpacing: ".5px",
               background: "#bdf5ed",
@@ -158,7 +158,7 @@ function App() {
               <Typography
                 key={item}
                 sx={{
-                  fontSize: 14,
+                  fontSize: 14.5,
                   fontWeight: 600,
                   color: "#3e4149",
                 }}
@@ -179,7 +179,7 @@ function App() {
                 gap: 1,
               }}
             >
-              <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
+              <Typography sx={{ fontSize: 14.5, fontWeight: 600 }}>
                 Requests
               </Typography>
 
@@ -193,7 +193,7 @@ function App() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 700,
                 }}
               >
@@ -203,7 +203,7 @@ function App() {
 
             <Typography
               sx={{
-                fontSize: 14,
+                fontSize: 14.5,
                 fontWeight: 600,
                 color: "#3e4149",
               }}
@@ -226,7 +226,7 @@ function App() {
               height: 34,
               background: "#d9dff0",
               color: "#34405a",
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: 700,
             }}
           >
@@ -235,7 +235,7 @@ function App() {
 
           <Typography
             sx={{
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: 700,
             }}
           >
@@ -296,7 +296,7 @@ function App() {
                   height: 23,
                   background: "#e0f2f0",
                   color: "#00786e",
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: 800,
                   letterSpacing: ".5px",
                 }}
@@ -307,7 +307,7 @@ function App() {
               sx={{
                 mt: 0.6,
                 color: "#565b63",
-                fontSize: 14,
+                fontSize: 14.5,
               }}
             >
               Verified commuters searching for a pillion lift along your
@@ -337,7 +337,7 @@ function App() {
                   background: "#008b7d",
                 }}
               />
-              <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
                 Available (3)
               </Typography>
             </Box>
@@ -370,7 +370,7 @@ function App() {
               }}
             >
               <TuneOutlinedIcon sx={{ fontSize: 17, color: teal }} />
-              <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
                 Filters
               </Typography>
 
@@ -384,7 +384,7 @@ function App() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 11,
+                  fontSize: 12.5,
                   fontWeight: 700,
                 }}
               >
@@ -429,13 +429,13 @@ function App() {
                 }}
               />
 
-              <Typography sx={{ fontSize: 12, fontWeight: 700 }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
                 Active Route:
               </Typography>
 
               <Typography
                 sx={{
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 800,
                   color: teal,
                 }}
@@ -450,7 +450,7 @@ function App() {
               sx={{
                 background: "#edf8f6",
                 color: "#008073",
-                fontSize: 11,
+                fontSize: 12.5,
               }}
             />
 
@@ -465,13 +465,13 @@ function App() {
               sx={{
                 background: "#eef0ff",
                 color: "#5658c9",
-                fontSize: 11,
+                fontSize: 12.5,
               }}
             />
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Typography sx={{ fontSize: 12, fontWeight: 700 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
               ♧ 3 Compatible Requests Found
             </Typography>
 
@@ -484,7 +484,7 @@ function App() {
               }}
             />
 
-            <Typography sx={{ fontSize: 12, color: "#555b65" }}>
+            <Typography sx={{ fontSize: 13, color: "#555b65" }}>
               ♧ Same-Gender Verified
             </Typography>
 
@@ -497,7 +497,7 @@ function App() {
               }}
             />
 
-            <Typography sx={{ fontSize: 12, color: "#555b65" }}>
+            <Typography sx={{ fontSize: 13, color: "#555b65" }}>
               🏍 1 Seat (Standard Pillion)
             </Typography>
           </Box>
@@ -521,7 +521,7 @@ function App() {
                 color: "#fff",
                 display: "flex",
                 alignItems: "center",
-                fontSize: 12,
+                fontSize: 13,
               }}
             >
               ⌁ Pickup Proximity: Within 500m (Selected)
@@ -535,7 +535,7 @@ function App() {
                 background: "#fff",
                 display: "flex",
                 alignItems: "center",
-                fontSize: 12,
+                fontSize: 13,
                 color: "#525761",
               }}
             >
@@ -550,7 +550,7 @@ function App() {
                 background: "#fff",
                 display: "flex",
                 alignItems: "center",
-                fontSize: 12,
+                fontSize: 13,
                 color: "#525761",
               }}
             >
@@ -566,11 +566,11 @@ function App() {
               background: "#fff",
               display: "flex",
               alignItems: "center",
-              fontSize: 12,
+              fontSize: 13,
               color: "#4c5058",
             }}
           >
-            <SwapVertIcon sx={{ fontSize: 15, mr: 0.5 }} />
+            <SwapVertIcon sx={{ fontSize: 15.5, mr: 0.5 }} />
             Sort by: Highest Overlap ↓
           </Box>
         </Box>
@@ -650,7 +650,7 @@ function App() {
                       <VerifiedOutlinedIcon
                         sx={{
                           color: "#008a7c",
-                          fontSize: 14,
+                          fontSize: 14.5,
                         }}
                       />
                     </Box>
@@ -684,7 +684,7 @@ function App() {
                         height: 24,
                         background: "#e4f4f2",
                         color: "#007a70",
-                        fontSize: 11,
+                        fontSize: 12.5,
                         fontWeight: 800,
                       }}
                     />
@@ -696,7 +696,7 @@ function App() {
                         height: 24,
                         background: "#eef0ff",
                         color: "#555acb",
-                        fontSize: 11,
+                        fontSize: 12.5,
                       }}
                     />
                   </Box>
@@ -730,7 +730,7 @@ function App() {
 
                     <Typography
                       sx={{
-                        fontSize: 12,
+                        fontSize: 13,
                         color: index === 0 ? "#008378" : "#555b65",
                         mr: 2,
                       }}
@@ -767,7 +767,7 @@ function App() {
 
                     <Typography
                       sx={{
-                        fontSize: 12,
+                        fontSize: 13,
                         color: purple,
                         mr: 2,
                       }}
@@ -800,7 +800,7 @@ function App() {
                         index === 0 ? "#ffe8e8" : "#e9edff",
                       color:
                         index === 0 ? "#d44d4d" : "#505a86",
-                      fontSize: 10.5,
+                      fontSize: 12,
                       fontWeight: 700,
                     }}
                   />
@@ -811,7 +811,7 @@ function App() {
                     onClick={() => navigate('/viewRequest')}
                     sx={{
                       textTransform: "none",
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: 700,
                       borderRadius: 2,
                       height: 42,
@@ -875,7 +875,7 @@ function App() {
                     height: 23,
                     background: "#eef0ff",
                     color: "#646b86",
-                    fontSize: 10,
+                    fontSize: 12,
                   }}
                 />
               </Box>
@@ -894,7 +894,7 @@ function App() {
                 <Box>
                   <Typography
                     sx={{
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: 800,
                     }}
                   >
@@ -903,7 +903,7 @@ function App() {
 
                   <Typography
                     sx={{
-                      fontSize: 11,
+                      fontSize: 12.5,
                       color: "#686c74",
                     }}
                   >
@@ -917,7 +917,7 @@ function App() {
                   sx={{
                     background: "#d9efeb",
                     color: "#007b70",
-                    fontSize: 11,
+                    fontSize: 12.5,
                     fontWeight: 700,
                   }}
                 />
@@ -943,7 +943,7 @@ function App() {
               >
                 <Typography
                   sx={{
-                    fontSize: 11,
+                    fontSize: 12.5,
                     fontWeight: 800,
                     color: "#575c66",
                   }}
@@ -953,7 +953,7 @@ function App() {
 
                 <Typography
                   sx={{
-                    fontSize: 10,
+                    fontSize: 12,
                     color: "#008376",
                     fontWeight: 700,
                   }}
@@ -1069,12 +1069,12 @@ function App() {
                     position: "absolute",
                     left: 13,
                     bottom: 11,
-                    fontSize: 9,
+                    fontSize: 11.5,
                     fontWeight: 700,
                   }}
                 >
                   <div>PNT Naka</div>
-                  <div style={{ fontSize: 8, fontWeight: 400 }}>
+                  <div style={{ fontSize: 11, fontWeight: 400 }}>
                     (Start)
                   </div>
                 </Box>
@@ -1084,7 +1084,7 @@ function App() {
                     position: "absolute",
                     left: "54%",
                     top: "43%",
-                    fontSize: 9,
+                    fontSize: 11.5,
                     fontWeight: 700,
                     background: "#fff",
                     borderRadius: 1,
@@ -1101,7 +1101,7 @@ function App() {
                     position: "absolute",
                     left: "62%",
                     top: "24%",
-                    fontSize: 9,
+                    fontSize: 11.5,
                     fontWeight: 700,
                     background: "#fff",
                     borderRadius: 1,
@@ -1118,7 +1118,7 @@ function App() {
                     position: "absolute",
                     left: "52%",
                     top: "15%",
-                    fontSize: 9,
+                    fontSize: 11.5,
                     fontWeight: 700,
                     background: "#fff",
                     borderRadius: 1,
@@ -1135,12 +1135,12 @@ function App() {
                     position: "absolute",
                     right: 11,
                     top: 13,
-                    fontSize: 9,
+                    fontSize: 11.5,
                     fontWeight: 700,
                   }}
                 >
                   Madan Mahal
-                  <div style={{ fontSize: 8, fontWeight: 400 }}>
+                  <div style={{ fontSize: 11, fontWeight: 400 }}>
                     (Drop)
                   </div>
                 </Box>
@@ -1156,7 +1156,7 @@ function App() {
               >
                 <Typography
                   sx={{
-                    fontSize: 10,
+                    fontSize: 12,
                     color: "#444b57",
                   }}
                 >
@@ -1175,7 +1175,7 @@ function App() {
 
                 <Typography
                   sx={{
-                    fontSize: 10,
+                    fontSize: 12,
                     color: "#444b57",
                   }}
                 >
@@ -1205,7 +1205,7 @@ function App() {
             >
               <Typography
                 sx={{
-                  fontSize: 11,
+                  fontSize: 12.5,
                   fontWeight: 800,
                   color: "#4e535c",
                   mb: 1,
@@ -1221,11 +1221,11 @@ function App() {
                   mb: 0.5,
                 }}
               >
-                <Typography sx={{ fontSize: 11, color: "#50555e" }}>
+                <Typography sx={{ fontSize: 12.5, color: "#50555e" }}>
                   Scheduled Departure
                 </Typography>
 
-                <Typography sx={{ fontSize: 11, fontWeight: 800 }}>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 800 }}>
                   Today, 09:15 AM
                 </Typography>
               </Box>
@@ -1237,11 +1237,11 @@ function App() {
                   mb: 0.5,
                 }}
               >
-                <Typography sx={{ fontSize: 11, color: "#50555e" }}>
+                <Typography sx={{ fontSize: 12.5, color: "#50555e" }}>
                   Registered Vehicle
                 </Typography>
 
-                <Typography sx={{ fontSize: 11, fontWeight: 800 }}>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 800 }}>
                   Bajaj Pulsar NS200
                 </Typography>
               </Box>
@@ -1252,7 +1252,7 @@ function App() {
                   justifyContent: "space-between",
                 }}
               >
-                <Typography sx={{ fontSize: 11, color: "#50555e" }}>
+                <Typography sx={{ fontSize: 12.5, color: "#50555e" }}>
                   Seat Availability
                 </Typography>
 
@@ -1263,7 +1263,7 @@ function App() {
                     height: 21,
                     background: "#d9efeb",
                     color: "#007c71",
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: 700,
                   }}
                 />
@@ -1304,7 +1304,7 @@ function App() {
               <Box>
                 <Typography
                   sx={{
-                    fontSize: 15,
+                    fontSize: 15.5,
                     fontWeight: 800,
                     mb: 0.5,
                   }}
@@ -1314,7 +1314,7 @@ function App() {
 
                 <Typography
                   sx={{
-                    fontSize: 12,
+                    fontSize: 13,
                     color: "#5d626b",
                     lineHeight: 1.35,
                   }}
@@ -1346,13 +1346,13 @@ function App() {
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Typography
             sx={{
-              fontSize: 11,
+              fontSize: 12.5,
               color: "#4e555d",
             }}
           >
             <ShieldOutlinedIcon
               sx={{
-                fontSize: 14,
+                fontSize: 14.5,
                 color: "#007d71",
                 verticalAlign: "middle",
                 mr: 0.5,
@@ -1365,13 +1365,13 @@ function App() {
 
           <Typography
             sx={{
-              fontSize: 11,
+              fontSize: 12.5,
               color: "#4e555d",
             }}
           >
             <SecurityOutlinedIcon
               sx={{
-                fontSize: 14,
+                fontSize: 14.5,
                 color: "#007d71",
                 verticalAlign: "middle",
                 mr: 0.5,
@@ -1384,13 +1384,13 @@ function App() {
 
           <Typography
             sx={{
-              fontSize: 11,
+              fontSize: 12.5,
               color: "#e12626",
             }}
           >
             <SosIcon
               sx={{
-                fontSize: 14,
+                fontSize: 14.5,
                 verticalAlign: "middle",
                 mr: 0.5,
               }}
@@ -1401,7 +1401,7 @@ function App() {
 
         <Typography
           sx={{
-            fontSize: 11,
+            fontSize: 12.5,
             color: "#4e555d",
           }}
         >

@@ -166,6 +166,17 @@ const IconUser = ({ size = 18, color = "#fff" }) => (
 
 const pageFont = "'Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
+// One width and side gutter shared by the navbar, the page sections and the
+// footer, so their edges line up and the page uses the screen instead of
+// leaving wide empty margins. (The footer uses the same numbers.)
+const pageContainer = {
+  width: "100%",
+  maxWidth: 1560,
+  boxSizing: "border-box",
+  mx: "auto",
+  px: { xs: 3, sm: 4, md: 5, lg: 6 },
+};
+
 const Pill = ({ children, sx }) => (
   <Box
     sx={{
@@ -272,9 +283,7 @@ const Navbar = () => (
     <Row
       justify="space-between"
       sx={{
-        maxWidth: 1180,
-        mx: "auto",
-        px: { xs: 3, md: 4 },
+        ...pageContainer,
         height: 64,
       }}
     >
@@ -379,7 +388,7 @@ const Hero = () => (
     }}
   >
     {/* Left column */}
-    <Box sx={{ flex: "0 0 46%", maxWidth: { md: "46%" } }}>
+    <Box sx={{ flex: "0 0 48%", maxWidth: { md: "48%" } }}>
       <Pill sx={{ bgcolor: "#fff", border: "1px solid #E6E8EF", color: "#3C4250", mb: "22px" }}>
         <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#0E9F76" }} />
         <IconCheck size={13} />
@@ -460,9 +469,9 @@ const Hero = () => (
 
       <Row spacing={1.2} sx={{ mt: "26px", flexWrap: "wrap" }}>
         <Stack direction="row" sx={{ "& > div": { border: "2px solid #fff", ml: "-8px" }, "& > div:first-of-type": { ml: 0 } }}>
-          <Avatar sx={{ width: 26, height: 26, fontSize: 10, bgcolor: "#F2A65A" }}>RK</Avatar>
-          <Avatar sx={{ width: 26, height: 26, fontSize: 10, bgcolor: "#7C6CF0" }}>SP</Avatar>
-          <Avatar sx={{ width: 26, height: 26, fontSize: 10, bgcolor: "#0E9F76" }}>AM</Avatar>
+          <Avatar sx={{ width: 26, height: 26, fontSize: 12, bgcolor: "#F2A65A" }}>RK</Avatar>
+          <Avatar sx={{ width: 26, height: 26, fontSize: 12, bgcolor: "#7C6CF0" }}>SP</Avatar>
+          <Avatar sx={{ width: 26, height: 26, fontSize: 12, bgcolor: "#0E9F76" }}>AM</Avatar>
         </Stack>
         <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, color: "#6A7182" }}>
           <Box component="span" sx={{ fontWeight: 700, color: "#151A21" }}>25,000+</Box> shared corridors{" "}
@@ -474,7 +483,7 @@ const Hero = () => (
     </Box>
 
     {/* Right column - map card */}
-    <Box sx={{ flex: 1, position: "relative", width: "100%", maxWidth: 560, mt: { xs: 4, md: 0 } }}>
+    <Box sx={{ flex: 1, position: "relative", width: "100%", maxWidth: { md: 720 }, mt: { xs: 4, md: 0 } }}>
       {/* floating route-match badge */}
       <Box
         sx={{
@@ -496,7 +505,7 @@ const Hero = () => (
           <Typography sx={{ fontFamily: pageFont, fontWeight: 700, fontSize: 12.5, color: "#151A21" }}>
             Route Match: 88%
           </Typography>
-          <Typography sx={{ fontFamily: pageFont, fontSize: 11, color: "#8A9099" }}>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
             +3 min detour only
           </Typography>
         </Box>
@@ -515,10 +524,10 @@ const Hero = () => (
         }}
       >
         <Row justify="space-between" align="flex-start">
-          <Typography sx={{ fontFamily: pageFont, fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 600, letterSpacing: "0.5px" }}>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "rgba(255,255,255,0.55)", fontWeight: 600, letterSpacing: "0.5px" }}>
             OVERLAP
           </Typography>
-          <Pill sx={{ bgcolor: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 11.5, py: "5px" }}>
+          <Pill sx={{ bgcolor: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 12, py: "5px" }}>
             <IconRoute size={13} color="#8CF0C9" /> Active Corridors: 42
           </Pill>
         </Row>
@@ -556,7 +565,7 @@ const Hero = () => (
               PNT Naka
             </Typography>
           </Row>
-          <Typography sx={{ fontFamily: pageFont, fontSize: 10.5, color: "rgba(255,255,255,0.5)", pl: "14px" }}>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "rgba(255,255,255,0.5)", pl: "14px" }}>
             Origin · 8:15 AM
           </Typography>
         </Box>
@@ -603,7 +612,7 @@ const Hero = () => (
           <Typography sx={{ fontFamily: pageFont, fontWeight: 700, fontSize: 12, color: "#151A21" }}>
             Verified Community
           </Typography>
-          <Typography sx={{ fontFamily: pageFont, fontSize: 10.5, color: "#8A9099" }}>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
             Govt ID + Corp Email
           </Typography>
         </Box>
@@ -741,25 +750,25 @@ const ProcessSection = () => (
         <Box sx={{ bgcolor: "#F7F8FB", borderRadius: "10px", p: "12px 14px", mt: "4px" }}>
           <Row justify="space-between">
             <Row spacing={1}>
-              <Avatar sx={{ width: 26, height: 26, fontSize: 10, bgcolor: "#0E9F76" }}>AS</Avatar>
+              <Avatar sx={{ width: 26, height: 26, fontSize: 12, bgcolor: "#0E9F76" }}>AS</Avatar>
               <Box>
                 <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, fontWeight: 700, color: "#151A21" }}>
                   Arjun S.
                 </Typography>
-                <Typography sx={{ fontFamily: pageFont, fontSize: 11, color: "#8A9099" }}>
+                <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
                   TCS · 4.9 ★
                 </Typography>
               </Box>
             </Row>
-            <Pill sx={{ bgcolor: "#E4F6EE", color: "#0E9F76", fontSize: 10.5, py: "4px", px: "9px" }}>
+            <Pill sx={{ bgcolor: "#E4F6EE", color: "#0E9F76", fontSize: 12, py: "4px", px: "9px" }}>
               92% match
             </Pill>
           </Row>
           <Row justify="space-between" sx={{ mt: "8px" }}>
-            <Typography sx={{ fontFamily: pageFont, fontSize: 11.5, color: "#8A9099" }}>
+            <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
               Honda H'ness CB350
             </Typography>
-            <Typography sx={{ fontFamily: pageFont, fontSize: 11.5, color: "#8A9099" }}>
+            <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
               +2 min detour
             </Typography>
           </Row>
@@ -793,7 +802,7 @@ const ProcessSection = () => (
                 <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, fontWeight: 700, color: "#151A21" }}>
                   Ready to Roll
                 </Typography>
-                <Typography sx={{ fontFamily: pageFont, fontSize: 11, color: "#8A9099" }}>
+                <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
                   OTP &amp; Helmet Verified
                 </Typography>
               </Box>
@@ -802,7 +811,7 @@ const ProcessSection = () => (
               <Typography sx={{ fontFamily: pageFont, fontSize: 13, fontWeight: 800, color: "#151A21" }}>
                 ₹45
               </Typography>
-              <Typography sx={{ fontFamily: pageFont, fontSize: 10.5, color: "#8A9099" }}>
+              <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
                 Fuel share
               </Typography>
             </Box>
@@ -886,7 +895,7 @@ const SafetySection = () => (
       <SafetyCard
         iconBg="#FBE2E4"
         icon={
-          <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 11, color: "#E15366" }}>
+          <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 12, color: "#E15366" }}>
             SOS
           </Typography>
         }
@@ -947,7 +956,7 @@ const StatCard = ({ iconBg, icon, tag, tagColor, value, desc }) => (
       >
         {icon}
       </Box>
-      <Pill sx={{ bgcolor: "#F2F3F8", color: tagColor, fontSize: 11, py: "5px" }}>{tag}</Pill>
+      <Pill sx={{ bgcolor: "#F2F3F8", color: tagColor, fontSize: 12, py: "5px" }}>{tag}</Pill>
     </Row>
     <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 28, color: "#12151A", mt: "16px" }}>
       {value}
@@ -1080,7 +1089,7 @@ export default function LandingPage() {
   return (
     <Box sx={{ bgcolor: "#F6F7FB", minHeight: "100vh" }}>
       <Navbar />
-      <Box sx={{ maxWidth: 1180, mx: "auto", px: { xs: 3, md: 4 } }}>
+      <Box sx={pageContainer}>
         <Hero />
         <FeatureRow />
         <ProcessSection />

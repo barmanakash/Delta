@@ -528,7 +528,7 @@ export default function LiftTakerHome() {
         <Box
           className="lt-pad"
           style={{
-            maxWidth: 1280,
+            maxWidth: 1560,
             margin: "0 auto",
             height: 72,
             padding: "0 32px",
@@ -655,7 +655,7 @@ export default function LiftTakerHome() {
         <Box
           className="lt-pad"
           style={{
-            maxWidth: 1280,
+            maxWidth: 1560,
             margin: "0 auto",
             padding: "32px 32px 0",
             boxSizing: "border-box",
@@ -756,7 +756,7 @@ export default function LiftTakerHome() {
         <Box
           className="lt-pad lt-grid"
           style={{
-            maxWidth: 1280,
+            maxWidth: 1560,
             margin: "28px auto 0",
             padding: "0 32px",
             boxSizing: "border-box",
@@ -1438,7 +1438,7 @@ export default function LiftTakerHome() {
         <Box
           className="lt-pad"
           style={{
-            maxWidth: 1280,
+            maxWidth: 1560,
             margin: "48px auto 0",
             padding: "0 32px",
             boxSizing: "border-box",
@@ -1468,7 +1468,7 @@ export default function LiftTakerHome() {
         <Box
           className="lt-pad"
           style={{
-            maxWidth: 1280,
+            maxWidth: 1560,
             margin: "0 auto",
             padding: "48px 32px 24px",
             boxSizing: "border-box",
