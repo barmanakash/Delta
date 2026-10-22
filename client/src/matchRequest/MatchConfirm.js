@@ -92,7 +92,7 @@ export default function MatchConfirm() {
               color: "#172033",
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
 
           <Typography
@@ -937,7 +937,7 @@ export default function MatchConfirm() {
             color: "#686D76",
           }}
         >
-          © 2025 SafeRoute Technologies Inc. All rights reserved.
+          © 2025 FriendRide Technologies Inc. All rights reserved.
         </Typography>
       </Box>
     </Box>

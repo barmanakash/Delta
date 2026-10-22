@@ -127,7 +127,7 @@ export default function RolAndMode() {
                             color: "#172033",
                         }}
                     >
-                        SafeRoute
+                        FriendRide
                     </Typography>
 
                     <Box
@@ -153,7 +153,7 @@ export default function RolAndMode() {
                                     color: "#172033",
                                 }}
                             >
-                                SafeRoute
+                                FriendRide
                             </Typography>
 
                             <Box
@@ -461,7 +461,7 @@ export default function RolAndMode() {
                             letterSpacing: "-0.7px",
                         }}
                     >
-                        How will you use SafeRoute?
+                        How will you use FriendRide?
                     </Typography>
 
                     <Typography
@@ -627,7 +627,7 @@ export default function RolAndMode() {
                             color: "#303b43",
                         }}
                     >
-                        SafeRoute uses verified profiles and compatible matching to help
+                        FriendRide uses verified profiles and compatible matching to help
                         create safer shared commutes.
                     </Typography>
                 </Box>
@@ -738,7 +738,7 @@ export default function RolAndMode() {
                             color: "#3f494c",
                         }}
                     >
-                        © 2025 SafeRoute Technologies Inc. All commuter safety protocols active.
+                        © 2025 FriendRide Technologies Inc. All commuter safety protocols active.
                     </Typography>
                 </Box>
             </Box>

@@ -293,7 +293,7 @@ function NavTab({ active, onClick, children }) {
 /* ------------------------------------------------------------------ */
 
 const DEFAULT_FOOTER_TEXT =
-  "SafeRoute Intercity & Metro Commuter Network. Certified pooled mobility engineered for institutional passenger security, verified identity networks, and continuous telemetry across Indian metros.";
+  "FriendRide Intercity & Metro Commuter Network. Certified pooled mobility engineered for institutional passenger security, verified identity networks, and continuous telemetry across Indian metros.";
 
 const DEFAULT_FOOTER_COLUMNS = [
   {
@@ -309,7 +309,7 @@ const DEFAULT_FOOTER_COLUMNS = [
 export function LiftTakerFooter({
   description = DEFAULT_FOOTER_TEXT,
   columns = DEFAULT_FOOTER_COLUMNS,
-  copyright = "SafeRoute Technologies India Pvt Ltd. Intercity & Metro Commuter Network. All rights reserved.",
+  copyright = "FriendRide Technologies India Pvt Ltd. Intercity & Metro Commuter Network. All rights reserved.",
 }) {
   const year = new Date().getFullYear();
 

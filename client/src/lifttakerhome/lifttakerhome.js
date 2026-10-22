@@ -686,7 +686,7 @@ export default function LiftTakerHome() {
                 }}
               >
                 <Box style={{ width: 7, height: 7, borderRadius: "50%", background: tealBright }} />
-                SAFEROUTE COMMUTER NETWORK
+                FriendRide COMMUTER NETWORK
                 <Box style={{ width: 5, height: 5, borderRadius: "50%", background: "#b9bfd3" }} />
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#3b4357", fontWeight: 600 }}>
                   <VerifiedOutlinedIcon style={{ fontSize: 15, color: tealBright }} />
@@ -1299,7 +1299,7 @@ export default function LiftTakerHome() {
 
           {/* ----------------------- RIGHT COLUMN ----------------------- */}
           <Box style={{ display: "flex", flexDirection: "column", gap: 24, minWidth: 0 }}>
-            {/* SafeRoute Matching */}
+            {/* FriendRide Matching */}
             <Box style={{ ...cardStyle, padding: 24 }}>
               <Box style={{ display: "flex", gap: 16 }}>
                 <Box
@@ -1319,7 +1319,7 @@ export default function LiftTakerHome() {
                 </Box>
                 <Box>
                   <Typography style={{ fontSize: 20, fontWeight: 800 }}>
-                    SafeRoute Matching
+                    FriendRide Matching
                   </Typography>
                   <Typography style={{ fontSize: 14, color: muted, lineHeight: 1.5, marginTop: 4 }}>
                     We show compatible riders based on route overlap, timing, and

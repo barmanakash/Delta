@@ -166,7 +166,7 @@ function Header() {
                         marginLeft: 2,
                     }}
                 >
-                    SafeRoute
+                    FriendRide
                 </Typography>
 
                 <SmallBadge bg="#CFF8F2" color="#00796B">
@@ -1301,7 +1301,7 @@ function PrivacyCard() {
                         color: dark,
                     }}
                 >
-                    SafeRoute Two-Way Privacy Guarantee
+                    FriendRide Two-Way Privacy Guarantee
                 </Typography>
 
                 <Typography
@@ -1463,7 +1463,7 @@ function Footer() {
             </Box>
 
             <Typography style={{ fontSize: 12.5, color: "#505866" }}>
-                © 2025 SafeRoute Technologies Inc. All rights reserved.
+                © 2025 FriendRide Technologies Inc. All rights reserved.
             </Typography>
         </Box>
     );

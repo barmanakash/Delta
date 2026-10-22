@@ -789,7 +789,7 @@ function Home() {
           </div>
 
           <div style={{ fontSize: "17px", fontWeight: 800 }}>
-            SafeRoute
+            FriendRide
           </div>
 
           <div style={styles.ridePool}>RIDE-POOL</div>
@@ -1233,7 +1233,7 @@ function Home() {
               geofenced safe bay.
               <br />
               <br />
-              Use SafeRoute verification before starting the shared trip.
+              Use FriendRide verification before starting the shared trip.
               <br />
               <br />
               24/7 MoRTH AIS-140 emergency dispatch actively monitoring this
@@ -1271,7 +1271,7 @@ function Home() {
         </div>
 
         <div style={styles.footerRight}>
-          © 2025 SafeRoute Technologies Inc. All rights reserved.
+          © 2025 FriendRide Technologies Inc. All rights reserved.
         </div>
       </footer>
     </div>

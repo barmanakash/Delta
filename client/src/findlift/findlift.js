@@ -1147,7 +1147,7 @@ export default function FindLift() {
               <Box style={{ minWidth: 0, flex: 1 }}>
                 <Box style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                   <Typography style={{ fontSize: 17, fontWeight: 800 }}>
-                    SafeRoute matching architecture
+                    FriendRide matching architecture
                   </Typography>
                   <Box
                     style={{

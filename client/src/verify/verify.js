@@ -74,7 +74,7 @@ export default function App() {
               letterSpacing: "-0.4px",
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
         </Box>
 
@@ -234,7 +234,7 @@ export default function App() {
                   color: "#182238",
                 }}
               >
-                SafeRoute
+                FriendRide
               </Typography>
             </Box>
 
@@ -627,7 +627,7 @@ export default function App() {
             color: "#354044",
           }}
         >
-          © 2025 SafeRoute Technologies Inc. All commuter
+          © 2025 FriendRide Technologies Inc. All commuter
           safety protocols active.
         </Typography>
 

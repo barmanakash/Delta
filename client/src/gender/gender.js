@@ -130,7 +130,7 @@ export default function Gender() {
               color: "#172033",
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
 
           <Box
@@ -148,7 +148,7 @@ export default function Gender() {
                 color: "#172033",
               }}
             >
-              SafeRoute
+              FriendRide
             </Typography>
 
             <Box
@@ -626,7 +626,7 @@ export default function Gender() {
                   maxWidth: 500,
                 }}
               >
-                For safety, SafeRoute only connects male riders with male lift
+                For safety, FriendRide only connects male riders with male lift
                 takers and female riders with female lift takers.
               </Typography>
 
@@ -788,7 +788,7 @@ export default function Gender() {
               color: "#4d5659",
             }}
           >
-            SafeRoute adheres strictly to commuter verification and institutional
+            FriendRide adheres strictly to commuter verification and institutional
             safety guidelines.
           </Typography>
         </Box>
@@ -838,7 +838,7 @@ export default function Gender() {
             color: "#414b4e",
           }}
         >
-          © 2025 SafeRoute Technologies Inc. All commuter safety protocols active.
+          © 2025 FriendRide Technologies Inc. All commuter safety protocols active.
         </Typography>
       </Box>
 

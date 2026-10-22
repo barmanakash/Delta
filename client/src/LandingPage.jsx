@@ -304,10 +304,7 @@ const Navbar = () => (
           <IconShield size={16} color="#fff" />
         </Box>
         <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 17, color: "#12151A" }}>
-          Safe<Box component="span" sx={{ color: "#0E9F76" }}>Route</Box>
-        </Typography>
-        <Typography sx={{ fontFamily: pageFont, fontWeight: 700, fontSize: 17, color: "#12151A", ml: "6px" }}>
-          SafeRoute
+         Friend<Box component="span" sx={{ color: "#0E9F76" }}>Ride</Box>
         </Typography>
       </Row>
 
@@ -719,7 +716,7 @@ const ProcessSection = () => (
         iconBg="#E4F6EE"
         icon={<IconShieldPlus size={18} />}
         title="Set Your Route"
-        desc="Tell SafeRoute where you're starting and where you're going. Choose your regular morning or evening schedule."
+        desc="Tell FriendRide where you're starting and where you're going. Choose your regular morning or evening schedule."
       >
         <Box sx={{ bgcolor: "#F7F8FB", borderRadius: "10px", p: "12px 14px", mt: "4px" }}>
           <Row spacing={1}>
@@ -1038,7 +1035,7 @@ const CTASection = () => (
         lineHeight: 1.6,
       }}
     >
-      Join SafeRoute and discover people travelling along your route today. Free to join, verified to ride.
+      Join FriendRide and discover people travelling along your route today. Free to join, verified to ride.
     </Typography>
 
     <Row justify="center" spacing={1.5} sx={{ mt: "28px" }}>

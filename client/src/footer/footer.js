@@ -394,7 +394,7 @@ function Footer() {
                 color: "#4B5563",
               }}
             >
-              © 2025 SafeRoute Technologies Inc. All rights reserved.
+              © 2025 FriendRide Technologies Inc. All rights reserved.
             </Typography>
 
             <Stack

@@ -1008,7 +1008,7 @@ export default function CreateCommute() {
           <Box style={{ display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
             <span>Safety Guidelines</span>
             <span>Trip Cover</span>
-            <span>© {year} SafeRoute Mobility</span>
+            <span>© {year} FriendRide Mobility</span>
           </Box>
         </Box>
       </Box>

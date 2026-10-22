@@ -277,7 +277,7 @@ export default function App() {
                 fontSize: 15,
               }}
             >
-              SafeRoute
+              FriendRide
             </Typography>
           </Box>
 
@@ -288,7 +288,7 @@ export default function App() {
               marginRight: 10,
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
 
           <Chip
@@ -1541,7 +1541,7 @@ export default function App() {
                     marginTop: 5,
                   }}
                 >
-                  SafeRoute pairs verified riders and passengers based
+                  FriendRide pairs verified riders and passengers based
                   <br />
                   strictly on official corporate IDs, government
                   <br />
@@ -1600,7 +1600,7 @@ export default function App() {
               marginTop: 4,
             }}
           >
-            © 2025 SafeRoute Technologies Inc. All rights reserved.
+            © 2025 FriendRide Technologies Inc. All rights reserved.
           </Typography>
         </Box>
 

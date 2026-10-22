@@ -1,5 +1,5 @@
 """
-Run the SafeRoute FastAPI server.
+Run the FriendRide FastAPI server.
 
 Usage:
     python run.py

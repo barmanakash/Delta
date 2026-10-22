@@ -130,7 +130,7 @@ function App() {
               color: "#182033",
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
 
           <Chip
@@ -1309,7 +1309,7 @@ function App() {
                     mb: 0.5,
                   }}
                 >
-                  SafeRoute Corridor Lock
+                  FriendRide Corridor Lock
                 </Typography>
 
                 <Typography
@@ -1405,7 +1405,7 @@ function App() {
             color: "#4e555d",
           }}
         >
-          © 2025 SafeRoute Technologies Inc. All rights reserved.
+          © 2025 FriendRide Technologies Inc. All rights reserved.
         </Typography>
       </Box>
     </Box>

@@ -225,7 +225,7 @@ function App() {
               letterSpacing: "-0.4px",
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
         </Box>
 
@@ -325,7 +325,7 @@ function App() {
                   color: "#172031",
                 }}
               >
-                SafeRoute
+                FriendRide
               </Typography>
             </Box>
 
@@ -649,7 +649,7 @@ function App() {
                 marginBottom: "27px",
               }}
             >
-              Join SafeRoute for safer, smarter shared commutes.
+              Join FriendRide for safer, smarter shared commutes.
             </Typography>
 
             {/* Full Name */}
@@ -1099,7 +1099,7 @@ function App() {
             color: "#343b40",
           }}
         >
-          © 2025 SafeRoute Technologies Inc. All commuter safety protocols
+          © 2025 FriendRide Technologies Inc. All commuter safety protocols
           active.
         </Typography>
 

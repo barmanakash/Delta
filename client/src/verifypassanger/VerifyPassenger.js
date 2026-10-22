@@ -398,7 +398,7 @@ const Header = () => {
               color: "#101828",
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
 
           <Typography
@@ -1085,7 +1085,7 @@ const VerificationCard = () => {
         }}
       >
         Ask Rohit for the 4-digit verification code displayed on his
-        SafeRoute app.
+        FriendRide app.
       </Typography>
 
       <Box
@@ -1374,7 +1374,7 @@ const Footer = () => {
             color: "#667085",
           }}
         >
-          © 2025 SafeRoute Technologies Inc. All rights reserved. Urban
+          © 2025 FriendRide Technologies Inc. All rights reserved. Urban
           Transit Network.
         </Typography>
 

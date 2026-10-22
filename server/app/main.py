@@ -10,8 +10,8 @@ from app.routes.lifts import router as lifts_router
 from app.routes.rides import router as rides_router
 
 app = FastAPI(
-    title="SafeRoute API",
-    description="Backend API for SafeRoute — Urban Two-Wheeler Lift-Sharing Platform",
+    title="FriendRide API",
+    description="Backend API for FriendRide — Urban Two-Wheeler Lift-Sharing Platform",
     version="1.0.0",
 )
 
@@ -56,6 +56,6 @@ app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads"
 async def health_check():
     return {
         "status": "ok",
-        "service": "SafeRoute API",
+        "service": "FriendRide API",
         "version": "1.0.0",
     }

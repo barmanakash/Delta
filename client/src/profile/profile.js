@@ -352,7 +352,7 @@ export default function Profile() {
               color: "#172033",
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
 
           <Typography
@@ -363,7 +363,7 @@ export default function Profile() {
               marginLeft: 10,
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
         </Box>
 
@@ -1342,7 +1342,7 @@ export default function Profile() {
                   color: "#394447",
                 }}
               >
-                SafeRoute protects member data with institutional-grade
+                FriendRide protects member data with institutional-grade
                 256-bit encryption.
               </Typography>
             </Box>
@@ -1394,7 +1394,7 @@ export default function Profile() {
             color: "#3b4548",
           }}
         >
-          © 2024 SafeRoute Technologies Inc. All rights reserved.
+          © 2024 FriendRide Technologies Inc. All rights reserved.
         </Typography>
       </Box>
 

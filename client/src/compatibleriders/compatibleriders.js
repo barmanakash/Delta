@@ -892,7 +892,7 @@ export default function CompatibleRiders() {
                         Preview: When no riders are available
                       </Typography>
                       <Typography style={{ fontSize: 13, color: muted, marginTop: 2 }}>
-                        How SafeRoute handles low corridor match density
+                        How FriendRide handles low corridor match density
                       </Typography>
                     </Box>
                     <KeyboardArrowDownIcon
@@ -1017,7 +1017,7 @@ export default function CompatibleRiders() {
                   </Box>
 
                   <Typography style={{ textAlign: "center", fontSize: 13, fontWeight: 700, color: tealBright, marginTop: 22 }}>
-                    SafeRoute Urban Transit Assurance Charter
+                    FriendRide Urban Transit Assurance Charter
                   </Typography>
                 </Box>
 
@@ -1059,7 +1059,7 @@ export default function CompatibleRiders() {
             items: ["Privacy Policy", "Terms of Service", "Compliance Desk", "Security Standards"],
           },
         ]}
-        copyright="SafeRoute Technologies India Pvt Ltd. All rights reserved."
+        copyright="FriendRide Technologies India Pvt Ltd. All rights reserved."
       />
 
       {/* ============================ RIDER DIALOG ======================= */}

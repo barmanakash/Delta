@@ -285,7 +285,7 @@ export default function Identity() {
               color: "#172033",
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
 
           <Typography
@@ -296,7 +296,7 @@ export default function Identity() {
               marginLeft: 8,
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
         </Box>
 
@@ -767,7 +767,7 @@ export default function Identity() {
               color: "#4d5559",
             }}
           >
-            SafeRoute uses identity verification to help create a trusted
+            FriendRide uses identity verification to help create a trusted
             community for
             <br />
             shared commutes.
@@ -1361,7 +1361,7 @@ export default function Identity() {
                   marginTop: 5,
                 }}
               >
-                Learn about SafeRoute trust &amp; verification →
+                Learn about FriendRide trust &amp; verification →
               </Typography>
             </Box>
           </Box>
@@ -1611,7 +1611,7 @@ export default function Identity() {
             color: "#3e494b",
           }}
         >
-          © 2025 SafeRoute Technologies Inc. All commuter safety protocols
+          © 2025 FriendRide Technologies Inc. All commuter safety protocols
           active.
         </Typography>
       </Box>

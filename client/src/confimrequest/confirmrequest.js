@@ -106,7 +106,7 @@ const ConfirmRequest = () => {
               ml: 0.5,
             }}
           >
-            SafeRoute
+            FriendRide
           </Typography>
 
           <Box
@@ -1057,7 +1057,7 @@ const ConfirmRequest = () => {
             color: "#555b63",
           }}
         >
-          © 2025 SafeRoute Technologies Inc. All rights reserved.
+          © 2025 FriendRide Technologies Inc. All rights reserved.
         </Typography>
       </Box>
     </Box>
