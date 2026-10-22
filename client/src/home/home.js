@@ -225,153 +225,167 @@ export default function App() {
       }}
     >
       {/* HEADER */}
+
       <Box
         style={{
           height: 67,
-          background: "#fff",
+          width: "100%",
+          backgroundColor: "#ffffff",
           borderBottom: "1px solid #e7e8f1",
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
           padding: "0 30px",
           boxSizing: "border-box",
-          justifyContent: "space-between",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1200,
         }}
       >
+        {/* Left section: Logo and brand */}
         <Box
           style={{
             display: "flex",
             alignItems: "center",
             height: "100%",
+            gap: 10,
+            flexShrink: 0,
           }}
         >
+          {/* Logo */}
           <Box
             style={{
+              width: 32,
+              height: 32,
+              borderRadius: 7,
+              background: teal,
               display: "flex",
               alignItems: "center",
-              gap: 9,
-              marginRight: 18,
+              justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            <Box
+            <ShieldOutlinedIcon
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: 7,
-                background: teal,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                color: "#fff",
+                fontSize: 19,
               }}
-            >
-              <ShieldOutlinedIcon
-                style={{
-                  color: "#fff",
-                  fontSize: 19,
-                }}
-              />
-            </Box>
-
-            <Typography
-              style={{
-                fontWeight: 700,
-                fontSize: 15,
-              }}
-            >
-              FriendRide
-            </Typography>
+            />
           </Box>
 
+          {/* Brand name */}
           <Typography
             style={{
               fontSize: 17,
               fontWeight: 700,
-              marginRight: 10,
+              whiteSpace: "nowrap",
+              marginRight: 2,
             }}
           >
             FriendRide
           </Typography>
 
+          {/* User role */}
           <Chip
             label={role === "lift" ? "LIFT TAKER" : "RIDER"}
             size="small"
             style={{
-              height: 18,
+              height: 20,
               borderRadius: 9,
               background: "#71e7df",
               color: "#006c66",
               fontWeight: 800,
               fontSize: 9,
+              flexShrink: 0,
             }}
           />
+        </Box>
 
-          <Box
-            style={{
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              marginLeft: 24,
-              gap: 5,
-            }}
-          >
+        {/* Center section: Navigation */}
+        <Box
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            height: "100%",
+            flex: 1,
+            minWidth: 0,
+            margin: "0 20px",
+          }}
+        >
+          <Box style={{ flexShrink: 0 }}>
             <NavItem
               active
               icon={<HomeOutlinedIcon style={{ fontSize: 17 }} />}
               text="Home"
             />
-            <div
-              onClick={() => navigate("/createcommute")}
-              style={{ cursor: "pointer", display: "inline-block" }}
-            >
-              <NavItem
-                icon={<RouteOutlinedIcon style={{ fontSize: 17 }} />}
-                text="My Route"
-              />
-            </div>
-            {/* <NavItem
+          </Box>
+
+          <Box
+            onClick={() => navigate("/createcommute")}
+            style={{ cursor: "pointer", flexShrink: 0 }}
+          >
+            <NavItem
+              icon={<RouteOutlinedIcon style={{ fontSize: 17 }} />}
+              text="My Route"
+            />
+          </Box>
+
+          <Box
+            onClick={() => navigate("/liftrequest")}
+            style={{ cursor: "pointer", flexShrink: 0 }}
+          >
+            <NavItem
               icon={<PeopleAltOutlinedIcon style={{ fontSize: 17 }} />}
               text="Requests"
-              badge="2"
-              // component={RouterLink}
-              // to ='/liftrequest'
-              onClick={() => navigate('/liftrequest')}
-            /> */}
-            <div
-              onClick={() => navigate('/liftrequest')}
-              style={{ cursor: 'pointer', display: 'inline-block' }}
-            >
-              <NavItem
-                icon={<PeopleAltOutlinedIcon style={{ fontSize: 17 }} />}
-                text="Requests"
-                badge={incoming.pendingCount > 0 ? String(incoming.pendingCount) : undefined}
-              />
-            </div>
-            <div
-              onClick={() => navigate('/trips')}
-              style={{ cursor: 'pointer', display: 'inline-block' }}
-            >
-              <NavItem
-                icon={<DirectionsCarOutlinedIcon style={{ fontSize: 17 }} />}
-                text="Trips"
-              />
-            </div>
+              badge={
+                incoming.pendingCount > 0
+                  ? String(incoming.pendingCount)
+                  : undefined
+              }
+            />
+          </Box>
 
+          <Box
+            onClick={() => navigate("/trips")}
+            style={{ cursor: "pointer", flexShrink: 0 }}
+          >
+            <NavItem
+              icon={<DirectionsCarOutlinedIcon style={{ fontSize: 17 }} />}
+              text="Trips"
+            />
           </Box>
         </Box>
 
+        {/* Right section: Notifications and profile */}
         <Box
           style={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "flex-end",
             gap: 18,
+            flexShrink: 0,
           }}
         >
-          <Box style={{ position: "relative" }}>
+          {/* Notifications */}
+          <Box
+            style={{
+              position: "relative",
+              display: "flex",
+              alignItems: "center",
+              cursor: "pointer",
+            }}
+          >
             <NotificationsNoneOutlinedIcon
               style={{
                 fontSize: 24,
                 color: "#343b43",
               }}
             />
+
             <Box
               style={{
                 position: "absolute",
@@ -385,14 +399,16 @@ export default function App() {
             />
           </Box>
 
+          {/* Profile menu */}
           <ProfileMenu user={user} photoUrl={photoUrl} />
         </Box>
       </Box>
 
+
       {/* MAIN CONTENT */}
       <Box
         style={{
-          padding: "22px 30px 28px",
+          padding: "89px 30px 28px",
           boxSizing: "border-box",
           flex: 1,
         }}
@@ -600,366 +616,365 @@ export default function App() {
                 </Box>
               ) : (
                 <>
-              <Box
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <TwoWheelerOutlinedIcon
+                  <Box
                     style={{
-                      fontSize: 29,
-                      color: "#007c74",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                     }}
-                  />
-
-                  <Box>
-                    <Typography
+                  >
+                    <Box
                       style={{
-                        fontSize: 18,
-                        fontWeight: 700,
-                        lineHeight: 1.1,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
                       }}
                     >
-                      Your Active Commute
-                    </Typography>
+                      <TwoWheelerOutlinedIcon
+                        style={{
+                          fontSize: 29,
+                          color: "#007c74",
+                        }}
+                      />
+
+                      <Box>
+                        <Typography
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 700,
+                            lineHeight: 1.1,
+                          }}
+                        >
+                          Your Active Commute
+                        </Typography>
+
+                        <Box
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 7,
+                            marginTop: 5,
+                          }}
+                        >
+                          <Box
+                            style={{
+                              background: "#e7e9f6",
+                              padding: "2px 7px",
+                              borderRadius: 2,
+                            }}
+                          >
+                            <Typography
+                              style={{
+                                fontSize: 9,
+                                fontWeight: 800,
+                                color: "#4b5361",
+                              }}
+                            >
+                              {`ROUTE #SR-${commute.id.slice(-4).toUpperCase()}`}
+                            </Typography>
+                          </Box>
+
+                          <Typography
+                            style={{
+                              fontSize: 10,
+                              color: teal,
+                              fontWeight: 700,
+                            }}
+                          >
+                            ● Live Broadcast Active
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+
+                    <Chip
+                      label={`♙ ${commute.seats} Seat${commute.seats === 1 ? "" : "s"} Available`}
+                      style={{
+                        height: 25,
+                        background: "#75e7df",
+                        color: "#006f68",
+                        fontSize: 10,
+                        fontWeight: 800,
+                      }}
+                    />
+                  </Box>
+
+                  <Box
+                    style={{
+                      marginTop: 25,
+                      height: 98,
+                      background: lavender,
+                      borderRadius: 11,
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "0 14px",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    <Box
+                      style={{
+                        width: 405,
+                        position: "relative",
+                        paddingLeft: 25,
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <Box
+                        style={{
+                          position: "absolute",
+                          left: 6,
+                          top: 7,
+                          height: 51,
+                          borderLeft: "1px dashed #a8c9d0",
+                        }}
+                      />
+
+                      <Box
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          top: 7,
+                          width: 13,
+                          height: 13,
+                          borderRadius: "50%",
+                          background: "#4e51d9",
+                        }}
+                      />
+
+                      <Typography
+                        style={{
+                          fontSize: 9,
+                          color: "#505960",
+                          letterSpacing: "0.3px",
+                        }}
+                      >
+                        DEPARTURE POINT
+                      </Typography>
+
+                      <Typography
+                        title={commute.pickup}
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 700,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {commute.pickup}
+                      </Typography>
+
+                      <Box
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          bottom: 1,
+                          width: 13,
+                          height: 13,
+                          borderRadius: "50%",
+                          border: "2px solid #007d73",
+                          boxSizing: "border-box",
+                          background: "#fff",
+                        }}
+                      />
+
+                      <Typography
+                        style={{
+                          fontSize: 9,
+                          color: "#505960",
+                          letterSpacing: "0.3px",
+                          marginTop: 1,
+                        }}
+                      >
+                        DESTINATION
+                      </Typography>
+
+                      <Typography
+                        title={commute.destination}
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 700,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {commute.destination}
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      style={{
+                        borderLeft: "1px solid #dce1f2",
+                        height: 43,
+                        marginRight: 18,
+                      }}
+                    />
+
+                    <Metric
+                      title="Est. Distance"
+                      value={commute.distance_km ? `${commute.distance_km} km` : "—"}
+                    />
+                    <Metric title="Travel Time" value={`${commute.duration_min} mins`} teal />
+                    <Box style={{ marginLeft: 19 }}>
+                      <Typography
+                        style={{
+                          fontSize: 10,
+                          color: "#4c555a",
+                        }}
+                      >
+                        Vehicle
+                      </Typography>
+
+                      <Typography
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {commute.vehicle_model}
+                      </Typography>
+
+                      <Typography
+                        style={{
+                          fontSize: 9,
+                          color: "#555c62",
+                        }}
+                      >
+                        {commute.vehicle_plate}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box
+                    style={{
+                      marginTop: 18,
+                      height: 40,
+                      borderRadius: 9,
+                      background: "#eef0fc",
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "0 13px",
+                      boxSizing: "border-box",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Box
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <NearMeOutlinedIcon
+                        style={{
+                          color: teal,
+                          fontSize: 18,
+                        }}
+                      />
+
+                      <Typography
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {commute.stop ? `Via ${commute.stop}` : "Direct route"}
+                      </Typography>
+
+                      <Typography
+                        style={{
+                          fontSize: 11,
+                          color: "#60666b",
+                        }}
+                      >
+                        {`• ${formatClock(commute.outbound_time)}${commute.return_enabled && commute.return_time
+                          ? `, return ${formatClock(commute.return_time)}`
+                          : ""
+                          }`}
+                      </Typography>
+                    </Box>
+
+                    <Chip
+                      label={describeDays(commute.days)}
+                      style={{
+                        height: 20,
+                        background: "#dddfff",
+                        color: "#5b4ee4",
+                        fontSize: 9,
+                        fontWeight: 700,
+                      }}
+                    />
+                  </Box>
+
+                  <Box
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginTop: 26,
+                    }}
+                  >
+                    <Box
+                      style={{
+                        display: "flex",
+                        gap: 10,
+                      }}
+                    >
+                      <Button
+                        startIcon={<NearMeOutlinedIcon />}
+                        style={{
+                          height: 36,
+                          background: teal,
+                          color: "#fff",
+                          borderRadius: 7,
+                          textTransform: "none",
+                          fontWeight: 700,
+                          fontSize: 12,
+                          padding: "0 16px",
+                        }}
+                      >
+                        View Route
+                      </Button>
+
+                      <Button
+                        onClick={() => navigate("/createcommute")}
+                        startIcon={<EditOutlinedIcon />}
+                        style={{
+                          height: 36,
+                          background: "#e9ebfb",
+                          color: "#303b46",
+                          borderRadius: 7,
+                          textTransform: "none",
+                          fontWeight: 700,
+                          fontSize: 12,
+                          padding: "0 16px",
+                        }}
+                      >
+                        Edit Route
+                      </Button>
+                    </Box>
 
                     <Box
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 7,
-                        marginTop: 5,
+                        gap: 5,
+                        color: "#596066",
                       }}
                     >
-                      <Box
-                        style={{
-                          background: "#e7e9f6",
-                          padding: "2px 7px",
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Typography
-                          style={{
-                            fontSize: 9,
-                            fontWeight: 800,
-                            color: "#4b5361",
-                          }}
-                        >
-                          {`ROUTE #SR-${commute.id.slice(-4).toUpperCase()}`}
-                        </Typography>
-                      </Box>
-
+                      <PauseCircleOutlineIcon style={{ fontSize: 17 }} />
                       <Typography
                         style={{
-                          fontSize: 10,
-                          color: teal,
-                          fontWeight: 700,
+                          fontSize: 11,
+                          fontWeight: 600,
                         }}
                       >
-                        ● Live Broadcast Active
+                        Pause Sharing Today
                       </Typography>
                     </Box>
                   </Box>
-                </Box>
-
-                <Chip
-                  label={`♙ ${commute.seats} Seat${commute.seats === 1 ? "" : "s"} Available`}
-                  style={{
-                    height: 25,
-                    background: "#75e7df",
-                    color: "#006f68",
-                    fontSize: 10,
-                    fontWeight: 800,
-                  }}
-                />
-              </Box>
-
-              <Box
-                style={{
-                  marginTop: 25,
-                  height: 98,
-                  background: lavender,
-                  borderRadius: 11,
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "0 14px",
-                  boxSizing: "border-box",
-                }}
-              >
-                <Box
-                  style={{
-                    width: 405,
-                    position: "relative",
-                    paddingLeft: 25,
-                    boxSizing: "border-box",
-                  }}
-                >
-                  <Box
-                    style={{
-                      position: "absolute",
-                      left: 6,
-                      top: 7,
-                      height: 51,
-                      borderLeft: "1px dashed #a8c9d0",
-                    }}
-                  />
-
-                  <Box
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      top: 7,
-                      width: 13,
-                      height: 13,
-                      borderRadius: "50%",
-                      background: "#4e51d9",
-                    }}
-                  />
-
-                  <Typography
-                    style={{
-                      fontSize: 9,
-                      color: "#505960",
-                      letterSpacing: "0.3px",
-                    }}
-                  >
-                    DEPARTURE POINT
-                  </Typography>
-
-                  <Typography
-                    title={commute.pickup}
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {commute.pickup}
-                  </Typography>
-
-                  <Box
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      bottom: 1,
-                      width: 13,
-                      height: 13,
-                      borderRadius: "50%",
-                      border: "2px solid #007d73",
-                      boxSizing: "border-box",
-                      background: "#fff",
-                    }}
-                  />
-
-                  <Typography
-                    style={{
-                      fontSize: 9,
-                      color: "#505960",
-                      letterSpacing: "0.3px",
-                      marginTop: 1,
-                    }}
-                  >
-                    DESTINATION
-                  </Typography>
-
-                  <Typography
-                    title={commute.destination}
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {commute.destination}
-                  </Typography>
-                </Box>
-
-                <Box
-                  style={{
-                    borderLeft: "1px solid #dce1f2",
-                    height: 43,
-                    marginRight: 18,
-                  }}
-                />
-
-                <Metric
-                  title="Est. Distance"
-                  value={commute.distance_km ? `${commute.distance_km} km` : "—"}
-                />
-                <Metric title="Travel Time" value={`${commute.duration_min} mins`} teal />
-                <Box style={{ marginLeft: 19 }}>
-                  <Typography
-                    style={{
-                      fontSize: 10,
-                      color: "#4c555a",
-                    }}
-                  >
-                    Vehicle
-                  </Typography>
-
-                  <Typography
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {commute.vehicle_model}
-                  </Typography>
-
-                  <Typography
-                    style={{
-                      fontSize: 9,
-                      color: "#555c62",
-                    }}
-                  >
-                    {commute.vehicle_plate}
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Box
-                style={{
-                  marginTop: 18,
-                  height: 40,
-                  borderRadius: 9,
-                  background: "#eef0fc",
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "0 13px",
-                  boxSizing: "border-box",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <NearMeOutlinedIcon
-                    style={{
-                      color: teal,
-                      fontSize: 18,
-                    }}
-                  />
-
-                  <Typography
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {commute.stop ? `Via ${commute.stop}` : "Direct route"}
-                  </Typography>
-
-                  <Typography
-                    style={{
-                      fontSize: 11,
-                      color: "#60666b",
-                    }}
-                  >
-                    {`• ${formatClock(commute.outbound_time)}${
-                      commute.return_enabled && commute.return_time
-                        ? `, return ${formatClock(commute.return_time)}`
-                        : ""
-                    }`}
-                  </Typography>
-                </Box>
-
-                <Chip
-                  label={describeDays(commute.days)}
-                  style={{
-                    height: 20,
-                    background: "#dddfff",
-                    color: "#5b4ee4",
-                    fontSize: 9,
-                    fontWeight: 700,
-                  }}
-                />
-              </Box>
-
-              <Box
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: 26,
-                }}
-              >
-                <Box
-                  style={{
-                    display: "flex",
-                    gap: 10,
-                  }}
-                >
-                  <Button
-                    startIcon={<NearMeOutlinedIcon />}
-                    style={{
-                      height: 36,
-                      background: teal,
-                      color: "#fff",
-                      borderRadius: 7,
-                      textTransform: "none",
-                      fontWeight: 700,
-                      fontSize: 12,
-                      padding: "0 16px",
-                    }}
-                  >
-                    View Route
-                  </Button>
-
-                  <Button
-                    onClick={() => navigate("/createcommute")}
-                    startIcon={<EditOutlinedIcon />}
-                    style={{
-                      height: 36,
-                      background: "#e9ebfb",
-                      color: "#303b46",
-                      borderRadius: 7,
-                      textTransform: "none",
-                      fontWeight: 700,
-                      fontSize: 12,
-                      padding: "0 16px",
-                    }}
-                  >
-                    Edit Route
-                  </Button>
-                </Box>
-
-                <Box
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    color: "#596066",
-                  }}
-                >
-                  <PauseCircleOutlineIcon style={{ fontSize: 17 }} />
-                  <Typography
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                    }}
-                  >
-                    Pause Sharing Today
-                  </Typography>
-                </Box>
-              </Box>
                 </>
               )}
             </Box>
@@ -1171,9 +1186,8 @@ export default function App() {
                     }}
                   >
                     {commute
-                      ? `Morning Departure: ${formatClock(commute.outbound_time)} (${
-                          runsToday ? "Today" : describeDays(commute.days)
-                        }) •`
+                      ? `Morning Departure: ${formatClock(commute.outbound_time)} (${runsToday ? "Today" : describeDays(commute.days)
+                      }) •`
                       : "No commute scheduled yet"}
                   </Typography>
 
@@ -1331,8 +1345,8 @@ export default function App() {
                       {commuteLoading
                         ? "Loading your route…"
                         : commute
-                        ? "No map preview was saved for this route. Edit your route to add one."
-                        : "Create a commute to see your route on the map."}
+                          ? "No map preview was saved for this route. Edit your route to add one."
+                          : "Create a commute to see your route on the map."}
                     </Typography>
                   </Box>
                 )}
