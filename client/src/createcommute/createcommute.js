@@ -14,6 +14,10 @@ import {
 } from "@mui/material";
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import RouteOutlinedIcon from "@mui/icons-material/RouteOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
+import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
@@ -703,47 +707,75 @@ export default function CreateCommute() {
               >
                 <ShieldOutlinedIcon style={{ color: "#fff", fontSize: 20 }} />
               </Box>
-              <Typography style={{ fontSize: 18, fontWeight: 800 }}>SafeRoute</Typography>
+              <Typography style={{ fontSize: 18, fontWeight: 800 }}>FriendRide</Typography>
             </Box>
 
-            <Box
+            {/* <Box
               className="cc-btn cc-label"
               role="button"
               tabIndex={0}
               onClick={() => navigate("/home")}
               onKeyDown={activateOnKey(() => navigate("/home"))}
-              style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, fontWeight: 600, cursor: "pointer", backgroundColor:"red" }}
             >
               <ArrowBackIcon style={{ fontSize: 15 }} />
               Dashboard
-            </Box>
-            <Typography
+            </Box> */}
+            {/* <Typography
               className="cc-label"
               style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: "0.8px", color: muted }}
             >
               CREATE YOUR COMMUTE
-            </Typography>
+            </Typography> */}
           </Box>
 
-          <Box className="cc-nav" style={{ display: "flex", alignItems: "center", gap: 30 }}>
-            <Typography style={{ fontSize: 16, fontWeight: 600, color: tealBright }}>
-              Create Commute
-            </Typography>
-            {["My Commutes", "Safety Shield", "Green Miles"].map((label) => (
+          <Box
+            className="cc-nav"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              background: "#f1f2fb",
+              borderRadius: 30,
+              padding: 4,
+            }}
+          >
+            {[
+              { label: "Home", path: "/home", icon: <HomeOutlinedIcon style={{ fontSize: 17 }} /> },
+              { label: "My Route", path: "/createcommute", icon: <RouteOutlinedIcon style={{ fontSize: 17 }} /> },
+              { label: "Requests", path: "/liftrequest", icon: <PeopleAltOutlinedIcon style={{ fontSize: 17 }} /> },
+              { label: "Trips", path: "/trips", icon: <DirectionsCarOutlinedIcon style={{ fontSize: 17 }} /> },
+            ].map(({ label, path, icon }) => {
+              const active = path === "/createcommute";
+              return (
               <Box
-                key={label}
+                key={path}
                 className="cc-btn"
                 role="button"
                 tabIndex={0}
-                onClick={() => comingSoon(label)}
-                onKeyDown={activateOnKey(() => comingSoon(label))}
-                style={{ fontSize: 16, fontWeight: 600, cursor: "pointer", color: "#2b3347" }}
+                aria-current={active ? "page" : undefined}
+                onClick={() => navigate(path)}
+                onKeyDown={activateOnKey(() => navigate(path))}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  borderRadius: 24,
+                  padding: "9px 13px",
+                  background: active ? tealBright : "transparent",
+                  color: active ? "#fff" : "#2b3347",
+                  fontSize: 12,
+                  fontWeight: active ? 700 : 600,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
               >
+                {icon}
                 {label}
               </Box>
-            ))}
+              );
+            })}
           </Box>
-
           <ProfileMenu user={user} photoUrl={photoUrl} variant="stacked" />
         </Box>
       </Box>
