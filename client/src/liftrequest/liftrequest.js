@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -15,7 +15,6 @@ import RouteOutlinedIcon from "@mui/icons-material/RouteOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import SwapVertIcon from "@mui/icons-material/SwapVert";
@@ -33,6 +32,13 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import ProfileMenu from "../profilemenu/profilemenu";
+import {
+  apiRequest,
+  clearSession,
+  toAbsoluteUrl,
+  useCachedUser,
+} from "../riderrequests/riderrequests";
 
 const teal = "#00796b";
 const dark = "#172033";
@@ -41,6 +47,40 @@ const lightPurple = "#f0f1ff";
 
 function App() {
   const navigate = useNavigate();
+  const cachedUser = useCachedUser();
+  const [user, setUser] = useState(cachedUser);
+  const [photoUrl, setPhotoUrl] = useState(
+    toAbsoluteUrl(cachedUser?.profile_photo_url)
+  );
+
+  useEffect(() => {
+    if (!localStorage.getItem("access_token")) return undefined;
+
+    let mounted = true;
+    apiRequest("/api/auth/me")
+      .then(({ ok, status, data }) => {
+        if (status === 401) {
+          clearSession();
+          navigate("/signin", { replace: true });
+          return;
+        }
+        if (!ok || !data) return;
+
+        localStorage.setItem("user", JSON.stringify(data));
+        if (mounted) {
+          setUser(data);
+          setPhotoUrl(toAbsoluteUrl(data.profile_photo_url));
+        }
+      })
+      .catch(() => {
+        // Keep showing the cached profile while the backend is unavailable.
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [navigate]);
+
   const requests = [
     {
       name: "Rohit",
@@ -232,36 +272,7 @@ function App() {
               sx={{ fontSize: 21, color: "#343b43" }}
             />
           </IconButton>
-          <Avatar
-            sx={{
-              width: 34,
-              height: 34,
-              background: "#d9dff0",
-              color: "#34405a",
-              fontSize: 13,
-              fontWeight: 700,
-            }}
-          >
-            HB
-          </Avatar>
-          <Typography
-            sx={{
-              fontSize: 14,
-              fontWeight: 700,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Harshit Bhargava
-          </Typography>
-
-          <ShieldOutlinedIcon
-            sx={{
-              fontSize: 17,
-              color: "#008577",
-            }}
-          />
-
-          <KeyboardArrowDownIcon sx={{ fontSize: 20 }} />
+          <ProfileMenu user={user} photoUrl={photoUrl} />
         </Box>
       </Box>
 
