@@ -483,6 +483,7 @@ export default function LiftTakerHome() {
 
   return (
     <Box
+      className="lt-page"
       style={{
         minHeight: "100vh",
         background: pageBg,
@@ -496,6 +497,57 @@ export default function LiftTakerHome() {
         .lt-input::placeholder { color: #7b8294; font-weight: 500; }
         .lt-focus:focus-within { box-shadow: 0 0 0 2px rgba(0,125,115,0.35) !important; }
         .lt-btn:focus-visible { outline: 2px solid ${tealBright}; outline-offset: 2px; }
+        .lt-page .lt-reveal {
+          animation: lt-reveal 560ms cubic-bezier(0.22, 0.8, 0.24, 1) backwards;
+        }
+        .lt-page .lt-reveal-delay-1 { animation-delay: 80ms; }
+        .lt-page .lt-reveal-delay-2 { animation-delay: 160ms; }
+        .lt-page .lt-reveal-delay-3 { animation-delay: 240ms; }
+        .lt-page .lt-reveal-delay-4 { animation-delay: 320ms; }
+        .lt-page .lt-hover-card {
+          transition: transform 240ms cubic-bezier(0.22, 0.8, 0.24, 1), filter 240ms ease;
+        }
+        .lt-page .lt-hover-card:hover {
+          transform: translateY(-4px);
+          filter: drop-shadow(0 12px 16px rgba(24, 34, 70, 0.12));
+        }
+        .lt-page .lt-card-icon {
+          transition: transform 240ms cubic-bezier(0.22, 0.8, 0.24, 1);
+        }
+        .lt-page .lt-hover-card:hover .lt-card-icon {
+          transform: translateY(-2px) rotate(-4deg);
+        }
+        .lt-page .lt-focus {
+          transition: transform 180ms cubic-bezier(0.22, 0.8, 0.24, 1);
+        }
+        .lt-page .lt-focus:hover { transform: translateY(-1px); }
+        .lt-page .lt-feature-row {
+          transition: transform 180ms cubic-bezier(0.22, 0.8, 0.24, 1);
+        }
+        .lt-page .lt-feature-row:hover { transform: translateX(3px); }
+        .lt-page .lt-route-path {
+          animation: lt-route-flow 8s linear infinite;
+        }
+        .lt-page .lt-route-point {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: lt-route-pulse 2.4s ease-in-out infinite;
+        }
+        .lt-page .lt-route-point:last-child { animation-delay: 1.2s; }
+        .lt-page .lt-network-dot {
+          animation: lt-route-pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes lt-reveal {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes lt-route-flow {
+          to { stroke-dashoffset: -40; }
+        }
+        @keyframes lt-route-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.65; transform: scale(1.18); }
+        }
         @media (max-width: 960px) {
           .lt-grid { grid-template-columns: minmax(0, 1fr) !important; }
           .lt-hero-row { flex-direction: column !important; }
@@ -511,6 +563,11 @@ export default function LiftTakerHome() {
           .lt-two-col { grid-template-columns: minmax(0, 1fr) !important; }
           .lt-footer-grid { grid-template-columns: minmax(0, 1fr) !important; }
           .lt-h1 { font-size: 32px !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .lt-page .lt-route-path,
+          .lt-page .lt-route-point,
+          .lt-page .lt-network-dot { animation: none; }
         }
       `}</style>
 
@@ -670,7 +727,7 @@ export default function LiftTakerHome() {
               gap: 24,
             }}
           >
-            <Box>
+            <Box className="lt-reveal">
               <Box
                 style={{
                   display: "inline-flex",
@@ -685,7 +742,7 @@ export default function LiftTakerHome() {
                   color: teal,
                 }}
               >
-                <Box style={{ width: 7, height: 7, borderRadius: "50%", background: tealBright }} />
+                <Box className="lt-network-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: tealBright }} />
                 FriendRide COMMUTER NETWORK
                 <Box style={{ width: 5, height: 5, borderRadius: "50%", background: "#b9bfd3" }} />
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#3b4357", fontWeight: 600 }}>
@@ -715,6 +772,7 @@ export default function LiftTakerHome() {
             </Box>
 
             <Box
+              className="lt-hover-card lt-reveal lt-reveal-delay-1"
               style={{
                 ...cardStyle,
                 borderRadius: 16,
@@ -737,7 +795,7 @@ export default function LiftTakerHome() {
                   color: teal,
                 }}
               >
-                <ShieldOutlinedIcon style={{ fontSize: 26 }} />
+                <ShieldOutlinedIcon className="lt-card-icon" style={{ fontSize: 26 }} />
               </Box>
               <Box>
                 <Typography style={{ fontSize: 13.5, fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
@@ -771,6 +829,7 @@ export default function LiftTakerHome() {
             {/* Plan Your Commute */}
             <Box
               ref={planRef}
+              className="lt-hover-card lt-reveal lt-reveal-delay-1"
               style={{ ...cardStyle, overflow: "hidden", scrollMarginTop: 90 }}
             >
               <Box style={{ height: 5, background: `linear-gradient(90deg, ${teal}, ${indigo})` }} />
@@ -799,7 +858,7 @@ export default function LiftTakerHome() {
                         justifyContent: "center",
                       }}
                     >
-                      <TwoWheelerOutlinedIcon style={{ fontSize: 24 }} />
+                      <TwoWheelerOutlinedIcon className="lt-card-icon" style={{ fontSize: 24 }} />
                     </Box>
                     <Box>
                       <Typography style={{ fontSize: 20, fontWeight: 800 }}>
@@ -1230,6 +1289,7 @@ export default function LiftTakerHome() {
 
             {/* Smart route corridor engine */}
             <Box
+              className="lt-hover-card lt-reveal lt-reveal-delay-2"
               style={{
                 ...cardStyle,
                 borderRadius: 20,
@@ -1253,6 +1313,7 @@ export default function LiftTakerHome() {
               >
                 <svg viewBox="0 0 190 112" width="190" height="112" aria-hidden="true">
                   <path
+                    className="lt-route-path"
                     d="M24 92 C 60 60, 120 70, 164 24"
                     fill="none"
                     stroke="#9aa3ea"
@@ -1260,8 +1321,8 @@ export default function LiftTakerHome() {
                     strokeDasharray="5 5"
                     strokeLinecap="round"
                   />
-                  <circle cx="24" cy="92" r="6" fill={tealBright} />
-                  <circle cx="164" cy="24" r="6" fill={indigo} />
+                  <circle className="lt-route-point" cx="24" cy="92" r="6" fill={tealBright} />
+                  <circle className="lt-route-point" cx="164" cy="24" r="6" fill={indigo} />
                 </svg>
                 <Box
                   style={{
@@ -1300,7 +1361,7 @@ export default function LiftTakerHome() {
           {/* ----------------------- RIGHT COLUMN ----------------------- */}
           <Box style={{ display: "flex", flexDirection: "column", gap: 24, minWidth: 0 }}>
             {/* FriendRide Matching */}
-            <Box style={{ ...cardStyle, padding: 24 }}>
+            <Box className="lt-hover-card lt-reveal lt-reveal-delay-1" style={{ ...cardStyle, padding: 24 }}>
               <Box style={{ display: "flex", gap: 16 }}>
                 <Box
                   style={{
@@ -1315,7 +1376,7 @@ export default function LiftTakerHome() {
                     flexShrink: 0,
                   }}
                 >
-                  <ShieldOutlinedIcon style={{ fontSize: 28 }} />
+                  <ShieldOutlinedIcon className="lt-card-icon" style={{ fontSize: 28 }} />
                 </Box>
                 <Box>
                   <Typography style={{ fontSize: 20, fontWeight: 800 }}>
@@ -1344,7 +1405,7 @@ export default function LiftTakerHome() {
                   "Mandatory Pillion Helmet & Contact Masking",
                   "AIS-140 GPS Route Guard & Deviation Alerts",
                 ].map((text) => (
-                  <Box key={text} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 500 }}>
+                  <Box key={text} className="lt-feature-row" style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 500 }}>
                     <CheckCircleOutlinedIcon style={{ fontSize: 17, color: tealBright }} />
                     {text}
                   </Box>
@@ -1353,7 +1414,7 @@ export default function LiftTakerHome() {
             </Box>
 
             {/* Recent Activity */}
-            <Box style={{ ...cardStyle, padding: 24 }}>
+            <Box className="lt-hover-card lt-reveal lt-reveal-delay-2" style={{ ...cardStyle, padding: 24 }}>
               <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
                 <Typography style={{ fontSize: 20, fontWeight: 800 }}>Recent Activity</Typography>
                 <Box
@@ -1398,7 +1459,7 @@ export default function LiftTakerHome() {
             </Box>
 
             {/* Guardian Shield Hub */}
-            <Box style={{ ...cardStyle, padding: 24 }}>
+            <Box className="lt-hover-card lt-reveal lt-reveal-delay-3" style={{ ...cardStyle, padding: 24 }}>
               <Typography
                 style={{ ...capsLabel, color: teal, display: "flex", alignItems: "center", gap: 7, fontSize: 11.5 }}
               >
@@ -1445,7 +1506,7 @@ export default function LiftTakerHome() {
           }}
         >
           <Box
-            className="lt-stats"
+            className="lt-stats lt-hover-card lt-reveal lt-reveal-delay-4"
             style={{
               ...cardStyle,
               borderRadius: 18,
