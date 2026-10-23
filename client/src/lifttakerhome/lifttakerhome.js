@@ -1497,7 +1497,7 @@ export default function LiftTakerHome() {
                 >
                   <ShieldOutlinedIcon style={{ color: "#fff", fontSize: 18 }} />
                 </Box>
-                <Typography style={{ fontSize: 18, fontWeight: 800 }}>SafeRoute</Typography>
+                <Typography style={{ fontSize: 18, fontWeight: 800 }}>FriendRide</Typography>
               </Box>
               <Typography style={{ fontSize: 14, color: muted, lineHeight: 1.6, margin: "14px 0 16px", maxWidth: 460 }}>
                 Next-generation intercity and metro pooled mobility. Certified for
