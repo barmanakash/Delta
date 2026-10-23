@@ -152,8 +152,8 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
                 }}
                 style={{
                   height: 40,
-                  minWidth: isActive ? 74 : 88,
-                  padding: isActive ? "0 13px" : "0 10px",
+                  width: key === "requests" || key === "route" ? 96 : 78,
+                  padding: "0 10px",
                   borderRadius: 24,
                   background: isActive ? teal : "transparent",
                   color: isActive ? "#fff" : "#2b3347",
@@ -162,8 +162,10 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
                   justifyContent: "center",
                   gap: 5,
                   boxSizing: "border-box",
+                  flexShrink: 0,
                   cursor: isActive ? "default" : "pointer",
                   whiteSpace: "nowrap",
+                  position: "relative",
                 }}
               >
                 <Icon style={{ fontSize: 17 }} />
@@ -183,6 +185,9 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
                       justifyContent: "center",
                       fontSize: 12,
                       fontWeight: 700,
+                      position: "absolute",
+                      top: -3,
+                      right: -3,
                     }}
                   >
                     {badge}

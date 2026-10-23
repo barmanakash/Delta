@@ -35,6 +35,7 @@ import NearMeOutlinedIcon from "@mui/icons-material/NearMeOutlined";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import ProfileMenu from "../profilemenu/profilemenu";
+import { RiderHeader } from "../riderlayout/riderlayout";
 import RouteMap from "../createcommute/routemap";
 import {
   useIncomingRequests,
@@ -224,6 +225,8 @@ export default function App() {
         flexDirection: "column",
       }}
     >
+      <RiderHeader active="home" user={user} photoUrl={photoUrl} pendingCount={incoming.pendingCount} />
+
       {/* HEADER */}
 
       <Box
@@ -232,7 +235,7 @@ export default function App() {
           width: "100%",
           backgroundColor: "#ffffff",
           borderBottom: "1px solid #e7e8f1",
-          display: "flex",
+          display: "none",
           alignItems: "center",
           justifyContent: "space-between",
           padding: "0 30px",
@@ -431,7 +434,7 @@ export default function App() {
       {/* MAIN CONTENT */}
       <Box
         style={{
-          padding: "89px 30px 28px",
+          padding: "22px 30px 28px",
           boxSizing: "border-box",
           flex: 1,
         }}

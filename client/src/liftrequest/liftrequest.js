@@ -33,6 +33,7 @@ import AddIcon from "@mui/icons-material/Add";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import ProfileMenu from "../profilemenu/profilemenu";
+import { RiderHeader } from "../riderlayout/riderlayout";
 import {
   apiRequest,
   clearSession,
@@ -125,6 +126,8 @@ function App() {
         flexDirection: "column",
       }}
     >
+      <RiderHeader active="requests" user={user} photoUrl={photoUrl} />
+
       {/* HEADER */}
       <Box
         sx={{
@@ -134,7 +137,7 @@ function App() {
           position: "sticky",
           top: 0,
           zIndex: 30,
-          display: "flex",
+          display: "none",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 2,

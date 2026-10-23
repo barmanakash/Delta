@@ -38,6 +38,7 @@ import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 import AltRouteOutlinedIcon from "@mui/icons-material/AltRouteOutlined";
 
 import ProfileMenu from "../profilemenu/profilemenu";
+import { RiderHeader } from "../riderlayout/riderlayout";
 import RouteMap from "./routemap";
 
 /* ------------------------------------------------------------------ */
@@ -673,10 +674,12 @@ export default function CreateCommute() {
         }
       `}</style>
 
+      <RiderHeader active="route" user={user} photoUrl={photoUrl} />
+
       {/* ============================ HEADER ============================ */}
       <Box
         component="header"
-        style={{ background: "#fff", boxShadow: "0 2px 14px rgba(30,35,90,0.07)", position: "sticky", top: 0, zIndex: 30 }}
+        style={{ display: "none", background: "#fff", boxShadow: "0 2px 14px rgba(30,35,90,0.07)", position: "sticky", top: 0, zIndex: 30 }}
       >
         <Box
           className="cc-pad"
