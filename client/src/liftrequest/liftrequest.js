@@ -1428,7 +1428,7 @@ function App() {
             color: "#4e555d",
           }}
         >
-          © 2025 FriendRide Technologies Inc. All rights reserved.
+          © 2025 FriendRide. All rights reserved.
         </Typography>
       </Box>
     </Box>

@@ -1637,7 +1637,7 @@ export default function App() {
               marginTop: 4,
             }}
           >
-            © 2025 FriendRide Technologies Inc. All rights reserved.
+            © 2025 FriendRide. All rights reserved.
           </Typography>
         </Box>
 

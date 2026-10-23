@@ -937,7 +937,7 @@ export default function MatchConfirm() {
             color: "#686D76",
           }}
         >
-          © 2025 FriendRide Technologies Inc. All rights reserved.
+          © 2025 FriendRide. All rights reserved.
         </Typography>
       </Box>
     </Box>

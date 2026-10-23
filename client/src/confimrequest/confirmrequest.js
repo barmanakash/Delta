@@ -1057,7 +1057,7 @@ const ConfirmRequest = () => {
             color: "#555b63",
           }}
         >
-          © 2025 FriendRide Technologies Inc. All rights reserved.
+          © 2025 FriendRide. All rights reserved.
         </Typography>
       </Box>
     </Box>

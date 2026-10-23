@@ -1374,7 +1374,7 @@ const Footer = () => {
             color: "#667085",
           }}
         >
-          © 2025 FriendRide Technologies Inc. All rights reserved. Urban
+          © 2025 FriendRide. All rights reserved. Urban
           Transit Network.
         </Typography>
 

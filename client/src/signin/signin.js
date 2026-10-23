@@ -457,7 +457,7 @@ function App() {
                 marginBottom: "32px",
               }}
             >
-              Enter your details to access your SafeRoute account.
+              Enter your details to access your FriendRide account.
             </Typography>
 
             {/* Email */}

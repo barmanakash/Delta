@@ -1463,7 +1463,7 @@ function Footer() {
             </Box>
 
             <Typography style={{ fontSize: 12.5, color: "#505866" }}>
-                © 2025 FriendRide Technologies Inc. All rights reserved.
+                © 2025 FriendRide. All rights reserved.
             </Typography>
         </Box>
     );
