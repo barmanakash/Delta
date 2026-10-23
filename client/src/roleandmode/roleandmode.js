@@ -168,7 +168,7 @@ export default function RolAndMode() {
                             >
                                 <Typography
                                     style={{
-                                        fontSize: 9,
+                                        fontSize: 12,
                                         fontWeight: 700,
                                         color: "#00776f",
                                         letterSpacing: "0.2px",
@@ -181,7 +181,7 @@ export default function RolAndMode() {
 
                         <Typography
                             style={{
-                                fontSize: 10,
+                                fontSize: 12,
                                 color: "#5f676b",
                                 marginTop: 3,
                             }}
@@ -252,7 +252,7 @@ export default function RolAndMode() {
                     >
                         <Typography
                             style={{
-                                fontSize: 11,
+                                fontSize: 12,
                                 color: "#424a4e",
                                 fontWeight: 600,
                             }}
@@ -281,7 +281,7 @@ export default function RolAndMode() {
 
                         <Typography
                             style={{
-                                fontSize: 11,
+                                fontSize: 12,
                                 color: "#00766e",
                                 fontWeight: 600,
                             }}
@@ -441,7 +441,7 @@ export default function RolAndMode() {
 
                         <Typography
                             style={{
-                                fontSize: 10,
+                                fontSize: 12,
                                 fontWeight: 600,
                                 color: "#454d54",
                                 letterSpacing: "0.2px",
@@ -623,7 +623,7 @@ export default function RolAndMode() {
 
                     <Typography
                         style={{
-                            fontSize: 11.5,
+                            fontSize: 12,
                             color: "#303b43",
                         }}
                     >
@@ -708,7 +708,7 @@ export default function RolAndMode() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12,
                             color: "#3f494c",
                         }}
                     >
@@ -734,7 +734,7 @@ export default function RolAndMode() {
 
                     <Typography
                         style={{
-                            fontSize: 11,
+                            fontSize: 12,
                             color: "#3f494c",
                         }}
                     >
@@ -813,7 +813,7 @@ function Step({ number, completed, current }) {
             <Typography
                 style={{
                     marginTop: 8,
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: 700,
                     color: "#172033",
                 }}
@@ -923,7 +923,7 @@ function RoleCard({
                     >
                         <Typography
                             style={{
-                                fontSize: 10,
+                                fontSize: 12,
                                 fontWeight: 600,
                                 color: badgeColor,
                             }}
@@ -1026,7 +1026,7 @@ function RoleCard({
 
                     <Typography
                         style={{
-                            fontSize: 11.5,
+                            fontSize: 12,
                             color: "#465053",
                         }}
                     >
@@ -1036,7 +1036,7 @@ function RoleCard({
 
                 <Typography
                     style={{
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: 600,
                         color: badgeColor,
                     }}

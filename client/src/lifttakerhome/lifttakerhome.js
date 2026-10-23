@@ -1734,7 +1734,7 @@ function ActivityItem({ item, today }) {
   ].filter(Boolean);
 
   return (
-    <Box style={{ background: "#f7f8fe", borderRadius: 16, padding: "14px 16px" }}>
+    <Box className="hover-lift" style={{ background: "#f7f8fe", borderRadius: 16, padding: "14px 16px" }}>
       <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <Typography style={{ fontSize: 12, color: "#3b4357" }}>
           {relativeDay(item.travel_date, today)} • {formatTime(item.window_start)}

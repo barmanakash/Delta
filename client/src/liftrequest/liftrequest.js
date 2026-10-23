@@ -137,7 +137,7 @@ function App() {
             size="small"
             sx={{
               height: 25,
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 800,
               letterSpacing: ".5px",
               background: "#71e7df",
@@ -207,7 +207,7 @@ function App() {
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: 700,
                     }}
                   >
@@ -1081,12 +1081,12 @@ function App() {
                     position: "absolute",
                     left: 13,
                     bottom: 11,
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 700,
                   }}
                 >
                   <div>PNT Naka</div>
-                  <div style={{ fontSize: 11, fontWeight: 400 }}>
+                  <div style={{ fontSize: 12, fontWeight: 400 }}>
                     (Start)
                   </div>
                 </Box>
@@ -1096,7 +1096,7 @@ function App() {
                     position: "absolute",
                     left: "54%",
                     top: "43%",
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 700,
                     background: "#fff",
                     borderRadius: 1,
@@ -1113,7 +1113,7 @@ function App() {
                     position: "absolute",
                     left: "62%",
                     top: "24%",
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 700,
                     background: "#fff",
                     borderRadius: 1,
@@ -1130,7 +1130,7 @@ function App() {
                     position: "absolute",
                     left: "52%",
                     top: "15%",
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 700,
                     background: "#fff",
                     borderRadius: 1,
@@ -1147,12 +1147,12 @@ function App() {
                     position: "absolute",
                     right: 11,
                     top: 13,
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 700,
                   }}
                 >
                   Madan Mahal
-                  <div style={{ fontSize: 11, fontWeight: 400 }}>
+                  <div style={{ fontSize: 12, fontWeight: 400 }}>
                     (Drop)
                   </div>
                 </Box>

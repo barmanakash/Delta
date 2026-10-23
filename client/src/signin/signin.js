@@ -168,7 +168,7 @@ function App() {
       style={{
         minHeight: "100vh",
         backgroundColor: "#f7f7ff",
-        fontFamily: "Inter, Roboto, Arial, sans-serif",
+        fontFamily: "Inter, Arial, sans-serif",
         color: "#182033",
         display: "flex",
         flexDirection: "column",

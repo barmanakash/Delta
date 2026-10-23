@@ -520,7 +520,7 @@ export default function App() {
           <Typography
             align="center"
             style={{
-              fontSize: 11.5,
+              fontSize: 12,
               lineHeight: 1.5,
               color: "#535b60",
               marginBottom: 25,
@@ -593,7 +593,7 @@ export default function App() {
               <Typography
                 style={{
                   width: 300,
-                  fontSize: 11.5,
+                  fontSize: 12,
                   lineHeight: 1.18,
                   color: "#3f474d",
                 }}
@@ -623,7 +623,7 @@ export default function App() {
       >
         <Typography
           style={{
-            fontSize: 11.5,
+            fontSize: 12,
             color: "#354044",
           }}
         >
@@ -639,7 +639,7 @@ export default function App() {
         >
           <Typography
             style={{
-              fontSize: 11.5,
+              fontSize: 12,
               color: "#354044",
             }}
           >
@@ -648,7 +648,7 @@ export default function App() {
 
           <Typography
             style={{
-              fontSize: 11.5,
+              fontSize: 12,
               color: "#354044",
             }}
           >
@@ -657,7 +657,7 @@ export default function App() {
 
           <Typography
             style={{
-              fontSize: 11.5,
+              fontSize: 12,
               color: "#354044",
             }}
           >

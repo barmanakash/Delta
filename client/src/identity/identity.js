@@ -310,7 +310,7 @@ export default function Identity() {
           <Typography
             style={{
               color: "#00766e",
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: 700,
             }}
           >
@@ -320,7 +320,7 @@ export default function Identity() {
           <Typography
             style={{
               color: "#424a4d",
-              fontSize: 11.5,
+              fontSize: 12,
               fontWeight: 600,
             }}
           >
@@ -330,7 +330,7 @@ export default function Identity() {
           <Typography
             style={{
               color: "#424a4d",
-              fontSize: 11.5,
+              fontSize: 12,
               fontWeight: 600,
             }}
           >
@@ -352,14 +352,14 @@ export default function Identity() {
             <ShieldOutlinedIcon
               style={{
                 color: "#007b73",
-                fontSize: 14,
+                fontSize: 14.5,
               }}
             />
 
             <Typography
               style={{
                 color: "#40494e",
-                fontSize: 10.5,
+                fontSize: 12,
                 fontWeight: 600,
               }}
             >
@@ -381,14 +381,14 @@ export default function Identity() {
             <LockOutlinedIcon
               style={{
                 color: "#5963d4",
-                fontSize: 14,
+                fontSize: 14.5,
               }}
             />
 
             <Typography
               style={{
                 color: "#4c535d",
-                fontSize: 10.5,
+                fontSize: 12,
                 fontWeight: 600,
               }}
             >
@@ -615,7 +615,7 @@ export default function Identity() {
 
               <Typography
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   fontWeight: 700,
                   color: "#00776f",
                   marginTop: 6,
@@ -626,7 +626,7 @@ export default function Identity() {
 
               <Typography
                 style={{
-                  fontSize: 10.5,
+                  fontSize: 12,
                   color: "#687174",
                 }}
               >
@@ -665,7 +665,7 @@ export default function Identity() {
 
               <Typography
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   fontWeight: 700,
                   color: "#182238",
                   marginTop: 5,
@@ -676,7 +676,7 @@ export default function Identity() {
 
               <Typography
                 style={{
-                  fontSize: 10.5,
+                  fontSize: 12,
                   color: "#007b73",
                   fontWeight: 600,
                 }}
@@ -717,7 +717,7 @@ export default function Identity() {
 
               <Typography
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   color: "#737a7d",
                   marginTop: 6,
                 }}
@@ -727,7 +727,7 @@ export default function Identity() {
 
               <Typography
                 style={{
-                  fontSize: 10.5,
+                  fontSize: 12,
                   color: "#999fa1",
                 }}
               >
@@ -826,7 +826,7 @@ export default function Identity() {
               <Box>
                 <Typography
                   style={{
-                    fontSize: 14,
+                    fontSize: 14.5,
                     fontWeight: 700,
                     color: "#182238",
                     lineHeight: 1.2,
@@ -837,7 +837,7 @@ export default function Identity() {
 
                 <Typography
                   style={{
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: "#4d5559",
                     marginTop: 2,
                   }}
@@ -869,7 +869,7 @@ export default function Identity() {
 
               <Typography
                 style={{
-                  fontSize: 10.5,
+                  fontSize: 12,
                   color: "#00776f",
                   fontWeight: 700,
                 }}
@@ -891,7 +891,7 @@ export default function Identity() {
             >
               <Typography
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 700,
                   color: "#182238",
                 }}
@@ -908,7 +908,7 @@ export default function Identity() {
 
               <Typography
                 style={{
-                  fontSize: 11,
+                  fontSize: 12.5,
                   color: "#50595c",
                 }}
               >
@@ -938,7 +938,7 @@ export default function Identity() {
                 height: 39,
                 borderRadius: 9,
                 background: "#f0f1fc",
-                fontSize: 13,
+                fontSize: 14,
                 color: "#50595d",
               }}
               sx={{
@@ -972,7 +972,7 @@ export default function Identity() {
             {fieldErrors.idType && (
               <Typography
                 style={{
-                  fontSize: 11,
+                  fontSize: 12.5,
                   color: "#d32f2f",
                   fontWeight: 600,
                   marginTop: 6,
@@ -993,7 +993,7 @@ export default function Identity() {
             >
               <Typography
                 style={{
-                  fontSize: 10.5,
+                  fontSize: 12,
                   color: "#afb6b7",
                   marginRight: 1,
                 }}
@@ -1011,7 +1011,7 @@ export default function Identity() {
           {/* DOCUMENT PROOF */}
           <Typography
             style={{
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: 700,
               color: "#182238",
               marginTop: 20,
@@ -1082,7 +1082,7 @@ export default function Identity() {
 
                 <Typography
                   style={{
-                    fontSize: 15,
+                    fontSize: 15.5,
                     fontWeight: 700,
                     color: "#172033",
                     marginTop: 14,
@@ -1103,9 +1103,9 @@ export default function Identity() {
                   }}
                 >
                   <CheckCircleOutlineOutlinedIcon
-                    style={{ fontSize: 14, color: "#00867d" }}
+                    style={{ fontSize: 14.5, color: "#00867d" }}
                   />
-                  <Typography style={{ fontSize: 12, color: "#4d565a" }}>
+                  <Typography style={{ fontSize: 13, color: "#4d565a" }}>
                     {docSubtitle}
                   </Typography>
                 </Box>
@@ -1122,7 +1122,7 @@ export default function Identity() {
                       background: "#ffffff",
                       color: "#182238",
                       textTransform: "none",
-                      fontSize: 11,
+                      fontSize: 12.5,
                       fontWeight: 700,
                       boxShadow: "0 2px 5px rgba(20,30,70,0.07)",
                     }}
@@ -1141,7 +1141,7 @@ export default function Identity() {
                         background: "transparent",
                         color: "#8a4141",
                         textTransform: "none",
-                        fontSize: 11,
+                        fontSize: 12.5,
                         fontWeight: 700,
                       }}
                     >
@@ -1185,7 +1185,7 @@ export default function Identity() {
 
                 <Typography
                   style={{
-                    fontSize: 13,
+                    fontSize: 14,
                     color: "#4d565a",
                     marginTop: 3,
                     textAlign: "center",
@@ -1213,7 +1213,7 @@ export default function Identity() {
                     background: "#ffffff",
                     color: "#182238",
                     textTransform: "none",
-                    fontSize: 11,
+                    fontSize: 12.5,
                     fontWeight: 700,
                     marginTop: 19,
                     boxShadow: "0 2px 5px rgba(20,30,70,0.07)",
@@ -1241,14 +1241,14 @@ export default function Identity() {
               >
                 <BadgeOutlinedIcon
                   style={{
-                    fontSize: 15,
+                    fontSize: 15.5,
                     color: "#687174",
                   }}
                 />
 
                 <Typography
                   style={{
-                    fontSize: 10.5,
+                    fontSize: 12,
                     color: "#50595c",
                   }}
                 >
@@ -1274,14 +1274,14 @@ export default function Identity() {
               >
                 <CropFreeOutlinedIcon
                   style={{
-                    fontSize: 15,
+                    fontSize: 15.5,
                     color: "#687174",
                   }}
                 />
 
                 <Typography
                   style={{
-                    fontSize: 10.5,
+                    fontSize: 12,
                     color: "#50595c",
                   }}
                 >
@@ -1294,7 +1294,7 @@ export default function Identity() {
           {fieldErrors.document && (
             <Typography
               style={{
-                fontSize: 11,
+                fontSize: 12.5,
                 color: "#d32f2f",
                 fontWeight: 600,
                 marginTop: 8,
@@ -1342,7 +1342,7 @@ export default function Identity() {
             <Box>
               <Typography
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   color: "#303a42",
                   lineHeight: 1.35,
                 }}
@@ -1355,7 +1355,7 @@ export default function Identity() {
 
               <Typography
                 style={{
-                  fontSize: 11,
+                  fontSize: 12.5,
                   color: "#007970",
                   fontWeight: 600,
                   marginTop: 5,
@@ -1379,7 +1379,7 @@ export default function Identity() {
           >
             <Typography
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: 700,
                 color: "#596164",
                 letterSpacing: "0.3px",
@@ -1425,7 +1425,7 @@ export default function Identity() {
               background: uploading ? "#4fa39a" : "#007d74",
               color: "#ffffff",
               textTransform: "none",
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 700,
               marginTop: 22,
               cursor: uploading ? "default" : "pointer",
@@ -1433,7 +1433,7 @@ export default function Identity() {
           >
             <LockOutlinedIcon
               style={{
-                fontSize: 15,
+                fontSize: 15.5,
                 marginRight: 4,
               }}
             />
@@ -1448,7 +1448,7 @@ export default function Identity() {
             style={{
               display: "block", // Fixes inline alignment issue
               width: "100%",    // Takes full width to center correctly
-              fontSize: 11,
+              fontSize: 12.5,
               fontWeight: 700,
               color: "#4d5659",
               marginTop: 16,
@@ -1471,13 +1471,13 @@ export default function Identity() {
             <LockOutlinedIcon
               style={{
                 color: "#657071",
-                fontSize: 14,
+                fontSize: 14.5,
               }}
             />
 
             <Typography
               style={{
-                fontSize: 10.5,
+                fontSize: 12,
                 color: "#737b7c",
               }}
             >
@@ -1512,7 +1512,7 @@ export default function Identity() {
 
             <Typography
               style={{
-                fontSize: 10.5,
+                fontSize: 12,
                 color: "#535c60",
                 marginTop: 3,
               }}
@@ -1534,7 +1534,7 @@ export default function Identity() {
 
             <Typography
               style={{
-                fontSize: 10.5,
+                fontSize: 12,
                 color: "#535c60",
                 marginTop: 3,
               }}
@@ -1556,7 +1556,7 @@ export default function Identity() {
 
             <Typography
               style={{
-                fontSize: 10.5,
+                fontSize: 12,
                 color: "#535c60",
                 marginTop: 3,
               }}
@@ -1596,7 +1596,7 @@ export default function Identity() {
 
           <Typography
             style={{
-              fontSize: 10.5,
+              fontSize: 12,
               color: "#3e494b",
             }}
           >
@@ -1607,7 +1607,7 @@ export default function Identity() {
 
         <Typography
           style={{
-            fontSize: 10.5,
+            fontSize: 12,
             color: "#3e494b",
           }}
         >
@@ -1668,14 +1668,14 @@ function DocumentChip({ text, icon }) {
     >
       <Icon
         style={{
-          fontSize: 12,
+          fontSize: 13,
           color: "#46505a",
         }}
       />
 
       <Typography
         style={{
-          fontSize: 9.5,
+          fontSize: 12,
           color: "#3e4850",
           fontWeight: 600,
         }}
@@ -1707,7 +1707,7 @@ function Requirement({ text }) {
 
       <Typography
         style={{
-          fontSize: 10.5,
+          fontSize: 12,
           color: "#303a42",
         }}
       >

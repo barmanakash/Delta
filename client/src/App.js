@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import LandingPage from "./LandingPage";
 import Login from "./login/login";
 import SignIn from "./signin/signin";
@@ -19,10 +20,18 @@ import MatchRequest from './matchRequest/MatchConfirm'
 import Trips from './Trips/trips';
 import VerifyPassanger from './verifypassanger/VerifyPassenger'
 
-function App() {
+// Wraps every page in a fade-in (see .page-fade in index.css) and starts each
+// page at the top, like a normal page load.
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
-    <BrowserRouter>
-      <Routes>
+    <div key={location.pathname} className="page-fade">
+      <Routes location={location}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signin" element={<SignIn />} />
@@ -47,6 +56,14 @@ function App() {
         <Route path="/trips" element={<Trips />} />
         <Route path="/verifypassanger" element={<VerifyPassanger />} />
       </Routes>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AnimatedRoutes />
     </BrowserRouter>
   );
 }

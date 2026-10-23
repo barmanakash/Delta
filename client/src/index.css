@@ -1,8 +1,11 @@
+/* ------------------------------------------------------------------ */
+/*  Base                                                               */
+/* ------------------------------------------------------------------ */
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  /* Same stack the pages and the MUI theme use (see index.js) */
+  font-family: 'Inter', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -10,4 +13,116 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Motion system                                                      */
+/*                                                                     */
+/*  One set of timings for the whole app. Pages don't need any code:   */
+/*   - every page fades in and its main sections rise in one by one    */
+/*   - buttons, links and chips lift on hover and press down on click  */
+/*   - add class "hover-lift" to a card to make it lift on hover       */
+/*  Everything switches off for people who prefer reduced motion.      */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --motion-ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+  --motion-fast: 160ms;
+  --motion-base: 260ms;
+  --motion-focus: #007d73;
+}
+
+/* ---- page + section entrance (wrapper added in App.js) ------------ */
+
+@keyframes page-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.page-fade {
+  animation: page-fade var(--motion-base) ease-out both;
+}
+
+/* "backwards" (not "both") so no transform is left behind once finished;
+   a leftover transform would trap position: fixed children */
+.page-fade main > * {
+  animation: rise-in 520ms var(--motion-ease) backwards;
+  animation-delay: 300ms;
+}
+.page-fade main > *:nth-child(1) { animation-delay: 40ms; }
+.page-fade main > *:nth-child(2) { animation-delay: 110ms; }
+.page-fade main > *:nth-child(3) { animation-delay: 180ms; }
+.page-fade main > *:nth-child(4) { animation-delay: 240ms; }
+.page-fade main > *:nth-child(5) { animation-delay: 280ms; }
+
+/* ---- hover / press feedback for anything clickable ---------------- */
+
+:is(button, [role="button"], a[href], .MuiButtonBase-root, .MuiChip-clickable):not(:disabled):not([aria-disabled="true"]):not([style*="transform"]):not(.leaflet-container *) {
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    filter var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-base) ease,
+    border-color var(--motion-base) ease,
+    box-shadow var(--motion-base) ease,
+    color var(--motion-base) ease,
+    opacity var(--motion-base) ease;
+}
+
+:is(button, [role="button"], a[href], .MuiButtonBase-root, .MuiChip-clickable):not(:disabled):not([aria-disabled="true"]):not([style*="transform"]):not(.leaflet-container *):hover {
+  transform: translateY(-1px);
+  /* filter (not box-shadow) so it still shows on buttons whose own
+     box-shadow is set to "none" in their inline styles */
+  filter: brightness(0.96) drop-shadow(0 4px 8px rgba(24, 34, 70, 0.16));
+}
+
+:is(button, [role="button"], a[href], .MuiButtonBase-root, .MuiChip-clickable):not(:disabled):not([aria-disabled="true"]):not([style*="transform"]):not(.leaflet-container *):active {
+  transform: translateY(0) scale(0.98);
+  filter: brightness(0.93);
+  transition-duration: 60ms;
+}
+
+:is(button, [role="button"], a[href]):focus-visible {
+  outline: 2px solid var(--motion-focus);
+  outline-offset: 2px;
+}
+
+/* ---- cards -------------------------------------------------------- */
+
+.hover-lift,
+.MuiCard-root {
+  transition:
+    transform var(--motion-base) var(--motion-ease),
+    filter var(--motion-base) var(--motion-ease);
+}
+
+.hover-lift:hover,
+.MuiCard-root:hover {
+  transform: translateY(-3px);
+  filter: drop-shadow(0 12px 18px rgba(24, 34, 70, 0.14));
+}
+
+/* ---- reduced motion ----------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -2003,6 +2003,7 @@ function SummaryRow({ label, children, last }) {
 function InfoTile({ icon, title, text }) {
   return (
     <Box
+      className="hover-lift"
       style={{
         ...cardStyle,
         borderRadius: 14,

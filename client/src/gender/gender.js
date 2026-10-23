@@ -163,7 +163,7 @@ export default function Gender() {
             >
               <Typography
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   color: "#41495b",
                   letterSpacing: "0.3px",
                   fontWeight: 600,
@@ -246,7 +246,7 @@ export default function Gender() {
             <Box>
               <Typography
                 style={{
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 700,
                   lineHeight: 1.05,
                   color: "#333b43",
@@ -257,7 +257,7 @@ export default function Gender() {
 
               <Typography
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   lineHeight: 1.05,
                   color: "#4d5559",
                 }}
@@ -395,7 +395,7 @@ export default function Gender() {
 
           <Typography
             style={{
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 700,
               color: "#007970",
               letterSpacing: "0.4px",
@@ -415,7 +415,7 @@ export default function Gender() {
 
           <Typography
             style={{
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 700,
               color: "#007970",
               letterSpacing: "0.3px",
@@ -498,7 +498,7 @@ export default function Gender() {
 
             <Typography
               style={{
-                fontSize: 11,
+                fontSize: 12,
                 color: "#485053",
                 marginTop: 5,
               }}
@@ -606,7 +606,7 @@ export default function Gender() {
 
                   <Typography
                     style={{
-                      fontSize: 9,
+                      fontSize: 12,
                       color: "#46505a",
                       fontWeight: 600,
                       letterSpacing: "0.2px",
@@ -661,7 +661,7 @@ export default function Gender() {
 
                 <Typography
                   style={{
-                    fontSize: 11,
+                    fontSize: 12,
                     color: "#007970",
                     fontWeight: 600,
                   }}
@@ -784,7 +784,7 @@ export default function Gender() {
 
           <Typography
             style={{
-              fontSize: 11.5,
+              fontSize: 12,
               color: "#4d5659",
             }}
           >
@@ -824,7 +824,7 @@ export default function Gender() {
 
           <Typography
             style={{
-              fontSize: 11,
+              fontSize: 12,
               color: "#414b4e",
             }}
           >
@@ -834,7 +834,7 @@ export default function Gender() {
 
         <Typography
           style={{
-            fontSize: 11,
+            fontSize: 12,
             color: "#414b4e",
           }}
         >

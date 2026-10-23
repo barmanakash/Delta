@@ -417,7 +417,7 @@ export default function Profile() {
             <Typography
               style={{
                 color: "#007d74",
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 700,
               }}
             >
@@ -583,7 +583,7 @@ export default function Profile() {
 
               <Typography
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   color: "#3d4749",
                   marginTop: 1,
                 }}
@@ -634,7 +634,7 @@ export default function Profile() {
 
               <Typography
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   color: "#656d70",
                   marginTop: 1,
                 }}
@@ -685,7 +685,7 @@ export default function Profile() {
 
               <Typography
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   color: "#656d70",
                   marginTop: 1,
                 }}
@@ -749,7 +749,7 @@ export default function Profile() {
 
               <Typography
                 style={{
-                  fontSize: 10.5,
+                  fontSize: 12,
                   color: "#005f59",
                   fontWeight: 700,
                 }}
@@ -919,7 +919,7 @@ export default function Profile() {
                 background: "#e9ebff",
                 color: "#007970",
                 textTransform: "none",
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 700,
                 margin: "17px auto 0",
               }}
@@ -969,7 +969,7 @@ export default function Profile() {
               <Box>
                 <Typography
                   style={{
-                    fontSize: 11.5,
+                    fontSize: 12,
                     fontWeight: 700,
                     color: "#263047",
                     lineHeight: 1.15,
@@ -980,7 +980,7 @@ export default function Profile() {
 
                 <Typography
                   style={{
-                    fontSize: 10.5,
+                    fontSize: 12,
                     color: "#4b5558",
                     lineHeight: 1.15,
                     marginTop: 2,
@@ -1130,7 +1130,7 @@ export default function Profile() {
 
                 <Typography
                   style={{
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: 700,
                     color: "#007b72",
                   }}
@@ -1179,7 +1179,7 @@ export default function Profile() {
                         <Typography
                           style={{
                             color: "#00746d",
-                            fontSize: 10.5,
+                            fontSize: 12,
                             fontWeight: 700,
                           }}
                         >
@@ -1266,7 +1266,7 @@ export default function Profile() {
 
               <Typography
                 style={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   lineHeight: 1.35,
                   color: "#4b5558",
                 }}
@@ -1338,7 +1338,7 @@ export default function Profile() {
 
               <Typography
                 style={{
-                  fontSize: 11,
+                  fontSize: 12,
                   color: "#394447",
                 }}
               >
@@ -1379,7 +1379,7 @@ export default function Profile() {
 
           <Typography
             style={{
-              fontSize: 11.5,
+              fontSize: 12,
               color: "#3b4548",
             }}
           >
@@ -1390,7 +1390,7 @@ export default function Profile() {
 
         <Typography
           style={{
-            fontSize: 11.5,
+            fontSize: 12,
             color: "#3b4548",
           }}
         >
@@ -1462,7 +1462,7 @@ function FormLabel({ label, required, hint }) {
 
       <Typography
         style={{
-          fontSize: 11,
+          fontSize: 12,
           color: "#4e595b",
         }}
       >
@@ -1503,7 +1503,7 @@ const fieldStyle = {
 
   "& .MuiFormHelperText-root": {
     margin: "4px 2px 0",
-    fontSize: "11.5px",
+    fontSize: "12px",
   },
 
   "& .MuiInputBase-input": {

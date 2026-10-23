@@ -297,7 +297,7 @@ export default function App() {
               background: "#71e7df",
               color: "#006c66",
               fontWeight: 800,
-              fontSize: 9,
+              fontSize: 12,
               flexShrink: 0,
             }}
           />
@@ -357,7 +357,7 @@ export default function App() {
                 }}
               >
                 {icon}
-                <Typography style={{ fontSize: 12, fontWeight: active ? 700 : 600 }}>
+                <Typography style={{ fontSize: 13, fontWeight: active ? 700 : 600 }}>
                   {label}
                 </Typography>
                 {badge && (
@@ -371,7 +371,7 @@ export default function App() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 11,
+                      fontSize: 12.5,
                       fontWeight: 700,
                     }}
                   >
@@ -477,14 +477,14 @@ export default function App() {
                   background: "#e7e9fb",
                   color: "#006f68",
                   fontWeight: 700,
-                  fontSize: 10,
+                  fontSize: 12,
                 }}
               />
             </Box>
 
             <Typography
               style={{
-                fontSize: 13,
+                fontSize: 14,
                 color: "#555d60",
                 marginTop: 8,
               }}
@@ -512,7 +512,7 @@ export default function App() {
                 boxShadow: "none",
                 textTransform: "none",
                 fontWeight: 700,
-                fontSize: 13,
+                fontSize: 14,
               }}
             >
               + Create Route
@@ -528,7 +528,7 @@ export default function App() {
                 color: dark,
                 textTransform: "none",
                 fontWeight: 700,
-                fontSize: 13,
+                fontSize: 14,
               }}
             >
               My Trips
@@ -555,7 +555,7 @@ export default function App() {
 
               <Typography
                 style={{
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: 700,
                   color: dark,
                 }}
@@ -565,7 +565,7 @@ export default function App() {
 
               <Typography
                 style={{
-                  fontSize: 11,
+                  fontSize: 12.5,
                   color: "#596069",
                 }}
               >
@@ -598,7 +598,7 @@ export default function App() {
             >
               {commuteLoading ? (
                 <Box style={{ display: "flex", justifyContent: "center", padding: "40px 0" }}>
-                  <Typography style={{ fontSize: 13, color: "#626a6d" }}>
+                  <Typography style={{ fontSize: 14, color: "#626a6d" }}>
                     Loading your commute…
                   </Typography>
                 </Box>
@@ -616,7 +616,7 @@ export default function App() {
                   <Typography style={{ fontSize: 18, fontWeight: 700, marginTop: 10 }}>
                     No active commute yet
                   </Typography>
-                  <Typography style={{ fontSize: 12, color: "#626a6d", marginTop: 6, maxWidth: 360 }}>
+                  <Typography style={{ fontSize: 13, color: "#626a6d", marginTop: 6, maxWidth: 360 }}>
                     Create your daily commute so verified lift takers on your route can find you.
                   </Typography>
                   <Button
@@ -631,7 +631,7 @@ export default function App() {
                       color: "#fff",
                       textTransform: "none",
                       fontWeight: 700,
-                      fontSize: 13,
+                      fontSize: 14,
                     }}
                   >
                     + Create Route
@@ -688,7 +688,7 @@ export default function App() {
                           >
                             <Typography
                               style={{
-                                fontSize: 9,
+                                fontSize: 12,
                                 fontWeight: 800,
                                 color: "#4b5361",
                               }}
@@ -699,7 +699,7 @@ export default function App() {
 
                           <Typography
                             style={{
-                              fontSize: 10,
+                              fontSize: 12,
                               color: teal,
                               fontWeight: 700,
                             }}
@@ -716,7 +716,7 @@ export default function App() {
                         height: 25,
                         background: "#75e7df",
                         color: "#006f68",
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: 800,
                       }}
                     />
@@ -766,7 +766,7 @@ export default function App() {
 
                       <Typography
                         style={{
-                          fontSize: 9,
+                          fontSize: 12,
                           color: "#505960",
                           letterSpacing: "0.3px",
                         }}
@@ -777,7 +777,7 @@ export default function App() {
                       <Typography
                         title={commute.pickup}
                         style={{
-                          fontSize: 14,
+                          fontSize: 14.5,
                           fontWeight: 700,
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -803,7 +803,7 @@ export default function App() {
 
                       <Typography
                         style={{
-                          fontSize: 9,
+                          fontSize: 12,
                           color: "#505960",
                           letterSpacing: "0.3px",
                           marginTop: 1,
@@ -815,7 +815,7 @@ export default function App() {
                       <Typography
                         title={commute.destination}
                         style={{
-                          fontSize: 14,
+                          fontSize: 14.5,
                           fontWeight: 700,
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -842,7 +842,7 @@ export default function App() {
                     <Box style={{ marginLeft: 19 }}>
                       <Typography
                         style={{
-                          fontSize: 10,
+                          fontSize: 12,
                           color: "#4c555a",
                         }}
                       >
@@ -851,7 +851,7 @@ export default function App() {
 
                       <Typography
                         style={{
-                          fontSize: 11,
+                          fontSize: 12.5,
                           fontWeight: 700,
                           whiteSpace: "nowrap",
                         }}
@@ -861,7 +861,7 @@ export default function App() {
 
                       <Typography
                         style={{
-                          fontSize: 9,
+                          fontSize: 12,
                           color: "#555c62",
                         }}
                       >
@@ -899,7 +899,7 @@ export default function App() {
 
                       <Typography
                         style={{
-                          fontSize: 11,
+                          fontSize: 12.5,
                           fontWeight: 700,
                         }}
                       >
@@ -908,7 +908,7 @@ export default function App() {
 
                       <Typography
                         style={{
-                          fontSize: 11,
+                          fontSize: 12.5,
                           color: "#60666b",
                         }}
                       >
@@ -925,7 +925,7 @@ export default function App() {
                         height: 20,
                         background: "#dddfff",
                         color: "#5b4ee4",
-                        fontSize: 9,
+                        fontSize: 12,
                         fontWeight: 700,
                       }}
                     />
@@ -954,7 +954,7 @@ export default function App() {
                           borderRadius: 7,
                           textTransform: "none",
                           fontWeight: 700,
-                          fontSize: 12,
+                          fontSize: 13,
                           padding: "0 16px",
                         }}
                       >
@@ -971,7 +971,7 @@ export default function App() {
                           borderRadius: 7,
                           textTransform: "none",
                           fontWeight: 700,
-                          fontSize: 12,
+                          fontSize: 13,
                           padding: "0 16px",
                         }}
                       >
@@ -990,7 +990,7 @@ export default function App() {
                       <PauseCircleOutlineIcon style={{ fontSize: 17 }} />
                       <Typography
                         style={{
-                          fontSize: 11,
+                          fontSize: 12.5,
                           fontWeight: 600,
                         }}
                       >
@@ -1046,7 +1046,7 @@ export default function App() {
                       height: 21,
                       background: pendingRequests.length ? "#5753df" : "#9aa1b5",
                       color: "#fff",
-                      fontSize: 9,
+                      fontSize: 12,
                       fontWeight: 700,
                     }}
                   />
@@ -1054,7 +1054,7 @@ export default function App() {
 
                 <Typography
                   style={{
-                    fontSize: 11,
+                    fontSize: 12.5,
                     color: "#687075",
                   }}
                 >
@@ -1063,19 +1063,19 @@ export default function App() {
               </Box>
 
               {incoming.loading ? (
-                <Typography style={{ fontSize: 12, color: "#687075", textAlign: "center", padding: "26px 0" }}>
+                <Typography style={{ fontSize: 13, color: "#687075", textAlign: "center", padding: "26px 0" }}>
                   Loading lift requests…
                 </Typography>
               ) : incoming.error ? (
-                <Typography style={{ fontSize: 12, color: "#b42318", textAlign: "center", padding: "26px 0" }}>
+                <Typography style={{ fontSize: 13, color: "#b42318", textAlign: "center", padding: "26px 0" }}>
                   {incoming.error}
                 </Typography>
               ) : pendingRequests.length === 0 ? (
                 <Box style={{ background: lavender, borderRadius: 9, padding: "26px 18px", textAlign: "center" }}>
-                  <Typography style={{ fontSize: 14, fontWeight: 700 }}>
+                  <Typography style={{ fontSize: 14.5, fontWeight: 700 }}>
                     No lift requests right now
                   </Typography>
-                  <Typography style={{ fontSize: 11, color: "#626a6e", marginTop: 5 }}>
+                  <Typography style={{ fontSize: 12.5, color: "#626a6e", marginTop: 5 }}>
                     {commute
                       ? "When a verified commuter's trip fits your route, it will show up here."
                       : "Create your commute so lift takers on your route can find you."}
@@ -1122,7 +1122,7 @@ export default function App() {
                 <Typography
                   onClick={() => navigate("/liftrequest")}
                   style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: 700,
                     color: teal,
                     cursor: "pointer",
@@ -1182,7 +1182,7 @@ export default function App() {
                   >
                     <Typography
                       style={{
-                        fontSize: 15,
+                        fontSize: 15.5,
                         fontWeight: 700,
                       }}
                     >
@@ -1195,7 +1195,7 @@ export default function App() {
                         height: 20,
                         background: "#73e5dc",
                         color: "#00736c",
-                        fontSize: 9,
+                        fontSize: 12,
                         fontWeight: 700,
                       }}
                     />
@@ -1203,7 +1203,7 @@ export default function App() {
 
                   <Typography
                     style={{
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: 600,
                       marginTop: 3,
                     }}
@@ -1216,7 +1216,7 @@ export default function App() {
 
                   <Typography
                     style={{
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: 600,
                       marginTop: 3,
                     }}
@@ -1230,7 +1230,7 @@ export default function App() {
 
                   <Typography
                     style={{
-                      fontSize: 10,
+                      fontSize: 12,
                       color: teal,
                       fontWeight: 600,
                       marginTop: 5,
@@ -1250,7 +1250,7 @@ export default function App() {
                   color: "#34404a",
                   borderRadius: 7,
                   textTransform: "none",
-                  fontSize: 11,
+                  fontSize: 12.5,
                   fontWeight: 700,
                   padding: "0 14px",
                 }}
@@ -1292,7 +1292,7 @@ export default function App() {
 
                   <Typography
                     style={{
-                      fontSize: 10,
+                      fontSize: 12,
                       color: "#626a6d",
                       marginTop: 2,
                     }}
@@ -1345,10 +1345,10 @@ export default function App() {
                         boxShadow: "0 2px 5px rgba(0,0,0,0.08)",
                       }}
                     >
-                      <Typography style={{ fontSize: 10, fontWeight: 700 }}>
+                      <Typography style={{ fontSize: 12, fontWeight: 700 }}>
                         <span style={{ color: teal }}>●</span> Fastest road route
                       </Typography>
-                      <Typography style={{ fontSize: 10, fontWeight: 700, color: teal }}>
+                      <Typography style={{ fontSize: 12, fontWeight: 700, color: teal }}>
                         {commute.duration_min} min ETA
                       </Typography>
                     </Box>
@@ -1364,7 +1364,7 @@ export default function App() {
                       textAlign: "center",
                     }}
                   >
-                    <Typography style={{ fontSize: 12, color: "#626a6d", maxWidth: 260 }}>
+                    <Typography style={{ fontSize: 13, color: "#626a6d", maxWidth: 260 }}>
                       {commuteLoading
                         ? "Loading your route…"
                         : commute
@@ -1384,7 +1384,7 @@ export default function App() {
               >
                 <Typography
                   style={{
-                    fontSize: 10,
+                    fontSize: 12,
                     color: teal,
                     fontWeight: 600,
                   }}
@@ -1394,7 +1394,7 @@ export default function App() {
 
                 <Typography
                   style={{
-                    fontSize: 10,
+                    fontSize: 12,
                     color: "#544bdf",
                     fontWeight: 700,
                   }}
@@ -1452,7 +1452,7 @@ export default function App() {
 
                   <Typography
                     style={{
-                      fontSize: 10,
+                      fontSize: 12,
                       color: teal,
                       fontWeight: 700,
                       marginTop: 2,
@@ -1465,7 +1465,7 @@ export default function App() {
 
               <Typography
                 style={{
-                  fontSize: 13,
+                  fontSize: 14,
                   color: "#5b6264",
                   lineHeight: 1.45,
                   marginTop: 17,
@@ -1511,7 +1511,7 @@ export default function App() {
                 >
                   <Typography
                     style={{
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: 800,
                       color: "#d82323",
                     }}
@@ -1521,7 +1521,7 @@ export default function App() {
 
                   <Typography
                     style={{
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: 700,
                     }}
                   >
@@ -1563,7 +1563,7 @@ export default function App() {
               <Box>
                 <Typography
                   style={{
-                    fontSize: 14,
+                    fontSize: 14.5,
                     fontWeight: 700,
                   }}
                 >
@@ -1572,7 +1572,7 @@ export default function App() {
 
                 <Typography
                   style={{
-                    fontSize: 11,
+                    fontSize: 12.5,
                     lineHeight: 1.55,
                     color: "#515a62",
                     marginTop: 5,
@@ -1614,7 +1614,7 @@ export default function App() {
             <Typography
               style={{
                 color: teal,
-                fontSize: 13,
+                fontSize: 14,
               }}
             >
               ●
@@ -1622,7 +1622,7 @@ export default function App() {
 
             <Typography
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "#465055",
               }}
             >
@@ -1632,7 +1632,7 @@ export default function App() {
 
           <Typography
             style={{
-              fontSize: 10,
+              fontSize: 12,
               color: "#465055",
               marginTop: 4,
             }}
@@ -1679,7 +1679,7 @@ function Metric({ title, value, teal: isTeal }) {
     <Box style={{ marginLeft: 17 }}>
       <Typography
         style={{
-          fontSize: 10,
+          fontSize: 12,
           color: "#4d565c",
         }}
       >
@@ -1723,6 +1723,7 @@ function RequestCard({
   if (second) {
     return (
       <Box
+        className="hover-lift"
         style={{
           height: 69,
           borderRadius: 9,
@@ -1748,7 +1749,7 @@ function RequestCard({
               width: 38,
               height: 38,
               background: "#64778b",
-              fontSize: 11,
+              fontSize: 12.5,
             }}
           >
             {!photoUrl && initials}
@@ -1764,7 +1765,7 @@ function RequestCard({
             >
               <Typography
                 style={{
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: 700,
                 }}
               >
@@ -1773,7 +1774,7 @@ function RequestCard({
 
               <Typography
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   color: teal,
                   fontWeight: 600,
                 }}
@@ -1784,7 +1785,7 @@ function RequestCard({
 
             <Typography
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "#555e64",
                 marginTop: 3,
               }}
@@ -1808,14 +1809,14 @@ function RequestCard({
                 height: 20,
                 background: "#dbe1fa",
                 color: "#4f52c8",
-                fontSize: 9,
+                fontSize: 12,
                 fontWeight: 700,
               }}
             />
 
             <Typography
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 color: teal,
                 fontWeight: 700,
               }}
@@ -1832,7 +1833,7 @@ function RequestCard({
               color: "#3d4650",
               borderRadius: 7,
               textTransform: "none",
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 700,
             }}
           >
@@ -1845,6 +1846,7 @@ function RequestCard({
 
   return (
     <Box
+      className="hover-lift"
       style={{
         background: lavender,
         borderRadius: 9,
@@ -1872,7 +1874,7 @@ function RequestCard({
               width: 42,
               height: 42,
               background: "#8da0a2",
-              fontSize: 11,
+              fontSize: 12.5,
             }}
           >
             {!photoUrl && initials}
@@ -1888,7 +1890,7 @@ function RequestCard({
             >
               <Typography
                 style={{
-                  fontSize: 14,
+                  fontSize: 14.5,
                   fontWeight: 700,
                 }}
               >
@@ -1899,7 +1901,7 @@ function RequestCard({
 
             <Typography
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 color: "#626a6e",
                 marginTop: 3,
               }}
@@ -1931,7 +1933,7 @@ function RequestCard({
 
           <Typography
             style={{
-              fontSize: 9,
+              fontSize: 12,
               color: "#596167",
               marginTop: 3,
             }}
@@ -1955,7 +1957,7 @@ function RequestCard({
         <Box>
           <Typography
             style={{
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 700,
             }}
           >
@@ -1964,7 +1966,7 @@ function RequestCard({
 
           <Typography
             style={{
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 700,
               marginTop: 7,
             }}
@@ -1980,14 +1982,14 @@ function RequestCard({
               height: 20,
               background: "#dce0fa",
               color: "#5151c8",
-              fontSize: 9,
+              fontSize: 12,
               fontWeight: 700,
             }}
           />
 
           <Typography
             style={{
-              fontSize: 9,
+              fontSize: 12,
               color: "#62696d",
               marginTop: 4,
             }}
@@ -2014,7 +2016,7 @@ function RequestCard({
             color: "#fff",
             borderRadius: 7,
             textTransform: "none",
-            fontSize: 11,
+            fontSize: 12.5,
             fontWeight: 700,
             padding: "0 14px",
           }}
@@ -2029,7 +2031,7 @@ function RequestCard({
             height: 32,
             color: "#555e64",
             textTransform: "none",
-            fontSize: 11,
+            fontSize: 12.5,
             fontWeight: 600,
             marginLeft: 5,
           }}
@@ -2040,7 +2042,7 @@ function RequestCard({
         <Typography
           style={{
             marginLeft: "auto",
-            fontSize: 9,
+            fontSize: 12,
             color: "#525a5e",
           }}
         >
@@ -2070,7 +2072,7 @@ function SafetyItem({ text }) {
 
       <Typography
         style={{
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: 700,
         }}
       >
@@ -2081,6 +2083,6 @@ function SafetyItem({ text }) {
 }
 
 const footerLink = {
-  fontSize: 10,
+  fontSize: 12,
   color: "#555e63",
 };
