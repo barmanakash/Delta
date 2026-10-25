@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box, Typography, Button, Stack, Avatar } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import Footer from '../src/footer/footer'
@@ -216,6 +216,7 @@ const Row = ({ justify, align = "center", spacing, wrap, sx, children }) => (
 
 const FeatureCard = ({ iconBg, icon, title, desc }) => (
   <Box
+    className="hover-lift"
     sx={{
       flex: 1,
       bgcolor: "#fff",
@@ -488,6 +489,7 @@ const Hero = () => (
           top: -18,
           left: 8,
           zIndex: 3,
+          animation: "fr-float 6s ease-in-out infinite",
           bgcolor: "#fff",
           borderRadius: "12px",
           boxShadow: "0 12px 24px rgba(20,20,40,0.14)",
@@ -581,6 +583,7 @@ const Hero = () => (
           right: 12,
           bottom: -20,
           zIndex: 3,
+          animation: "fr-float 7s ease-in-out -2s infinite",
           bgcolor: "#fff",
           borderRadius: "12px",
           boxShadow: "0 12px 24px rgba(20,20,40,0.14)",
@@ -651,6 +654,7 @@ const FeatureRow = () => (
 
 const ProcessCard = ({ number, iconBg, icon, title, desc, children }) => (
   <Box
+    className="hover-lift"
     sx={{
       flex: 1,
       bgcolor: "#fff",
@@ -825,6 +829,7 @@ const ProcessSection = () => (
 
 const SafetyCard = ({ iconBg, icon, title, desc }) => (
   <Box
+    className="hover-lift"
     sx={{
       flex: 1,
       bgcolor: "#fff",
@@ -867,7 +872,7 @@ const SafetySection = () => (
     }}
   >
     <Pill sx={{ bgcolor: "#0B4B3D", color: "#fff", mb: "18px" }}>
-      <IconCompass size={13} color="#8CF0C9" /> SafeRoute Safety Architecture
+      <IconCompass size={13} color="#8CF0C9" /> FriendRide Safety Architecture
     </Pill>
     <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: { xs: 24, md: 30 }, color: "#12151A" }}>
       Built Around Safer Commutes
@@ -931,6 +936,7 @@ const SafetySection = () => (
 
 const StatCard = ({ iconBg, icon, tag, tagColor, value, desc }) => (
   <Box
+    className="hover-lift"
     sx={{
       flex: 1,
       bgcolor: "#fff",
@@ -1082,17 +1088,72 @@ const CTASection = () => (
 /*  Page                                                                  */
 /* ---------------------------------------------------------------------- */
 
+// Fades and slides a section in the first time it scrolls into view.
+// (Shows immediately for people who prefer reduced motion.)
+function Reveal({ children, delay = 0 }) {
+  const ref = useRef(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!el || reduce || !("IntersectionObserver" in window)) {
+      setShown(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShown(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <Box
+      ref={ref}
+      sx={{
+        opacity: shown ? 1 : 0,
+        transform: shown ? "none" : "translateY(28px)",
+        transition: `opacity 700ms ease ${delay}ms, transform 700ms cubic-bezier(0.22, 0.8, 0.24, 1) ${delay}ms`,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
 export default function LandingPage() {
   return (
-    <Box sx={{ bgcolor: "#F6F7FB", minHeight: "100vh" }}>
+    <Box data-own-motion sx={{ bgcolor: "#F6F7FB", minHeight: "100vh" }}>
       <Navbar />
       <Box sx={pageContainer}>
-        <Hero />
-        <FeatureRow />
-        <ProcessSection />
-        <SafetySection />
-        <StatsRow />
-        <CTASection />
+        <Reveal>
+          <Hero />
+        </Reveal>
+        <Reveal>
+          <FeatureRow />
+        </Reveal>
+        <Reveal>
+          <ProcessSection />
+        </Reveal>
+        <Reveal>
+          <SafetySection />
+        </Reveal>
+        <Reveal>
+          <StatsRow />
+        </Reveal>
+        <Reveal>
+          <CTASection />
+        </Reveal>
       </Box>
       <Footer />
     </Box>

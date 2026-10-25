@@ -1264,7 +1264,7 @@ const ProgressCard = () => {
 
               <Typography
                 sx={{
-                  fontSize: 11.5,
+                  fontSize: 12,
                   color: step.active ? "#00796b" : "#98a2b3",
                 }}
               >

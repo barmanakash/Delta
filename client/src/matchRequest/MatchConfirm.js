@@ -452,7 +452,7 @@ export default function MatchConfirm() {
                       size="small"
                       sx={{
                         height: 20,
-                        fontSize: 11.5,
+                        fontSize: 12,
                         backgroundColor: "#E4E8FA",
                         color: "#56617A",
                       }}
@@ -477,7 +477,7 @@ export default function MatchConfirm() {
                 sx={{
                   backgroundColor: "#CFF7F0",
                   color: "#00796B",
-                  fontSize: 11.5,
+                  fontSize: 12,
                   fontWeight: 700,
                 }}
               />
@@ -746,7 +746,7 @@ export default function MatchConfirm() {
                   position: "absolute",
                   top: 28,
                   left: 0,
-                  fontSize: 11,
+                  fontSize: 12,
                   color: "#777C84",
                 }}
               >
@@ -758,7 +758,7 @@ export default function MatchConfirm() {
                   position: "absolute",
                   top: 28,
                   left: "39%",
-                  fontSize: 11,
+                  fontSize: 12,
                   color: "#00796B",
                   fontWeight: 700,
                 }}
@@ -771,7 +771,7 @@ export default function MatchConfirm() {
                   position: "absolute",
                   top: 28,
                   right: 0,
-                  fontSize: 11,
+                  fontSize: 12,
                   color: "#777C84",
                 }}
               >

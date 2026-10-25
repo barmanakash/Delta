@@ -447,7 +447,7 @@ const ConfirmRequest = () => {
                         justifyContent: "center",
                         alignItems: "center",
                         border: "2px solid #fff",
-                        fontSize: 11.5,
+                        fontSize: 12,
                       }}
                     >
                       ✓
@@ -480,7 +480,7 @@ const ConfirmRequest = () => {
                           borderRadius: "10px",
                           background: "#dce1fa",
                           color: "#4d5871",
-                          fontSize: 11.5,
+                          fontSize: 12,
                           fontWeight: 500,
                         }}
                       />
@@ -542,7 +542,7 @@ const ConfirmRequest = () => {
 
                   <Typography
                     sx={{
-                      fontSize: 11.5,
+                      fontSize: 12,
                       fontWeight: 700,
                       color: "#007b70",
                     }}
@@ -860,7 +860,7 @@ const ConfirmRequest = () => {
               >
                 <Typography
                   sx={{
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: "#626978",
                   }}
                 >
@@ -869,7 +869,7 @@ const ConfirmRequest = () => {
 
                 <Typography
                   sx={{
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: "#007b70",
                     fontWeight: 700,
                   }}
@@ -879,7 +879,7 @@ const ConfirmRequest = () => {
 
                 <Typography
                   sx={{
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: "#4b48dd",
                     fontWeight: 700,
                   }}

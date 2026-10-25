@@ -616,7 +616,7 @@ function TripCard({ trip, copy, now, todayIso, active, onSelect }) {
         <Box style={{ minWidth: 0, flex: 1 }}>
           <Box style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <Typography style={{ fontSize: 18, fontWeight: 800 }}>{trip.counterpart.name}</Typography>
-            <Box style={{ background: "#e1e5fb", color: "#3c40c8", borderRadius: 6, padding: "2px 9px", fontSize: 11.5, fontWeight: 700 }}>
+            <Box style={{ background: "#e1e5fb", color: "#3c40c8", borderRadius: 6, padding: "2px 9px", fontSize: 12, fontWeight: 700 }}>
               {copy.other}
             </Box>
           </Box>
@@ -630,7 +630,7 @@ function TripCard({ trip, copy, now, todayIso, active, onSelect }) {
         </Box>
         <Box style={{ textAlign: "right", flexShrink: 0 }}>
           <Typography style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.4px", lineHeight: 1.1 }}>₹{trip.fare}</Typography>
-          <Typography style={{ fontSize: 11.5, color: muted, marginTop: 2 }}>Fuel-split</Typography>
+          <Typography style={{ fontSize: 12, color: muted, marginTop: 2 }}>Fuel-split</Typography>
         </Box>
       </Box>
 

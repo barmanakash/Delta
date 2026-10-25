@@ -64,6 +64,23 @@ html {
 .page-fade main > *:nth-child(4) { animation-delay: 240ms; }
 .page-fade main > *:nth-child(5) { animation-delay: 280ms; }
 
+/* Pages without a <main> (most of them): their top-level blocks - header,
+   content, footer - rise in the same way. A page that animates itself (the
+   landing page scroll-reveal) opts out with the data-own-motion attribute. */
+.page-fade > *:not([data-own-motion]) > *:not(main):not(style):not(script) {
+  animation: rise-in 520ms var(--motion-ease) backwards;
+}
+.page-fade > *:not([data-own-motion]) > *:nth-child(1) { animation-delay: 30ms; }
+.page-fade > *:not([data-own-motion]) > *:nth-child(2) { animation-delay: 100ms; }
+.page-fade > *:not([data-own-motion]) > *:nth-child(3) { animation-delay: 170ms; }
+.page-fade > *:not([data-own-motion]) > *:nth-child(4) { animation-delay: 230ms; }
+
+/* gentle idle bob for floating badges (used by the landing page) */
+@keyframes fr-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
 /* ---- hover / press feedback for anything clickable ---------------- */
 
 :is(button, [role="button"], a[href], .MuiButtonBase-root, .MuiChip-clickable):not(:disabled):not([aria-disabled="true"]):not([style*="transform"]):not(.leaflet-container *) {
