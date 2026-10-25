@@ -19,11 +19,15 @@ import ConfirmRequest from './confimrequest/confirmrequest'
 import MatchRequest from './matchRequest/MatchConfirm'
 import Trips from './Trips/trips';
 import VerifyPassanger from './verifypassanger/VerifyPassenger'
+import { useCardHover } from "./motion";
 
 // Wraps every page in a fade-in (see .page-fade in index.css) and starts each
 // page at the top, like a normal page load.
 function AnimatedRoutes() {
   const location = useLocation();
+
+  // gives every card-like block the hover lift (see motion.js)
+  useCardHover(location.pathname);
 
   useEffect(() => {
     window.scrollTo(0, 0);
