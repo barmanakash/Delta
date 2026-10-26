@@ -41,6 +41,9 @@ function loadLeaflet() {
       const script = document.createElement("script");
       script.src = LEAFLET_JS;
       script.async = true;
+      // Without this the browser hides the details of any error thrown inside
+      // the CDN script and reports only "Script error." (cdnjs allows it)
+      script.crossOrigin = "anonymous";
       script.onload = () =>
         window.L ? resolve(window.L) : reject(new Error("Map library failed to start"));
       script.onerror = () => {
@@ -119,10 +122,16 @@ export default function RouteMap({
     loadLeaflet()
       .then((L) => {
         if (cancelled || !containerRef.current) return;
-        const map = L.map(containerRef.current, { zoomControl: false }).setView(
-          DEFAULT_CENTER,
-          12
-        );
+        // Animations are off on purpose: Leaflet runs zoom/pan animations on
+        // timers, and if the map is removed (page change) while one is still
+        // pending, the timer throws inside the library.
+        const map = L.map(containerRef.current, {
+          zoomControl: false,
+          zoomAnimation: false,
+          markerZoomAnimation: false,
+          fadeAnimation: false,
+          inertia: false,
+        }).setView(DEFAULT_CENTER, 12, { animate: false });
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           maxZoom: 19,
           attribution:
@@ -139,7 +148,12 @@ export default function RouteMap({
     return () => {
       cancelled = true;
       if (mapRef.current) {
-        mapRef.current.remove();
+        try {
+          mapRef.current.stop(); // cancel anything still moving
+          mapRef.current.remove();
+        } catch {
+          // the map is being thrown away anyway
+        }
         mapRef.current = null;
         layerRef.current = null;
       }
@@ -151,15 +165,26 @@ export default function RouteMap({
     const map = mapRef.current;
     const bounds = boundsRef.current;
     if (!map || !bounds.length) return;
-    if (bounds.length === 1) {
-      map.setView(bounds[0], 15);
-    } else {
-      // Extra padding on top / bottom keeps the route clear of the overlays
-      map.fitBounds(bounds, {
-        paddingTopLeft: [40, padTop],
-        paddingBottomRight: [40, padBottom],
-        maxZoom: 16,
-      });
+
+    // A hidden or not-yet-sized container makes Leaflet compute NaN positions
+    map.invalidateSize({ animate: false });
+    const size = map.getSize();
+    if (!size.x || !size.y) return;
+
+    try {
+      if (bounds.length === 1) {
+        map.setView(bounds[0], 15, { animate: false });
+      } else {
+        // Extra padding on top / bottom keeps the route clear of the overlays
+        map.fitBounds(bounds, {
+          paddingTopLeft: [40, padTop],
+          paddingBottomRight: [40, padBottom],
+          maxZoom: 16,
+          animate: false,
+        });
+      }
+    } catch (error) {
+      console.error("Map could not fit the route", error);
     }
   }, [padTop, padBottom]);
 
@@ -169,6 +194,8 @@ export default function RouteMap({
     const layer = layerRef.current;
     if (!ready || !L || !layer) return;
 
+    // A map problem should never take the whole page down with it
+    try {
     layer.clearLayers();
     const bounds = [];
 
@@ -205,6 +232,9 @@ export default function RouteMap({
 
     boundsRef.current = bounds;
     if (bounds.length) fitToRoute();
+    } catch (error) {
+      console.error("Map could not draw the route", error);
+    }
   }, [ready, start, stop, end, line, fitToRoute, startName, startTag, endName, endTag]);
 
   return (
@@ -260,14 +290,14 @@ export default function RouteMap({
         >
           <IconButton
             aria-label="Zoom in"
-            onClick={() => mapRef.current && mapRef.current.zoomIn()}
+            onClick={() => mapRef.current && mapRef.current.zoomIn(1, { animate: false })}
             style={controlStyle}
           >
             <AddIcon />
           </IconButton>
           <IconButton
             aria-label="Zoom out"
-            onClick={() => mapRef.current && mapRef.current.zoomOut()}
+            onClick={() => mapRef.current && mapRef.current.zoomOut(1, { animate: false })}
             style={controlStyle}
           >
             <RemoveIcon />

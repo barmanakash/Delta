@@ -24,6 +24,7 @@ import {
   HubOutlined,
   VerifiedOutlined,
   LockOutlined,
+  ArrowBack,
 } from "@mui/icons-material";
 
 const API_BASE_URL = "http://localhost:8000";
@@ -194,6 +195,31 @@ function App() {
             gap: "8px",
           }}
         >
+          {/* Back to the landing page */}
+          <Button
+            onClick={() => navigate("/")}
+            aria-label="Back to the home page"
+            startIcon={<ArrowBack style={{ fontSize: "18px" }} />}
+            sx={{
+              textTransform: "none",
+              minWidth: 0,
+              marginRight: "14px",
+              padding: "6px 16px 6px 12px",
+              borderRadius: "22px",
+              border: "1px solid #dfe3ee",
+              color: "#182033",
+              fontSize: "14px",
+              fontWeight: 600,
+              "&:hover": {
+                backgroundColor: "#eef7f5",
+                borderColor: "#007c70",
+                color: "#007c70",
+              },
+            }}
+          >
+            Back
+          </Button>
+
           <ShieldOutlined
             style={{
               color: "#007c70",

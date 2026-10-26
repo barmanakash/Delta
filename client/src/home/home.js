@@ -9,6 +9,8 @@ import {
   Chip,
   Snackbar,
   Alert,
+  Dialog,
+  IconButton,
 } from "@mui/material";
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
@@ -33,6 +35,7 @@ import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import NearMeOutlinedIcon from "@mui/icons-material/NearMeOutlined";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import ProfileMenu from "../profilemenu/profilemenu";
 import { RiderHeader } from "../riderlayout/riderlayout";
@@ -82,6 +85,7 @@ export default function App() {
   const incoming = useIncomingRequests();
   const pendingRequests = incoming.requests.filter((r) => r.status === "pending");
   const [busyId, setBusyId] = useState(null);
+  const [routeOpen, setRouteOpen] = useState(false); // the "View Route" map dialog
   const [toast, setToast] = useState({ open: false, message: "", severity: "info" });
 
   const todayCode = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
@@ -949,6 +953,7 @@ export default function App() {
                       }}
                     >
                       <Button
+                        onClick={() => setRouteOpen(true)}
                         startIcon={<NearMeOutlinedIcon />}
                         style={{
                           height: 36,
@@ -1656,6 +1661,127 @@ export default function App() {
           <Typography style={footerLink}>Support Desk</Typography>
         </Box>
       </Box>
+      {/* View Route: the whole route on a large map */}
+      <Dialog
+        open={routeOpen}
+        onClose={() => setRouteOpen(false)}
+        fullWidth
+        maxWidth="lg"
+        aria-labelledby="route-dialog-title"
+        slotProps={{ paper: { style: { borderRadius: 18, margin: 16, width: "100%" } } }}
+      >
+        {commute && (
+          <Box>
+            <Box
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                gap: 12,
+                padding: "20px 24px 14px",
+              }}
+            >
+              <Box style={{ minWidth: 0 }}>
+                <Typography id="route-dialog-title" style={{ fontSize: 20, fontWeight: 800 }}>
+                  Your Route
+                </Typography>
+                <Typography style={{ fontSize: 13, color: "#626a6d", marginTop: 3, wordBreak: "break-word" }}>
+                  {commute.pickup} → {commute.destination}
+                  {commute.stop ? ` · via ${commute.stop}` : ""}
+                </Typography>
+              </Box>
+              <IconButton aria-label="Close route view" onClick={() => setRouteOpen(false)}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+
+            <Box style={{ height: "min(62vh, 560px)", position: "relative", background: "#eceeff" }}>
+              {commute.pickup_lat != null && commute.destination_lat != null ? (
+                <RouteMap
+                  start={{ lat: commute.pickup_lat, lng: commute.pickup_lng }}
+                  stop={
+                    commute.stop_lat != null
+                      ? { lat: commute.stop_lat, lng: commute.stop_lng }
+                      : null
+                  }
+                  end={{ lat: commute.destination_lat, lng: commute.destination_lng }}
+                  line={routeLine}
+                  minHeight={360}
+                  padTop={70}
+                  padBottom={40}
+                  startName={(commute.pickup || "").split(",")[0].trim()}
+                  startTag="START"
+                  endName={(commute.destination || "").split(",")[0].trim()}
+                  endTag="DESTINATION"
+                >
+                  <Box
+                    style={{
+                      position: "absolute",
+                      top: 12,
+                      left: 12,
+                      zIndex: 1000,
+                      background: "#fff",
+                      borderRadius: 18,
+                      padding: "7px 14px",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                    }}
+                  >
+                    <span style={{ color: teal }}>●</span> Fastest road route · {commute.duration_min} min ETA
+                  </Box>
+                </RouteMap>
+              ) : (
+                <Box
+                  style={{
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 24,
+                    textAlign: "center",
+                  }}
+                >
+                  <Typography style={{ fontSize: 13.5, color: "#626a6d", maxWidth: 320 }}>
+                    No map was saved for this route. Edit your route to add one.
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+
+            <Box
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                gap: 12,
+                padding: "18px 24px 22px",
+              }}
+            >
+              {[
+                ["Distance", commute.distance_km ? `${commute.distance_km} km` : "—"],
+                ["Travel time", `${commute.duration_min} mins`],
+                ["Departs", formatClock(commute.outbound_time)],
+                [
+                  "Return",
+                  commute.return_enabled && commute.return_time
+                    ? formatClock(commute.return_time)
+                    : "No return",
+                ],
+                ["Runs", describeDays(commute.days)],
+                ["Vehicle", `${commute.vehicle_model} · ${commute.vehicle_plate}`],
+              ].map(([label, value]) => (
+                <Box key={label} style={{ background: "#f4f5fd", borderRadius: 12, padding: "12px 14px", minWidth: 0 }}>
+                  <Typography style={{ fontSize: 12, color: "#626a6d" }}>{label}</Typography>
+                  <Typography style={{ fontSize: 14.5, fontWeight: 800, marginTop: 4, wordBreak: "break-word" }}>
+                    {value}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
+      </Dialog>
+
       <Snackbar
         open={toast.open}
         autoHideDuration={4000}
