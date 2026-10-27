@@ -107,6 +107,10 @@ export default function RouteMap({
   startTag = "",
   endName = "",
   endTag = "",
+  stopName = "",
+  stopTag = "",
+  extraLines = null, // [{ coords, color, weight, opacity, dashArray }] drawn on top of `line`
+  extraMarkers = null, // [{ lat, lng, color, name, tag, kind, direction }] more pins
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -204,11 +208,23 @@ export default function RouteMap({
       bounds.push(...line);
     }
 
+    (extraLines || []).forEach((item) => {
+      if (!item.coords || item.coords.length < 2) return;
+      L.polyline(item.coords, {
+        color: item.color || "#3b49c9",
+        weight: item.weight || 7,
+        opacity: item.opacity == null ? 1 : item.opacity,
+        dashArray: item.dashArray || null,
+      }).addTo(layer);
+      bounds.push(...item.coords);
+    });
+
     [
       [start, "#007d73", startName, startTag, "start"],
-      [stop, "#c28a00", "", "", "start"],
+      [stop, "#c28a00", stopName, stopTag, "start"],
       [end, "#141b34", endName, endTag, "end"],
-    ].forEach(([point, color, name, tag, kind]) => {
+      ...(extraMarkers || []).map((m) => [m, m.color, m.name, m.tag, m.kind || "start", m.direction]),
+    ].forEach(([point, color, name, tag, kind, direction]) => {
       if (!point) return;
       const marker = L.marker([point.lat, point.lng], {
         icon: L.divIcon({
@@ -222,7 +238,7 @@ export default function RouteMap({
       if (name) {
         marker.bindTooltip(labelNode(name, tag, kind), {
           permanent: true,
-          direction: "top",
+          direction: direction || "top",
           offset: [0, -12],
           opacity: 1,
         });
@@ -235,7 +251,10 @@ export default function RouteMap({
     } catch (error) {
       console.error("Map could not draw the route", error);
     }
-  }, [ready, start, stop, end, line, fitToRoute, startName, startTag, endName, endTag]);
+  }, [
+    ready, start, stop, end, line, fitToRoute,
+    startName, startTag, endName, endTag, stopName, stopTag, extraLines, extraMarkers,
+  ]);
 
   return (
     <Box
