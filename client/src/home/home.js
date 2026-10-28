@@ -526,6 +526,7 @@ export default function App() {
             </Button>
 
             <Button
+              onClick={() => navigate("/trips")}
               startIcon={<HistoryOutlinedIcon />}
               style={{
                 height: 36,
