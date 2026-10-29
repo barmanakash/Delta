@@ -1647,7 +1647,7 @@ function Done({ pickup, destination, dayLabels, onDashboard, onEdit }) {
           fontWeight: 700,
         }}
       >
-        Back to Dashboard
+        Back to Home
       </Button>
       <Button
         onClick={onEdit}

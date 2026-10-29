@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -171,6 +171,265 @@ const activateOnKey = (fn) => (e) => {
     fn(e);
   }
 };
+
+/* ---- place suggestions (Photon, free) - same as the Rider's Create ---- */
+/* ---- Commute page: results are ranked around the city ---------------- */
+
+const CITY_CENTER = { lat: 23.1815, lng: 79.9864 }; // Jabalpur
+const MIN_SUGGEST_CHARS = 3; // suggestions start after this many characters
+const suggestionHover = "#f0f2fb";
+
+// One Photon result -> something the dropdown can show and the form can use
+function toSuggestion(feature) {
+  const p = feature.properties || {};
+  const coords = feature.geometry && feature.geometry.coordinates;
+  if (!coords || (p.countrycode && p.countrycode !== "IN")) return null;
+
+  const street = [p.housenumber, p.street].filter(Boolean).join(" ");
+  const title = p.name || street || p.locality || p.district || p.city;
+  if (!title) return null;
+
+  const areas = [street, p.locality, p.district, p.city || p.county, p.state].filter(
+    (a) => a && a !== title
+  );
+  const where = [p.city, p.district, p.county, p.locality].find((a) => a && a !== title);
+
+  return {
+    key: `${p.osm_type || ""}${p.osm_id || coords.join(",")}`,
+    title,
+    subtitle: [...new Set(areas)].slice(0, 3).join(", "),
+    // What goes into the field once picked, e.g. "Damoh Naka, Jabalpur"
+    label: where ? `${title}, ${where}` : title,
+    point: { lat: coords[1], lng: coords[0] },
+  };
+}
+
+async function searchPlaces(query, signal) {
+  const params = new URLSearchParams({
+    q: query,
+    limit: "8",
+    lang: "en",
+    // Rank places near the city first, but still allow ones further away
+    lat: String(CITY_CENTER.lat),
+    lon: String(CITY_CENTER.lng),
+    zoom: "11",
+    location_bias_scale: "0.5",
+  });
+  const res = await fetch(`https://photon.komoot.io/api/?${params}`, { signal });
+  if (!res.ok) throw new Error("Place search failed");
+  const data = await res.json();
+
+  const seen = new Set();
+  const items = [];
+  for (const feature of data.features || []) {
+    const item = toSuggestion(feature);
+    if (item && !seen.has(item.label.toLowerCase())) {
+      seen.add(item.label.toLowerCase());
+      items.push(item);
+    }
+  }
+  return items.slice(0, 6);
+}
+
+// The place name for a GPS point, or null when it can't be found
+async function reverseGeocode({ lat, lng }) {
+  try {
+    const res = await fetch(
+      `https://photon.komoot.io/reverse?lon=${lng}&lat=${lat}&lang=en&limit=1`
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data.features || []).map(toSuggestion).find(Boolean) || null;
+  } catch {
+    return null;
+  }
+}
+
+// The text input of a place field, plus its suggestion dropdown. The dropdown
+// is positioned against the field's white box (which must be position: relative).
+function PlaceInput({ ariaLabel, value, onChange, onPick, onEnter, placeholder, inputRef }) {
+  const listId = useId();
+  const requestId = useRef(0);
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const [result, setResult] = useState({ status: "idle", items: [] });
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < MIN_SUGGEST_CHARS) {
+      setResult({ status: "idle", items: [] });
+      return undefined;
+    }
+
+    const id = ++requestId.current;
+    const controller = new AbortController();
+    setResult((r) => ({ ...r, status: "loading" }));
+
+    const timer = setTimeout(async () => {
+      try {
+        const items = await searchPlaces(q, controller.signal);
+        if (id === requestId.current) {
+          setResult({ status: "done", items });
+          setActive(-1);
+        }
+      } catch (err) {
+        if (err.name !== "AbortError" && id === requestId.current) {
+          setResult({ status: "error", items: [] });
+        }
+      }
+    }, 350); // wait for a pause in typing
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
+  // Only while the field still holds what was typed: a value set from outside
+  // (current location, swap, a picked suggestion) shouldn't reopen an old list
+  const show = open && query === value && query.trim().length >= MIN_SUGGEST_CHARS;
+  const { status, items } = result;
+
+  const choose = (item) => {
+    onPick(item);
+    setQuery("");
+    setOpen(false);
+    setActive(-1);
+    setResult({ status: "idle", items: [] });
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      setOpen(false);
+      return;
+    }
+    if (show && items.length) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActive((i) => (i + 1) % items.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActive((i) => (i <= 0 ? items.length - 1 : i - 1));
+        return;
+      }
+      if (e.key === "Enter" && active >= 0) {
+        e.preventDefault();
+        choose(items[active]);
+        return;
+      }
+    }
+    if (e.key === "Enter" && onEnter) onEnter();
+  };
+
+  const note = (text) => (
+    <Typography style={{ fontSize: 13, color: muted, padding: "10px 12px", lineHeight: 1.5 }}>
+      {text}
+    </Typography>
+  );
+
+  return (
+    <>
+      <input
+        ref={inputRef}
+        className="lt-input"
+        role="combobox"
+        aria-label={ariaLabel}
+        aria-expanded={show}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
+        autoComplete="off"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setQuery(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        maxLength={200}
+        style={bareInput}
+      />
+
+      {show && (
+        <Box
+          id={listId}
+          role="listbox"
+          aria-label={`${ariaLabel} suggestions`}
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            right: 0,
+            zIndex: 1300,
+            background: "#fff",
+            borderRadius: 14,
+            padding: 6,
+            maxHeight: 300,
+            overflowY: "auto",
+            boxShadow: "0 10px 30px rgba(30,35,90,0.22)",
+            border: "1px solid #e4e6f3",
+          }}
+        >
+          {items.map((item, i) => (
+            <Box
+              key={item.key}
+              id={`${listId}-${i}`}
+              role="option"
+              aria-selected={i === active}
+              // mousedown (not click) so the input doesn't lose focus first
+              onMouseDown={(e) => {
+                e.preventDefault();
+                choose(item);
+              }}
+              onMouseEnter={() => setActive(i)}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 12,
+                padding: "10px 12px",
+                borderRadius: 10,
+                cursor: "pointer",
+                background: i === active ? suggestionHover : "transparent",
+              }}
+            >
+              <LocationOnOutlinedIcon
+                style={{ fontSize: 20, color: "#7b8294", marginTop: 2, flexShrink: 0 }}
+              />
+              <Box style={{ minWidth: 0 }}>
+                <Typography style={{ fontSize: 14.5, fontWeight: 700, wordBreak: "break-word" }}>
+                  {item.title}
+                </Typography>
+                {item.subtitle && (
+                  <Typography style={{ fontSize: 12.5, color: muted, wordBreak: "break-word" }}>
+                    {item.subtitle}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          ))}
+
+          {status === "loading" && !items.length && (
+            <Box style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px" }}>
+              <CircularProgress size={16} style={{ color: tealBright }} />
+              <Typography style={{ fontSize: 13, color: muted }}>Searching places…</Typography>
+            </Box>
+          )}
+          {status === "done" &&
+            !items.length &&
+            note(`No places found for "${query.trim()}". Try a nearby landmark or a shorter name.`)}
+          {status === "error" &&
+            note("Suggestions are unavailable right now. You can still type the place and continue.")}
+        </Box>
+      )}
+    </>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
@@ -357,6 +616,17 @@ export default function LiftTakerHome() {
     setPickupCoords(null);
   };
 
+  // Typing by hand forgets any point picked earlier; picking a suggestion sets it
+  const changePickup = (value) => {
+    setPickup(value);
+    setPickupCoords(null);
+  };
+  const pickPickup = (item) => {
+    setPickup(item.label);
+    setPickupCoords(item.point);
+  };
+  const pickDestination = (item) => setDestination(item.label);
+
   const fillCurrentLocation = () => {
     if (locating) return;
     if (!navigator.geolocation) {
@@ -365,11 +635,15 @@ export default function LiftTakerHome() {
     }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
+      async ({ coords }) => {
+        const point = { lat: coords.latitude, lng: coords.longitude };
+        const found = await reverseGeocode(point);
         setPickup(
-          `Current location (${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)})`
+          found
+            ? found.label
+            : `Current location (${point.lat.toFixed(4)}, ${point.lng.toFixed(4)})`
         );
-        setPickupCoords({ lat: coords.latitude, lng: coords.longitude });
+        setPickupCoords(point);
         setLocating(false);
       },
       () => {
@@ -521,6 +795,8 @@ export default function LiftTakerHome() {
           transition: transform 180ms cubic-bezier(0.22, 0.8, 0.24, 1);
         }
         .lt-page .lt-focus:hover { transform: translateY(-1px); }
+        /* a field with its suggestion list open sits above the fields below it */
+        .lt-page .lt-focus:has([role="listbox"]) { z-index: 20; }
         .lt-page .lt-feature-row {
           transition: transform 180ms cubic-bezier(0.22, 0.8, 0.24, 1);
         }
@@ -921,6 +1197,7 @@ export default function LiftTakerHome() {
                   <Box
                     className="lt-focus"
                     style={{
+                      position: "relative",
                       background: "#fff",
                       borderRadius: 14,
                       padding: "13px 16px",
@@ -942,17 +1219,12 @@ export default function LiftTakerHome() {
                     />
                     <Box style={{ flex: 1, minWidth: 0 }}>
                       <Typography style={capsLabel}>Pickup location</Typography>
-                      <input
-                        className="lt-input"
-                        aria-label="Pickup location"
+                      <PlaceInput
+                        ariaLabel="Pickup location"
                         value={pickup}
-                        onChange={(e) => {
-                          setPickup(e.target.value);
-                          setPickupCoords(null);
-                        }}
+                        onChange={changePickup}
+                        onPick={pickPickup}
                         placeholder="Where should we pick you up?"
-                        maxLength={200}
-                        style={bareInput}
                       />
                     </Box>
                     <Box
@@ -1010,6 +1282,7 @@ export default function LiftTakerHome() {
                   <Box
                     className="lt-focus"
                     style={{
+                      position: "relative",
                       background: "#fff",
                       borderRadius: 14,
                       padding: "13px 16px",
@@ -1023,18 +1296,14 @@ export default function LiftTakerHome() {
                     <LocationOnOutlinedIcon style={{ fontSize: 22, color: indigo, flexShrink: 0 }} />
                     <Box style={{ flex: 1, minWidth: 0 }}>
                       <Typography style={capsLabel}>Destination</Typography>
-                      <input
-                        ref={destinationRef}
-                        className="lt-input"
-                        aria-label="Destination"
+                      <PlaceInput
+                        inputRef={destinationRef}
+                        ariaLabel="Destination"
                         value={destination}
-                        onChange={(e) => setDestination(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleFindLift();
-                        }}
+                        onChange={setDestination}
+                        onPick={pickDestination}
+                        onEnter={handleFindLift}
                         placeholder="Where do you want to go? (e.g. Madan Mahal Station Gate 2)"
-                        maxLength={200}
-                        style={bareInput}
                       />
                     </Box>
                     <IconButton
