@@ -840,6 +840,27 @@ export default function CompatibleRiders() {
                           ? "Riders on your route exist, but they are hidden by the filters above."
                           : "No verified rider is travelling your route in this time window right now. We keep checking, and new riders appear here automatically."}
                       </Typography>
+                      {totalMatches === 0 && data?.no_match_reasons?.length > 0 && (
+                        <Box
+                          style={{
+                            margin: "0 auto 20px",
+                            maxWidth: 470,
+                            textAlign: "left",
+                            background: "#f4f5fd",
+                            borderRadius: 12,
+                            padding: "12px 16px",
+                          }}
+                        >
+                          <Typography style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+                            Why riders were left out
+                          </Typography>
+                          {data.no_match_reasons.map((reason) => (
+                            <Typography key={reason} style={{ fontSize: 13, color: muted, lineHeight: 1.5 }}>
+                              • {reason.charAt(0).toUpperCase() + reason.slice(1)}
+                            </Typography>
+                          ))}
+                        </Box>
+                      )}
                       <Box style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
                         {totalMatches > 0 && (
                           <Button
@@ -1085,7 +1106,7 @@ export default function CompatibleRiders() {
               <DetailRow label="Vehicle" value={`${viewing.vehicle_model} · ${viewing.vehicle_plate}`} />
               <DetailRow label="Pickup" value={`${formatTime(viewing.pickup_time)} · ${viewing.pickup_point}`} />
               <DetailRow label="Drop-off" value={`${formatTime(viewing.arrival_time)} · ${viewing.arrival_point}`} />
-              <DetailRow label="Ride time" value={`${viewing.duration_min} mins · ${viewing.route_note}`} />
+              <DetailRow label="Est. ride time" value={`~${viewing.duration_min} mins · ${viewing.route_note}`} />
               <DetailRow label="Route overlap" value={`${viewing.overlap_pct}%`} />
               <DetailRow label="Safety" value={`${viewing.helmet_note} · ${viewing.walk_note}`} />
               <DetailRow label="Fuel-split fare" value={`₹${viewing.fare}`} />
@@ -1243,7 +1264,7 @@ function RiderCard({ match: m, request, active, onPreview, onView }) {
         <Box className="cr-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
           <Stat label="Pickup Window" clock={pickup.clock} unit={pickup.meridiem} sub={shortName(m.pickup_point, shortName(request.pickup))} />
           <Stat label="Est. Arrival" clock={arrival.clock} unit={arrival.meridiem} sub={shortName(m.arrival_point, shortName(request.destination))} separated />
-          <Stat label="Total Duration" clock={String(m.duration_min)} unit="mins" sub={m.route_note} separated />
+          <Stat label="Est. Duration" clock={`~${m.duration_min}`} unit="mins" sub={m.route_note} separated />
         </Box>
 
         <Box
@@ -1456,7 +1477,7 @@ function RouteMap({ match, request, zoom }) {
       >
         <Box style={{ width: 8, height: 8, borderRadius: "50%", background: tealBright, flexShrink: 0 }} />
         {match
-          ? `${match.rider_name} · ${match.overlap_pct}% route overlap · ${match.duration_min} min ride`
+          ? `${match.rider_name} · ${match.overlap_pct}% route overlap · ~${match.duration_min} min ride`
           : "No rider selected"}
       </Box>
 

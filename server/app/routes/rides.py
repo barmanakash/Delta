@@ -420,6 +420,13 @@ async def _collect_incoming(
         {"user_id": rider["_id"], "status": "active", "seats_available": {"$gte": 1}}
     ).to_list(length=20)
 
+    # A route published before the gender was saved has none on it; these are
+    # the rider's own routes, so use the rider's current gender (otherwise the
+    # same-gender filter hides every request from them)
+    for offer in offers:
+        if not offer.get("rider_gender"):
+            offer["rider_gender"] = rider.get("gender")
+
     pairs: list[tuple[dict, dict, str]] = []
 
     if offers:

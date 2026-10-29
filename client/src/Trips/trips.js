@@ -646,7 +646,7 @@ function TripCard({ trip, copy, now, todayIso, active, onSelect }) {
           <TrendingUpIcon style={{ fontSize: 16, color: teal }} /> {trip.overlap_pct}% route overlap
         </span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <AccessTimeOutlinedIcon style={{ fontSize: 16, color: teal }} /> {trip.duration_min} min ride
+          <AccessTimeOutlinedIcon style={{ fontSize: 16, color: teal }} /> ~{trip.duration_min} min ride
         </span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <TwoWheelerOutlinedIcon style={{ fontSize: 16, color: teal }} /> {trip.vehicle_model}
@@ -729,8 +729,8 @@ function TripDetail({ trip, copy, now, todayIso, mapRoute }) {
               {mapRoute.status === "loading" && <CircularProgress size={14} style={{ color: teal }} />}
               {mapRoute.status === "loading" && "Finding the route…"}
               {ready && mapRoute.distanceKm
-                ? `${mapRoute.distanceKm.toFixed(1)} km · ${trip.duration_min} min ride`
-                : ready && `${trip.duration_min} min ride`}
+                ? `${mapRoute.distanceKm.toFixed(1)} km · ~${trip.duration_min} min ride`
+                : ready && `~${trip.duration_min} min ride`}
             </Box>
           </RouteMap>
         )}
@@ -788,7 +788,7 @@ function TripDetail({ trip, copy, now, todayIso, mapRoute }) {
 
         {/* facts */}
         <Box className="tp-info" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, marginTop: 20 }}>
-          <Fact icon={<AccessTimeOutlinedIcon />} label="Ride time" value={`${trip.duration_min} mins`} sub={trip.route_note} />
+          <Fact icon={<AccessTimeOutlinedIcon />} label="Est. ride time" value={`~${trip.duration_min} mins`} sub={trip.route_note} />
           <Fact icon={<TrendingUpIcon />} label="Route overlap" value={`${trip.overlap_pct}%`} />
           <Fact icon={<CurrencyRupeeOutlinedIcon />} label="Fuel-split" value={`₹${trip.fare}`} sub="Zero surge surcharge" />
           <Fact icon={<DirectionsWalkOutlinedIcon />} label="Walk to pickup" value={trip.walk_note} />

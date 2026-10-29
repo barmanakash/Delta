@@ -111,3 +111,6 @@ class LiftMatchesResponse(BaseModel):
     matches: list[RideMatch]
     # Set once a rider has accepted this request (status "matched")
     accepted_match: Optional[RideMatch] = None
+    # Why riders were left out, in plain language. Only filled while `matches`
+    # is empty, so the screen can say what to change instead of just "none".
+    no_match_reasons: list[str] = []

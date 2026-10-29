@@ -82,11 +82,20 @@ const MIN_FARE = 10;
 const KG_CO2_PER_JOURNEY = 1.8;
 const WEEKS_PER_MONTH = 4.2;
 
-// The app serves one city for now. Place searches are biased to it so
-// "PNT Naka" finds the one in Jabalpur. Viewbox is left,top,right,bottom.
-const CITY = "Jabalpur";
-const CITY_VIEWBOX = "79.80,23.35,80.10,23.00";
-const CITY_CENTER = { lat: 23.1815, lng: 79.9864 };
+// The app serves one city at a time. Place searches are biased to it so
+// "PNT Naka" finds the one in that city. Viewbox is left,top,right,bottom.
+// Defaults to Jabalpur. To use another city set these in client/.env and
+// restart `npm start`, e.g. for Raipur:
+//   REACT_APP_CITY=Raipur
+//   REACT_APP_CITY_VIEWBOX=81.50,21.35,81.80,21.10
+//   REACT_APP_CITY_LAT=21.2514
+//   REACT_APP_CITY_LNG=81.6296
+const CITY = process.env.REACT_APP_CITY || "Jabalpur";
+const CITY_VIEWBOX = process.env.REACT_APP_CITY_VIEWBOX || "79.80,23.35,80.10,23.00";
+export const CITY_CENTER = {
+  lat: parseFloat(process.env.REACT_APP_CITY_LAT) || 23.1815,
+  lng: parseFloat(process.env.REACT_APP_CITY_LNG) || 79.9864,
+};
 
 // Suggestions start after this many characters
 const MIN_SUGGEST_CHARS = 3;
@@ -245,6 +254,26 @@ export async function reverseGeocode({ lat, lng }) {
   }
 }
 
+// The routing service reports free-flow DRIVING time: no signals, junctions or
+// crowded lanes, so a 3.4 km city trip comes back as "3 min" (about 68 km/h).
+// A real two-wheeler commute is far slower, and nobody can know the exact time,
+// so the figure is a realistic estimate and is shown as approximate ("~10 min").
+// Tune these three numbers if estimates feel too slow or too fast for your city.
+const CITY_START_STOP_MIN = 1.5; // setting off, first signal, finding the pickup
+const CITY_MIN_PER_KM_NEAR = 2.4; // ~25 km/h through the city
+const CITY_MIN_PER_KM_FAR = 1.5; // ~40 km/h once past the first CITY_NEAR_KM
+const CITY_NEAR_KM = 5;
+
+// Minutes for a trip of `distanceKm`, never faster than the routed time.
+// e.g. 1 km ~ 4 min, 3.4 km ~ 10 min, 10 km ~ 21 min, 30 km ~ 51 min
+export function estimateTravelMinutes(distanceKm, routedSeconds = 0) {
+  const near = Math.min(distanceKm, CITY_NEAR_KM);
+  const far = Math.max(0, distanceKm - CITY_NEAR_KM);
+  const realistic =
+    CITY_START_STOP_MIN + near * CITY_MIN_PER_KM_NEAR + far * CITY_MIN_PER_KM_FAR;
+  return Math.max(2, Math.round(Math.max(realistic, routedSeconds / 60)));
+}
+
 export async function fetchRoute(points) {
   const coords = points.map((p) => `${p.lng},${p.lat}`).join(";");
   const url =
@@ -256,17 +285,20 @@ export async function fetchRoute(points) {
   const route = data.routes && data.routes[0];
   if (data.code !== "Ok" || !route) throw new Error("No route found");
 
-  const durationMin = Math.max(2, Math.round(route.duration / 60));
+  const distanceKm = route.distance / 1000;
+  const durationMin = estimateTravelMinutes(distanceKm, route.duration);
   let stopOffsetMin = null;
   if (points.length === 3 && route.legs && route.legs[0]) {
+    // The stop sits at the same share of the trip as it does of the road
+    const share = route.distance > 0 ? route.legs[0].distance / route.distance : 0.5;
     stopOffsetMin = Math.min(
       durationMin - 1,
-      Math.max(1, Math.round(route.legs[0].duration / 60))
+      Math.max(1, Math.round(durationMin * share))
     );
   }
   return {
     line: route.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
-    distanceKm: route.distance / 1000,
+    distanceKm,
     durationMin,
     stopOffsetMin,
   };
@@ -2074,7 +2106,7 @@ function RouteInfoCard({ route }) {
             <Box style={{ background: "#f4f5fd", borderRadius: 12, padding: "10px 12px" }}>
               <Typography style={{ fontSize: 11.5, color: muted }}>Est. Time</Typography>
               <Typography style={{ fontSize: 21, fontWeight: 700, color: tealBright }}>
-                {route.durationMin} mins
+                ~{route.durationMin} mins
               </Typography>
             </Box>
           </Box>

@@ -34,7 +34,7 @@ import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 import ProfileMenu from "../profilemenu/profilemenu";
 // Same place lookup the rider's "Create Your Commute" screen uses, so a place
 // typed by hand still gets a map point and can be matched against riders' routes
-import { geocode } from "../createcommute/createcommute";
+import { geocode, CITY_CENTER } from "../createcommute/createcommute";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -178,7 +178,8 @@ const activateOnKey = (fn) => (e) => {
 /* ---- place suggestions (Photon, free) - same as the Rider's Create ---- */
 /* ---- Commute page: results are ranked around the city ---------------- */
 
-const CITY_CENTER = { lat: 23.1815, lng: 79.9864 }; // Jabalpur
+// CITY_CENTER (imported above) is shared with the rider's screen, so both
+// sides search around the same city
 const MIN_SUGGEST_CHARS = 3; // suggestions start after this many characters
 const suggestionHover = "#f0f2fb";
 

@@ -263,7 +263,7 @@ export default function ViewRequest() {
                 <Box className="vr-facts" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, marginTop: 20 }}>
                   <Fact icon={<TrendingUpIcon />} label="Route overlap" value={`${request.overlap_pct}%`} />
                   <Fact icon={<CurrencyRupeeOutlinedIcon />} label="Fixed fuel-split" value={`₹${request.fare}`} sub="Zero surge surcharge" />
-                  <Fact icon={<AccessTimeOutlinedIcon />} label="Ride time" value={`${request.duration_min} mins`} sub={request.route_note} />
+                  <Fact icon={<AccessTimeOutlinedIcon />} label="Est. ride time" value={`~${request.duration_min} mins`} sub={request.route_note} />
                   <Fact icon={<DirectionsWalkOutlinedIcon />} label="Detour" value={request.walk_note} />
                 </Box>
 

@@ -846,7 +846,7 @@ export default function App() {
                       title="Est. Distance"
                       value={commute.distance_km ? `${commute.distance_km} km` : "—"}
                     />
-                    <Metric title="Travel Time" value={`${commute.duration_min} mins`} teal />
+                    <Metric title="Travel Time" value={`~${commute.duration_min} mins`} teal />
                     <Box style={{ marginLeft: 19 }}>
                       <Typography
                         style={{
@@ -1358,7 +1358,7 @@ export default function App() {
                         <span style={{ color: teal }}>●</span> Fastest road route
                       </Typography>
                       <Typography style={{ fontSize: 12, fontWeight: 700, color: teal }}>
-                        {commute.duration_min} min ETA
+                        ~{commute.duration_min} min ETA
                       </Typography>
                     </Box>
                   </RouteMap>
@@ -1729,7 +1729,7 @@ export default function App() {
                       fontWeight: 700,
                     }}
                   >
-                    <span style={{ color: teal }}>●</span> Fastest road route · {commute.duration_min} min ETA
+                    <span style={{ color: teal }}>●</span> Fastest road route · ~{commute.duration_min} min ETA
                   </Box>
                 </RouteMap>
               ) : (
@@ -1760,7 +1760,7 @@ export default function App() {
             >
               {[
                 ["Distance", commute.distance_km ? `${commute.distance_km} km` : "—"],
-                ["Travel time", `${commute.duration_min} mins`],
+                ["Est. travel time", `~${commute.duration_min} mins`],
                 ["Departs", formatClock(commute.outbound_time)],
                 [
                   "Return",

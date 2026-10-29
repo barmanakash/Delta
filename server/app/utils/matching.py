@@ -307,7 +307,9 @@ def _evaluate(
     )
     overlap = max(1, min(100, overlap))
 
-    fare = max(MIN_FARE, round(duration * float(offer.get("rate_per_min", 1.65))))
+    # Rounded half-up, like the rider's screen (Python's round() would turn 16.5
+    # into 16 while the rider's "about ₹17" rounds up, so the two would disagree)
+    fare = max(MIN_FARE, math.floor(duration * float(offer.get("rate_per_min", 1.65)) + 0.5))
 
     # The rider's route on the map, when every stop was located
     route = (

@@ -5,14 +5,18 @@ from bson.errors import InvalidId
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pymongo import ReturnDocument
 
-from app.database import get_lift_requests_collection, get_ride_offers_collection
+from app.database import (
+    get_lift_requests_collection,
+    get_ride_offers_collection,
+    get_users_collection,
+)
 from app.models.lift import (
     LiftMatchesResponse,
     LiftRequestCreate,
     LiftRequestResponse,
 )
 from app.models.ride import RideMatch
-from app.utils.matching import build_match
+from app.utils.matching import build_match, explain_no_match
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/api/lifts", tags=["Lift requests"])
@@ -98,6 +102,37 @@ def _object_id(value: str) -> ObjectId:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Lift request not found",
         )
+
+
+# At most this many different reasons are sent back when nobody fits
+MAX_NO_MATCH_REASONS = 4
+
+
+def _note_reason(reasons: list[str], reason: str | None) -> None:
+    """Remember a reason once, up to MAX_NO_MATCH_REASONS of them."""
+    if reason and reason not in reasons and len(reasons) < MAX_NO_MATCH_REASONS:
+        reasons.append(reason)
+
+
+async def _fill_rider_genders(offers: list[dict]) -> None:
+    """
+    A route keeps the rider's gender as it was when they published it. Routes
+    published before the gender was saved have none, and the same-gender filter
+    then dropped them even for a rider of the right gender. Fall back to the
+    rider's current gender so those routes are still matched.
+    """
+    missing = {
+        o["user_id"] for o in offers if not o.get("rider_gender") and o.get("user_id")
+    }
+    if not missing:
+        return
+    users = await get_users_collection().find(
+        {"_id": {"$in": list(missing)}}, {"gender": 1}
+    ).to_list(length=len(missing))
+    gender_by_id = {u["_id"]: u.get("gender") for u in users}
+    for o in offers:
+        if not o.get("rider_gender"):
+            o["rider_gender"] = gender_by_id.get(o.get("user_id"))
 
 
 # Flexible pickup widens the search to this many minutes either side of the
@@ -310,6 +345,7 @@ async def get_request_matches(
 
     response = _to_response(doc)
     matches: list[RideMatch] = []
+    no_match_reasons: list[str] = []
     accepted_match: RideMatch | None = None
 
     # A rider has accepted: show who, with the details they were matched on
@@ -330,7 +366,14 @@ async def get_request_matches(
         now = datetime.now()
         declined = set(doc.get("declined_by", []))  # riders who said no to this request
         requests_col = get_lift_requests_collection()
-        for offer in await cursor.to_list(length=200):
+        offers = await cursor.to_list(length=200)
+        await _fill_rider_genders(offers)
+        if not offers:
+            _note_reason(
+                no_match_reasons,
+                "no rider has published an active route for this date yet",
+            )
+        for offer in offers:
             if offer.get("user_id") in declined:
                 continue
             # One pillion seat per trip per day: skip a ride another lift taker
@@ -343,11 +386,19 @@ async def get_request_matches(
                 }
             )
             if booked >= offer["seats_available"]:
+                _note_reason(
+                    no_match_reasons,
+                    "this rider's pillion seat is already booked for that day",
+                )
                 continue
             found = build_match(offer, doc, now)
             if found:
                 matches.append(RideMatch(**found))
+            else:
+                _note_reason(no_match_reasons, explain_no_match(offer, doc, now))
         matches.sort(key=lambda m: (-m.overlap_pct, m.pickup_time))
+        if matches:
+            no_match_reasons = []
 
     return LiftMatchesResponse(
         request=response,
@@ -355,4 +406,5 @@ async def get_request_matches(
         search_window_end=doc.get("search_window_end", doc["window_end"]),
         matches=matches,
         accepted_match=accepted_match,
+        no_match_reasons=no_match_reasons,
     )
