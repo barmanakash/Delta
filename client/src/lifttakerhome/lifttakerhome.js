@@ -32,6 +32,9 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 
 import ProfileMenu from "../profilemenu/profilemenu";
+// Same place lookup the rider's "Create Your Commute" screen uses, so a place
+// typed by hand still gets a map point and can be matched against riders' routes
+import { geocode } from "../createcommute/createcommute";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -449,6 +452,7 @@ export default function LiftTakerHome() {
   const [pickup, setPickup] = useState("");
   const [pickupCoords, setPickupCoords] = useState(null);
   const [destination, setDestination] = useState("");
+  const [destinationCoords, setDestinationCoords] = useState(null);
   const [mode, setMode] = useState("today"); // today | ahead
   const [travelDate, setTravelDate] = useState(() => toISODate(new Date()));
   const [windowStart, setWindowStart] = useState("");
@@ -470,6 +474,8 @@ export default function LiftTakerHome() {
   const planRef = useRef(null);
   const destinationRef = useRef(null);
   const prefilled = useRef(false);
+  const pickupRef = useRef(""); // the pickup as it is now, for the async loaders below
+  pickupRef.current = pickup;
 
   const today = toISODate(now);
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -575,7 +581,13 @@ export default function LiftTakerHome() {
         // Start the pickup field from the last pickup the user used
         if (!prefilled.current && data.length) {
           prefilled.current = true;
-          setPickup((p) => p || data[0].pickup);
+          // Only when the user hasn't typed a pickup already
+          if (!pickupRef.current) {
+            setPickup(data[0].pickup);
+            if (data[0].pickup_lat != null && data[0].pickup_lng != null) {
+              setPickupCoords({ lat: data[0].pickup_lat, lng: data[0].pickup_lng });
+            }
+          }
         }
       } catch {
         // backend offline: the card shows its empty state
@@ -613,7 +625,8 @@ export default function LiftTakerHome() {
   const swapPlaces = () => {
     setPickup(destination);
     setDestination(pickup);
-    setPickupCoords(null);
+    setPickupCoords(destinationCoords);
+    setDestinationCoords(pickupCoords);
   };
 
   // Typing by hand forgets any point picked earlier; picking a suggestion sets it
@@ -625,7 +638,25 @@ export default function LiftTakerHome() {
     setPickup(item.label);
     setPickupCoords(item.point);
   };
-  const pickDestination = (item) => setDestination(item.label);
+  const changeDestination = (value) => {
+    setDestination(value);
+    setDestinationCoords(null);
+  };
+  const pickDestination = (item) => {
+    setDestination(item.label);
+    setDestinationCoords(item.point);
+  };
+  // A destination from the history list keeps the map point it was saved with
+  const chooseRecentDestination = (place) => {
+    const found = recent.find((r) => r.destination === place);
+    setDestination(place);
+    setDestinationCoords(
+      found && found.destination_lat != null && found.destination_lng != null
+        ? { lat: found.destination_lat, lng: found.destination_lng }
+        : null
+    );
+    setShowHistory(false);
+  };
 
   const fillCurrentLocation = () => {
     if (locating) return;
@@ -677,14 +708,28 @@ export default function LiftTakerHome() {
     setFormError("");
     setSubmitting(true);
     try {
+      // Riders are matched by where places are on the map, so find the point of
+      // any place that was typed by hand. If the lookup fails the request still
+      // goes through and is matched by name.
+      let pickupPoint = pickupCoords;
+      let destinationPoint = destinationCoords;
+      try {
+        if (!pickupPoint) pickupPoint = await geocode(p);
+        if (!destinationPoint) destinationPoint = await geocode(d);
+      } catch {
+        // map lookup unavailable: fall back to matching by name
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/lifts/requests`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({
           pickup: p,
           destination: d,
-          pickup_lat: pickupCoords ? pickupCoords.lat : null,
-          pickup_lng: pickupCoords ? pickupCoords.lng : null,
+          pickup_lat: pickupPoint ? pickupPoint.lat : null,
+          pickup_lng: pickupPoint ? pickupPoint.lng : null,
+          destination_lat: destinationPoint ? destinationPoint.lat : null,
+          destination_lng: destinationPoint ? destinationPoint.lng : null,
           travel_date: travelDate,
           window_start: windowStart,
           window_end: addMinutes(windowStart, WINDOW_MINUTES),
@@ -1300,7 +1345,7 @@ export default function LiftTakerHome() {
                         inputRef={destinationRef}
                         ariaLabel="Destination"
                         value={destination}
-                        onChange={setDestination}
+                        onChange={changeDestination}
                         onPick={pickDestination}
                         onEnter={handleFindLift}
                         placeholder="Where do you want to go? (e.g. Madan Mahal Station Gate 2)"
@@ -1333,14 +1378,8 @@ export default function LiftTakerHome() {
                             className="lt-btn"
                             role="button"
                             tabIndex={0}
-                            onClick={() => {
-                              setDestination(place);
-                              setShowHistory(false);
-                            }}
-                            onKeyDown={activateOnKey(() => {
-                              setDestination(place);
-                              setShowHistory(false);
-                            })}
+                            onClick={() => chooseRecentDestination(place)}
+                            onKeyDown={activateOnKey(() => chooseRecentDestination(place))}
                             style={{
                               display: "flex",
                               alignItems: "center",

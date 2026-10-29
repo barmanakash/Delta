@@ -1,1593 +1,441 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Alert, Avatar, Box, Button, CircularProgress, Snackbar, Typography } from "@mui/material";
+
+import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
+import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import CurrencyRupeeOutlinedIcon from "@mui/icons-material/CurrencyRupeeOutlined";
+import DirectionsWalkOutlinedIcon from "@mui/icons-material/DirectionsWalkOutlined";
+import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+
+import { RiderHeader, RiderFooter } from "../riderlayout/riderlayout";
+import RouteMap from "../createcommute/routemap";
+import { fetchRoute } from "../createcommute/createcommute";
 import {
-    Box,
-    Button,
-    Chip,
-    Divider,
-    Paper,
-    Typography,
-    Avatar,
-} from "@mui/material";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+  apiRequest,
+  clearSession,
+  declineRequest,
+  formatClock,
+  formatDayLabel,
+  formatExpiry,
+  genderLabel,
+  initialsOf,
+  toAbsoluteUrl,
+  useCachedUser,
+  useIncomingRequest,
+  useIncomingRequests,
+} from "../riderrequests/riderrequests";
 
-const teal = "#00796B";
+const teal = "#007d73";
+const indigo = "#4c49d9";
 const dark = "#172033";
-const lightBg = "#F8F8FF";
-const lavender = "#F0F1FF";
-const purple = "#4F46E5";
+const muted = "#5b6475";
+const pageBg = "#f8f8ff";
 
-const Icon = ({ children, size = 18, color = teal }) => (
-    <span
-        style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: size,
-            color,
-            lineHeight: 1,
-        }}
-    >
-        {children}
-    </span>
-);
+const cardStyle = {
+  background: "#fff",
+  borderRadius: 16,
+  boxShadow: "0 2px 12px rgba(30,35,90,0.06)",
+};
 
-const Card = ({ children, style = {} }) => (
-    <Paper
-        elevation={0}
-        style={{
-            background: "#fff",
-            border: "1px solid #f0f0f5",
-            borderRadius: 14,
-            boxShadow: "0 2px 8px rgba(30,40,80,0.04)",
-            ...style,
-        }}
-    >
-        {children}
-    </Paper>
-);
+const shortName = (value) => (value || "").split(",")[0].trim();
 
-const SmallBadge = ({ children, bg = "#E7F7F5", color = teal }) => (
-    <span
-        style={{
-            display: "inline-flex",
-            alignItems: "center",
-            padding: "5px 10px",
-            borderRadius: 14,
-            background: bg,
-            color,
-            fontSize: 13,
-            fontWeight: 600,
-            whiteSpace: "nowrap",
-        }}
-    >
-        {children}
-    </span>
-);
+/**
+ * One incoming lift request, with everything the rider needs to decide.
+ * The data comes from the server, by the request id in the address.
+ */
+export default function ViewRequest() {
+  const navigate = useNavigate();
+  const { requestId } = useParams();
+  const cachedUser = useCachedUser();
 
-const CheckRow = ({ children }) => (
+  const [user, setUser] = useState(cachedUser);
+  const [photoUrl, setPhotoUrl] = useState(toAbsoluteUrl(cachedUser?.profile_photo_url));
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState({ open: false, message: "", severity: "info" });
+  const [mapRoute, setMapRoute] = useState({ status: "idle" });
+
+  const { loading, error, notFound, request, reload } = useIncomingRequest(requestId);
+  const { pendingCount } = useIncomingRequests();
+
+  /* ---- the real signed-in user ------------------------------------- */
+  useEffect(() => {
+    if (!localStorage.getItem("access_token")) return undefined;
+
+    let mounted = true;
+    apiRequest("/api/auth/me")
+      .then(({ ok, status, data }) => {
+        if (status === 401) {
+          clearSession();
+          navigate("/signin", { replace: true });
+          return;
+        }
+        if (!ok || !data) return;
+        localStorage.setItem("user", JSON.stringify(data));
+        if (mounted) {
+          setUser(data);
+          setPhotoUrl(toAbsoluteUrl(data.profile_photo_url));
+        }
+      })
+      .catch(() => {
+        // keep showing the cached profile while the backend is unavailable
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [navigate]);
+
+  /* ---- the lift taker's route on the map --------------------------- */
+  const pLat = request?.pickup_lat;
+  const pLng = request?.pickup_lng;
+  const dLat = request?.destination_lat;
+  const dLng = request?.destination_lng;
+
+  useEffect(() => {
+    if ([pLat, pLng, dLat, dLng].some((v) => v === null || v === undefined)) {
+      setMapRoute({ status: request ? "unavailable" : "idle" });
+      return undefined;
+    }
+
+    const start = { lat: pLat, lng: pLng };
+    const end = { lat: dLat, lng: dLng };
+    let cancelled = false;
+    setMapRoute({ status: "ready", start, end, line: null });
+
+    fetchRoute([start, end])
+      .then((result) => {
+        if (!cancelled) setMapRoute({ status: "ready", start, end, line: result.line });
+      })
+      .catch(() => {
+        // no road line: the map still shows the pickup and drop pins
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pLat, pLng, dLat, dLng, request]);
+
+  const handleDecline = async () => {
+    if (busy || !request) return;
+    setBusy(true);
+    const result = await declineRequest(request.id);
+    setBusy(false);
+    if (result.ok) {
+      navigate("/liftrequest", { replace: true });
+      return;
+    }
+    setToast({ open: true, message: result.message, severity: "error" });
+    reload();
+  };
+
+  /* ---------------------------------------------------------------- */
+
+  const accepted = request?.status === "accepted";
+
+  return (
     <Box
-        style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 8,
-            marginBottom: 10,
-        }}
+      style={{
+        minHeight: "100vh",
+        background: pageBg,
+        color: dark,
+        fontFamily: "Inter, Arial, sans-serif",
+        display: "flex",
+        flexDirection: "column",
+      }}
     >
-        <span
-            style={{
-                width: 16,
-                height: 16,
-                minWidth: 16,
-                borderRadius: "50%",
-                background: "#E5F8F5",
-                color: teal,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 12.5,
-                fontWeight: 700,
-            }}
-        >
-            ✓
-        </span>
+      <style>{`
+        .vr-btn:focus-visible { outline: 2px solid ${teal}; outline-offset: 2px; }
+        @media (max-width: 960px) {
+          .vr-grid { grid-template-columns: minmax(0, 1fr) !important; }
+        }
+        @media (max-width: 600px) {
+          .vr-pad { padding-left: 16px !important; padding-right: 16px !important; }
+          .vr-facts { grid-template-columns: minmax(0, 1fr) !important; }
+        }
+      `}</style>
 
-        <Typography
-            style={{
-                fontSize: 13,
-                lineHeight: 1.35,
-                color: "#20283A",
-            }}
-        >
-            {children}
-        </Typography>
-    </Box>
-);
+      <RiderHeader active="requests" user={user} photoUrl={photoUrl} pendingCount={pendingCount} />
 
-function Header() {
-    return (
+      <Box component="main" className="vr-pad" style={{ flex: 1, padding: "24px 30px 48px", boxSizing: "border-box" }}>
         <Box
-            style={{
-                height: 70,
-                background: "#fff",
-                borderBottom: "1px solid #ededf5",
-                display: "flex",
-                alignItems: "center",
-                padding: "0 24px",
-                justifyContent: "space-between",
-            }}
+          className="vr-btn"
+          role="link"
+          tabIndex={0}
+          onClick={() => navigate("/liftrequest")}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              navigate("/liftrequest");
+            }
+          }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13.5, fontWeight: 700, color: teal, cursor: "pointer" }}
         >
-            <Box
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 15,
-                }}
-            >
-                <Box
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                    }}
-                >
-                    <Box
-                        style={{
-                            width: 30,
-                            height: 30,
-                            borderRadius: 7,
-                            background: "#079C8D",
-                            color: "#fff",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 18,
-                            fontWeight: 700,
-                        }}
-                    >
-                        ♢
-                    </Box>
-
-                    <Typography
-                        style={{
-                            fontWeight: 700,
-                            fontSize: 16,
-                            color: dark,
-                        }}
-                    >
-                        Safe<span style={{ color: teal }}>Route</span>
-                    </Typography>
-                </Box>
-
-                <Typography
-                    style={{
-                        fontSize: 18,
-                        fontWeight: 700,
-                        color: dark,
-                        marginLeft: 2,
-                    }}
-                >
-                    FriendRide
-                </Typography>
-
-                <SmallBadge bg="#CFF8F2" color="#00796B">
-                    RIDER
-                </SmallBadge>
-
-                <Box
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 38,
-                        marginLeft: 25,
-                    }}
-                >
-                    <Typography style={{ fontSize: 14.5, color: "#3F4652" }}>
-                        Home
-                    </Typography>
-
-                    <Typography style={{ fontSize: 14.5, color: "#3F4652" }}>
-                        My Route
-                    </Typography>
-
-                    <Box
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 5,
-                            color: "#343A48",
-                            fontSize: 14.5,
-                        }}
-                    >
-                        Requests
-                        <span
-                            style={{
-                                width: 22,
-                                height: 22,
-                                borderRadius: "50%",
-                                background: "#65D9D1",
-                                color: "#075D59",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: 12.5,
-                                fontWeight: 700,
-                            }}
-                        >
-                            3
-                        </span>
-                    </Box>
-
-                    <Typography style={{ fontSize: 14.5, color: "#3F4652" }}>
-                        Trips
-                    </Typography>
-                </Box>
-            </Box>
-
-            <Box
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 16,
-                }}
-            >
-                <Typography
-                    style={{
-                        fontSize: 20,
-                        color: "#333",
-                    }}
-                >
-                    ♧
-                </Typography>
-
-                <Avatar
-                    style={{
-                        width: 34,
-                        height: 34,
-                        fontSize: 14,
-                        background: "#D9E7E7",
-                        color: "#145E5A",
-                    }}
-                >
-                    H
-                </Avatar>
-
-                <Typography
-                    style={{
-                        fontWeight: 600,
-                        fontSize: 14.5,
-                        color: dark,
-                    }}
-                >
-                    Harshit Bhargava
-                </Typography>
-
-                <span style={{ color: teal, fontSize: 17 }}>♢</span>
-                <span style={{ fontSize: 12 }}>⌄</span>
-            </Box>
+          <ArrowBackIcon style={{ fontSize: 18 }} />
+          Back to Lift Requests
         </Box>
-    );
-}
 
-function ProfileCard() {
-    return (
-        <Card
-            style={{
-                padding: 20,
-                height: 235,
-            }}
-        >
-            <Box
-                style={{
-                    height: 5,
-                    background: "linear-gradient(90deg,#00796B 0%,#4F46E5 100%)",
-                    borderRadius: "8px 8px 0 0",
-                    margin: "-20px -20px 18px",
-                }}
-            />
-
-            <Box
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                }}
-            >
-                <Box style={{ display: "flex", gap: 14 }}>
-                    <Box style={{ position: "relative" }}>
-                        <Avatar
-                            style={{
-                                width: 62,
-                                height: 62,
-                                border: "2px solid #D9ECEA",
-                                background: "#EDF4F3",
-                                color: "#167A72",
-                                fontWeight: 700,
-                            }}
-                        >
-                            R
-                        </Avatar>
-
-                        <Box
-                            style={{
-                                position: "absolute",
-                                right: -2,
-                                bottom: 0,
-                                width: 17,
-                                height: 17,
-                                borderRadius: "50%",
-                                background: teal,
-                                color: "#fff",
-                                fontSize: 12,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            ✓
-                        </Box>
-                    </Box>
-
-                    <Box>
-                        <Box
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 7,
-                            }}
-                        >
-                            <Typography
-                                style={{
-                                    fontSize: 18,
-                                    fontWeight: 700,
-                                    color: dark,
-                                }}
-                            >
-                                Rohit
-                            </Typography>
-
-                            <SmallBadge bg="#E8EBFF" color="#4B5563">
-                                First Name Only
-                            </SmallBadge>
-                        </Box>
-
-                        <Typography
-                            style={{
-                                fontSize: 14,
-                                color: "#505866",
-                                marginTop: 2,
-                            }}
-                        >
-                            Daily IT Analyst • North-
-                            <br />
-                            South Corridor
-                        </Typography>
-
-                        <Box
-                            style={{
-                                display: "flex",
-                                gap: 8,
-                                alignItems: "center",
-                                marginTop: 6,
-                                fontSize: 13,
-                                color: "#666",
-                            }}
-                        >
-                            <span style={{ color: "#9A6500", fontWeight: 700 }}>
-                                ★ 4.9
-                            </span>
-                            <span>•</span>
-                            <span>38 shared rides</span>
-                            <span>•</span>
-                            <span>Member Oct '23</span>
-                        </Box>
-                    </Box>
-                </Box>
-
-                <SmallBadge bg="#EEF0FF" color="#4F46E5">
-                    ♂ Male
-                </SmallBadge>
-            </Box>
-
-            <Box
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 8,
-                    marginTop: 25,
-                }}
-            >
-                <Box
-                    style={{
-                        background: lavender,
-                        borderRadius: 8,
-                        padding: "9px 10px",
-                    }}
-                >
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            fontWeight: 700,
-                            color: "#343A4C",
-                        }}
-                    >
-                        ▣ &nbsp; Aadhaar Govt ID
-                    </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            color: "#707788",
-                            marginTop: 3,
-                        }}
-                    >
-                        Verified & Escrow Locked
-                    </Typography>
-                </Box>
-
-                <Box
-                    style={{
-                        background: lavender,
-                        borderRadius: 8,
-                        padding: "9px 10px",
-                    }}
-                >
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            fontWeight: 700,
-                            color: "#343A4C",
-                        }}
-                    >
-                        ▣ &nbsp; Corporate ID
-                    </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            color: "#707788",
-                            marginTop: 3,
-                        }}
-                    >
-                        Tech Mahindra Limited
-                    </Typography>
-                </Box>
-            </Box>
-
-            <Box
-                style={{
-                    marginTop: 15,
-                    padding: "7px 10px",
-                    borderRadius: 7,
-                    background: "#DFF9F4",
-                    color: "#087A70",
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                }}
-            >
-                🛡 AIS-140 Background Screened • Zero Safety Incidents
-            </Box>
-        </Card>
-    );
-}
-
-function RequestedJourney() {
-    return (
-        <Card style={{ padding: 20 }}>
-            <Box
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                }}
-            >
-                <Typography
-                    style={{
-                        fontSize: 17,
-                        fontWeight: 700,
-                        color: dark,
-                    }}
-                >
-                    ♧ &nbsp;Requested Journey
-                </Typography>
-
-                <SmallBadge bg="#E6F6F3" color={teal}>
-                    94% Route Overlap
-                </SmallBadge>
-            </Box>
-
-            <Box
-                style={{
-                    position: "relative",
-                    marginTop: 22,
-                    paddingLeft: 23,
-                }}
-            >
-                <Box
-                    style={{
-                        position: "absolute",
-                        left: 8,
-                        top: 18,
-                        height: 125,
-                        borderLeft: "2px dashed #C4D3D2",
-                    }}
-                />
-
-                <Box style={{ position: "relative", marginBottom: 22 }}>
-                    <Box
-                        style={{
-                            position: "absolute",
-                            left: -22,
-                            top: 0,
-                            width: 20,
-                            height: 20,
-                            borderRadius: "50%",
-                            background: teal,
-                            border: "4px solid #E7F6F4",
-                        }}
-                    />
-
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            fontWeight: 700,
-                            color: teal,
-                        }}
-                    >
-                        PICKUP REQUEST
-                    </Typography>
-
-                    <Box
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            marginTop: 4,
-                        }}
-                    >
-                        <Typography
-                            style={{
-                                fontSize: 16,
-                                fontWeight: 700,
-                                color: dark,
-                            }}
-                        >
-                            Napier Town
-                        </Typography>
-
-                        <Typography
-                            style={{
-                                fontSize: 13,
-                                fontWeight: 700,
-                                color: dark,
-                            }}
-                        >
-                            08:30 AM (±10m)
-                        </Typography>
-                    </Box>
-
-                    <Typography
-                        style={{
-                            fontSize: 13,
-                            color: "#6A7180",
-                        }}
-                    >
-                        Near City Hospital Gate 1
-                    </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            color: teal,
-                            marginTop: 6,
-                        }}
-                    >
-                        ⚯ Only 0.2 km detour from your primary corridor
-                    </Typography>
-                </Box>
-
-                <Box style={{ position: "relative" }}>
-                    <Box
-                        style={{
-                            position: "absolute",
-                            left: -22,
-                            top: 0,
-                            width: 20,
-                            height: 20,
-                            borderRadius: "50%",
-                            background: "#4F46E5",
-                            border: "4px solid #E9E9FF",
-                        }}
-                    />
-
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            fontWeight: 700,
-                            color: "#4F46E5",
-                        }}
-                    >
-                        DROP-OFF DESTINATION
-                    </Typography>
-
-                    <Box
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            marginTop: 4,
-                        }}
-                    >
-                        <Typography
-                            style={{
-                                fontSize: 16,
-                                fontWeight: 700,
-                                color: dark,
-                            }}
-                        >
-                            Madan Mahal Station Gate 2
-                        </Typography>
-
-                        <Typography
-                            style={{
-                                fontSize: 13,
-                                fontWeight: 700,
-                                color: "#333",
-                            }}
-                        >
-                            ~08:48 AM
-                        </Typography>
-                    </Box>
-
-                    <Typography
-                        style={{
-                            fontSize: 13,
-                            color: "#6A7180",
-                        }}
-                    >
-                        Direct corridor stop on your regular itinerary
-                    </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            color: "#59606F",
-                            marginTop: 6,
-                        }}
-                    >
-                        ▱ 0.0 km detour (Exact match)
-                    </Typography>
-                </Box>
-            </Box>
-
-            <Box
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr",
-                    gap: 8,
-                    marginTop: 25,
-                }}
-            >
-                <Box
-                    style={{
-                        background: lavender,
-                        borderRadius: 8,
-                        padding: 10,
-                    }}
-                >
-                    <Typography style={{ fontSize: 12.5, color: "#707788" }}>
-                        Shared Time
-                    </Typography>
-                    <Typography
-                        style={{
-                            fontSize: 15.5,
-                            fontWeight: 700,
-                            color: dark,
-                        }}
-                    >
-                        18 mins
-                    </Typography>
-                    <Typography style={{ fontSize: 12, color: teal }}>
-                        +2m total vs solo
-                    </Typography>
-                </Box>
-
-                <Box
-                    style={{
-                        background: lavender,
-                        borderRadius: 8,
-                        padding: 10,
-                    }}
-                >
-                    <Typography style={{ fontSize: 12.5, color: "#707788" }}>
-                        Fuel Split
-                    </Typography>
-                    <Typography
-                        style={{
-                            fontSize: 15.5,
-                            fontWeight: 700,
-                            color: teal,
-                        }}
-                    >
-                        ₹45
-                        <span
-                            style={{
-                                fontSize: 12,
-                                color: "#707788",
-                                marginLeft: 3,
-                            }}
-                        >
-                            fixed
-                        </span>
-                    </Typography>
-                    <Typography style={{ fontSize: 12, color: "#707788" }}>
-                        UPI escrow credit
-                    </Typography>
-                </Box>
-
-                <Box
-                    style={{
-                        background: lavender,
-                        borderRadius: 8,
-                        padding: 10,
-                    }}
-                >
-                    <Typography style={{ fontSize: 12.5, color: "#707788" }}>
-                        Pillion Gear
-                    </Typography>
-                    <Typography
-                        style={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: dark,
-                        }}
-                    >
-                        ◯ Own ISI Helmet
-                    </Typography>
-                    <Typography style={{ fontSize: 12, color: "#707788" }}>
-                        1 Laptop backpack
-                    </Typography>
-                </Box>
-            </Box>
-        </Card>
-    );
-}
-
-function SafetyCard() {
-    return (
-        <Card style={{ padding: 20 }}>
-            <Box
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                }}
-            >
-                <Typography
-                    style={{
-                        fontSize: 17,
-                        fontWeight: 700,
-                        color: dark,
-                    }}
-                >
-                    🛡 Safety Match Confirmed
-                </Typography>
-
-                <span style={{ color: "#666" }}>♙</span>
-            </Box>
-
-            <Box style={{ marginTop: 20 }}>
-                <CheckRow>
-                    <b>Gender-Matched Corridor:</b> Male-to-Male rider & commuter
-                    preference enforced.
-                </CheckRow>
-
-                <CheckRow>
-                    <b>Corridor Perimeter:</b> Within approved 500-meter geo-fenced
-                    safety zone.
-                </CheckRow>
-
-                <CheckRow>
-                    <b>Emergency Hub:</b> Live SOS, collision sensor & MoRTH telemetry
-                    standby enabled.
-                </CheckRow>
-            </Box>
-
-            <Box
-                style={{
-                    marginTop: 17,
-                    background: "#E8EAFF",
-                    borderRadius: 6,
-                    padding: "7px 10px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: 12.5,
-                    color: "#50586A",
-                }}
-            >
-                <span>Encrypted Corridor Protocol: AIS-140 v2</span>
-                <b style={{ color: "#4F46E5" }}>ACTIVE</b>
-            </Box>
-        </Card>
-    );
-}
-
-function CorridorMap() {
-    return (
-        <Card style={{ padding: 14 }}>
-            <Box
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "3px 4px 12px",
-                }}
-            >
-                <Box
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                    }}
-                >
-                    <span
-                        style={{
-                            fontSize: 23,
-                            color: teal,
-                        }}
-                    >
-                        🗺
-                    </span>
-
-                    <Typography
-                        style={{
-                            fontSize: 17,
-                            fontWeight: 700,
-                            color: dark,
-                        }}
-                    >
-                        Corridor Verification View
-                    </Typography>
-
-                    <SmallBadge bg="#E7EAFF" color="#454C66">
-                        Jabalpur Metro Corridor
-                    </SmallBadge>
-                </Box>
-
-                <Box style={{ display: "flex", gap: 7 }}>
-                    <Button
-                        style={{
-                            minWidth: 34,
-                            width: 34,
-                            height: 34,
-                            borderRadius: 8,
-                            background: "#F1F2FF",
-                            color: dark,
-                            fontSize: 17,
-                            padding: 0,
-                        }}
-                    >
-                        ⚙
-                    </Button>
-
-                    <Button
-                        style={{
-                            minWidth: 34,
-                            width: 34,
-                            height: 34,
-                            borderRadius: 8,
-                            background: "#F1F2FF",
-                            color: dark,
-                            fontSize: 21,
-                            padding: 0,
-                        }}
-                    >
-                        +
-                    </Button>
-
-                    <Button
-                        style={{
-                            minWidth: 34,
-                            width: 34,
-                            height: 34,
-                            borderRadius: 8,
-                            background: "#F1F2FF",
-                            color: dark,
-                            fontSize: 21,
-                            padding: 0,
-                        }}
-                    >
-                        −
-                    </Button>
-                </Box>
-            </Box>
-
-            <Box
-                style={{
-                    height: 445,
-                    borderRadius: 12,
-                    background:
-                        "linear-gradient(180deg,#EFF0FF 0%,#EEF0FF 48%,#E8ECFF 100%)",
-                    position: "relative",
-                    overflow: "hidden",
-                    border: "1px solid #E5E6F5",
-                }}
-            >
-                {/* Map grid */}
-                <Box
-                    style={{
-                        position: "absolute",
-                        inset: 0,
-                        opacity: 0.55,
-                        backgroundImage: `
-              linear-gradient(#CBD0E4 1px, transparent 1px),
-              linear-gradient(90deg, #CBD0E4 1px, transparent 1px)
-            `,
-                        backgroundSize: "72px 72px",
-                    }}
-                />
-
-                {/* Water/road background */}
-                <Box
-                    style={{
-                        position: "absolute",
-                        left: -50,
-                        right: -50,
-                        bottom: 40,
-                        height: 70,
-                        borderRadius: "50%",
-                        borderTop: "10px solid rgba(150,165,235,.16)",
-                        transform: "rotate(3deg)",
-                    }}
-                />
-
-                <Box
-                    style={{
-                        position: "absolute",
-                        left: 40,
-                        top: 35,
-                        width: 155,
-                        padding: "9px 12px",
-                        background: "#fff",
-                        borderRadius: 8,
-                        boxShadow: "0 2px 7px rgba(20,30,70,.12)",
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: dark,
-                    }}
-                >
-                    <span style={{ color: "#111827" }}>●</span>&nbsp; PNT Naka (Start)
-                    <div
-                        style={{
-                            color: "#7A8190",
-                            fontWeight: 400,
-                            marginTop: 3,
-                        }}
-                    >
-                        Your departure origin
-                    </div>
-                </Box>
-
-                <Box
-                    style={{
-                        position: "absolute",
-                        right: 15,
-                        top: 15,
-                        background: "#fff",
-                        padding: "9px 13px",
-                        borderRadius: 18,
-                        fontSize: 13,
-                        fontWeight: 700,
-                        boxShadow: "0 2px 6px rgba(20,30,70,.08)",
-                    }}
-                >
-                    ↔ &nbsp;7.8 km Compatible Segment
-                </Box>
-
-                {/* Main route */}
-                <svg
-                    viewBox="0 0 700 450"
-                    preserveAspectRatio="none"
-                    style={{
-                        position: "absolute",
-                        inset: 0,
-                        width: "100%",
-                        height: "100%",
-                    }}
-                >
-                    <path
-                        d="M75 105 C210 125, 280 160, 330 220 C405 275, 485 310, 625 365"
-                        fill="none"
-                        stroke="rgba(87,207,192,.23)"
-                        strokeWidth="42"
-                        strokeLinecap="round"
-                    />
-
-                    <path
-                        d="M75 105 C210 125, 280 160, 330 220 C405 275, 485 310, 625 365"
-                        fill="none"
-                        stroke="#118D82"
-                        strokeWidth="7"
-                        strokeLinecap="round"
-                    />
-
-                    <path
-                        d="M330 220 C405 275, 485 310, 625 365"
-                        fill="none"
-                        stroke="#3F52CC"
-                        strokeWidth="7"
-                        strokeLinecap="round"
-                    />
-
-                    <path
-                        d="M75 105 C210 125, 280 160, 350 205 C440 265, 520 300, 625 365"
-                        fill="none"
-                        stroke="#9299A5"
-                        strokeWidth="4"
-                        strokeDasharray="8 7"
-                        strokeLinecap="round"
-                    />
-
-                    <circle
-                        cx="75"
-                        cy="105"
-                        r="9"
-                        fill="#fff"
-                        stroke="#172033"
-                        strokeWidth="4"
-                    />
-
-                    <circle
-                        cx="330"
-                        cy="220"
-                        r="13"
-                        fill="#00796B"
-                        stroke="#fff"
-                        strokeWidth="5"
-                    />
-
-                    <circle
-                        cx="625"
-                        cy="365"
-                        r="12"
-                        fill="#fff"
-                        stroke="#4F46E5"
-                        strokeWidth="5"
-                    />
-
-                    <circle
-                        cx="330"
-                        cy="220"
-                        r="45"
-                        fill="none"
-                        stroke="#00796B"
-                        strokeWidth="1"
-                        strokeDasharray="3 5"
-                    />
-                </svg>
-
-                {/* Pickup label */}
-                <Box
-                    style={{
-                        position: "absolute",
-                        left: "42%",
-                        top: "31%",
-                        width: 245,
-                        background: "#fff",
-                        border: "2px solid #73BEB8",
-                        borderRadius: 13,
-                        padding: "10px 14px",
-                        boxShadow: "0 3px 9px rgba(30,50,80,.1)",
-                    }}
-                >
-                    <Typography
-                        style={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: teal,
-                        }}
-                    >
-                        ● Pickup: Napier Town&nbsp;&nbsp; 8:30 AM
-                    </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            color: "#65707D",
-                            marginTop: 3,
-                        }}
-                    >
-                        Gate 1 • 0.2 km minor corridor detour
-                    </Typography>
-                </Box>
-
-                {/* Drop off label */}
-                <Box
-                    style={{
-                        position: "absolute",
-                        right: 38,
-                        bottom: 62,
-                        width: 220,
-                        background: "#fff",
-                        border: "2px solid #8B8BEB",
-                        borderRadius: 13,
-                        padding: "10px 14px",
-                        boxShadow: "0 3px 9px rgba(30,50,80,.1)",
-                    }}
-                >
-                    <Typography
-                        style={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "#4F46E5",
-                        }}
-                    >
-                        ⚑ Drop-off: Madan Mahal Gate 2
-                    </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            color: "#65707D",
-                            marginTop: 3,
-                        }}
-                    >
-                        Exact corridor align • 0 km detour
-                    </Typography>
-                </Box>
-
-                <Box
-                    style={{
-                        position: "absolute",
-                        left: 15,
-                        bottom: 15,
-                        background: "#fff",
-                        padding: "6px 10px",
-                        borderRadius: 12,
-                        fontSize: 12,
-                        color: "#6A7180",
-                    }}
-                >
-                    <span style={{ color: "#63D4C6" }}>━</span> 200m AIS-140 Safe Zone
-                    Buffer
-                </Box>
-            </Box>
-
-            <Box
-                style={{
-                    marginTop: 10,
-                    padding: "9px 12px",
-                    background: "#F8F5EC",
-                    borderRadius: 7,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: 12.5,
-                }}
-            >
-                <span>
-                    ⚙ &nbsp;<b>Minor Detour: 200 meters</b> (approx 1 min 20 secs)
-                </span>
-
-                <span style={{ color: teal, fontWeight: 700 }}>
-                    Corridor Deviation Score: 98/100 (Optimal)
-                </span>
-            </Box>
-        </Card>
-    );
-}
-
-function StatCards() {
-    return (
-        <Box
-            style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 14,
-            }}
-        >
-            <Card
-                style={{
-                    padding: 18,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                }}
-            >
-                <Box
-                    style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 13,
-                        background: "#D4F8F3",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: teal,
-                        fontSize: 22,
-                    }}
-                >
-                    ◉
-                </Box>
-
-                <Box>
-                    <Typography style={{ fontSize: 12.5, color: "#717886" }}>
-                        Environmental Impact
-                    </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 18,
-                            fontWeight: 700,
-                            color: teal,
-                        }}
-                    >
-                        1.4 kg CO₂
-                    </Typography>
-
-                    <Typography style={{ fontSize: 12.5, color: "#666" }}>
-                        Prevented through this shared ride
-                    </Typography>
-                </Box>
-            </Card>
-
-            <Card
-                style={{
-                    padding: 18,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                }}
-            >
-                <Box
-                    style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 13,
-                        background: "#E5E7FF",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: purple,
-                        fontSize: 21,
-                    }}
-                >
-                    ♧
-                </Box>
-
-                <Box>
-                    <Typography style={{ fontSize: 12.5, color: "#717886" }}>
-                        Capacity Utilization
-                    </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 18,
-                            fontWeight: 700,
-                            color: purple,
-                        }}
-                    >
-                        1 of 1 Pillion
-                    </Typography>
-
-                    <Typography style={{ fontSize: 12.5, color: "#666" }}>
-                        Solo ETA 22m → Shared ETA 24m (+2m)
-                    </Typography>
-                </Box>
-            </Card>
-        </Box>
-    );
-}
-
-function PrivacyCard() {
-    return (
-        <Card
-            style={{
-                padding: 18,
-                display: "flex",
-                gap: 12,
-            }}
-        >
-            <Box
-                style={{
-                    color: teal,
-                    fontSize: 23,
-                }}
-            >
-                🛡
-            </Box>
-
-            <Box>
-                <Typography
-                    style={{
-                        fontSize: 15.5,
-                        fontWeight: 700,
-                        color: dark,
-                    }}
-                >
-                    FriendRide Two-Way Privacy Guarantee
-                </Typography>
-
-                <Typography
-                    style={{
-                        fontSize: 13,
-                        color: "#68707B",
-                        lineHeight: 1.45,
-                        marginTop: 4,
-                        maxWidth: 560,
-                    }}
-                >
-                    Exact live GPS coordinates and direct caller proxy are masked until
-                    you review and confirm this request. Your registered two-wheeler
-                    plate number is revealed to Rohit only within 10 minutes of scheduled
-                    pickup.
-                </Typography>
-            </Box>
-        </Card>
-    );
-}
-
-function OfferCard() {
-    const navigate = useNavigate();
-    return (
-        <Card
-            style={{
-                padding: "18px 20px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 20,
-            }}
-        >
-            <Box style={{ display: "flex", gap: 14, alignItems: "center" }}>
-                <Box
-                    style={{
-                        width: 45,
-                        height: 45,
-                        borderRadius: "50%",
-                        background: "#D7F8F4",
-                        color: teal,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 20,
-                    }}
-                >
-                    ⚖
-                </Box>
-
-                <Box>
-                    <Box
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                        }}
-                    >
-                        <Typography
-                            style={{
-                                fontSize: 15.5,
-                                fontWeight: 700,
-                                color: dark,
-                            }}
-                        >
-                            Review & Accept Offer
-                        </Typography>
-
-                        <SmallBadge bg="#E3F7F3" color={teal}>
-                            No Penalty for Declining
-                        </SmallBadge>
-                    </Box>
-
-                    <Typography
-                        style={{
-                            fontSize: 12.5,
-                            color: "#656D79",
-                            marginTop: 4,
-                        }}
-                    >
-                        Accepting reserves your rear pillion seat and instantly routes ₹45
-                        fuel split to your in-app balance upon drop-off.
-                    </Typography>
-                </Box>
-            </Box>
-
-            <Box style={{ display: "flex", gap: 15 }}>
-                <Button
-                    style={{
-                        background: "#E6E8FF",
-                        color: dark,
-                        borderRadius: 8,
-                        padding: "11px 23px",
-                        textTransform: "none",
-                        fontSize: 14.5,
-                        fontWeight: 600,
-                    }}
-                >
-                    × &nbsp; Decline
-                </Button>
-
-                <Button
-                    onClick={() => navigate('/confirmrequest')}
-                    style={{
-                        background: "#00796B",
-                        color: "#fff",
-                        borderRadius: 8,
-                        padding: "11px 23px",
-                        textTransform: "none",
-                        fontSize: 14.5,
-                        fontWeight: 700,
-                        boxShadow: "none",
-                    }}
-                >
-                    ✓ &nbsp; Accept Lift Request (₹45)
-                </Button>
-            </Box>
-        </Card>
-    );
-}
-
-function Footer() {
-    return (
-        <Box
-            style={{
-                height: 55,
-                background: "#fff",
-                borderTop: "1px solid #eeeeF5",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0 25px",
-                fontSize: 12.5,
-                color: "#505866",
-            }}
-        >
-            <Box
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 15,
-                }}
-            >
-                <span style={{ color: teal }}>
-                    🛡 AIS 140 & MoRTH ride-pooling compliant
-                </span>
-
-                <span style={{ color: "#B8BBC2" }}>•</span>
-
-                <span style={{ color: teal }}>
-                    🛡 ISO 27001 Certified Security
-                </span>
-
-                <span style={{ color: "#B8BBC2" }}>•</span>
-
-                <span style={{ color: "#E52C32" }}>
-                    ⛨ 24/7 Police SOS
-                </span>
-            </Box>
-
-            <Typography style={{ fontSize: 12.5, color: "#505866" }}>
-                © 2025 FriendRide. All rights reserved.
+        {loading && (
+          <Box style={{ display: "flex", justifyContent: "center", padding: "90px 0" }}>
+            <CircularProgress style={{ color: teal }} />
+          </Box>
+        )}
+
+        {!loading && (notFound || error) && (
+          <Box style={{ ...cardStyle, maxWidth: 560, margin: "40px auto 0", padding: "34px 26px", textAlign: "center" }}>
+            <Typography style={{ fontSize: 20, fontWeight: 800 }}>
+              {notFound ? "This request is no longer available" : "Couldn't load this request"}
             </Typography>
-        </Box>
-    );
+            <Typography style={{ fontSize: 14, color: muted, margin: "8px 0 20px", lineHeight: 1.55 }}>
+              {notFound
+                ? "It may have been cancelled, expired, or accepted by another rider."
+                : error}
+            </Typography>
+            <Button
+              disableElevation
+              onClick={() => navigate("/liftrequest")}
+              style={{ background: teal, color: "#fff", borderRadius: 10, textTransform: "none", fontWeight: 700, padding: "8px 22px" }}
+            >
+              View Lift Requests
+            </Button>
+          </Box>
+        )}
+
+        {!loading && request && (
+          <Box
+            className="vr-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1.15fr) minmax(0, 1fr)",
+              gap: 22,
+              marginTop: 18,
+              alignItems: "start",
+            }}
+          >
+            {/* ---------------- LEFT: details ---------------- */}
+            <Box style={{ display: "flex", flexDirection: "column", gap: 18, minWidth: 0 }}>
+              <Box style={{ ...cardStyle, padding: "22px 24px" }}>
+                <Typography component="h1" style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.4px" }}>
+                  Lift Request
+                </Typography>
+
+                {/* the lift taker */}
+                <Box style={{ display: "flex", alignItems: "center", gap: 14, background: "#f1f2ff", borderRadius: 14, padding: "14px 16px", marginTop: 16 }}>
+                  <Avatar
+                    src={toAbsoluteUrl(request.requester_photo_url) || undefined}
+                    style={{ width: 56, height: 56, border: "3px solid #9be3da", boxSizing: "content-box", background: "#d8b293", color: "#172033", fontWeight: 700 }}
+                  >
+                    {initialsOf(request.requester_name)}
+                  </Avatar>
+                  <Box style={{ minWidth: 0, flex: 1 }}>
+                    <Box style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <Typography style={{ fontSize: 19, fontWeight: 800 }}>{request.requester_name}</Typography>
+                      <VerifiedOutlinedIcon style={{ fontSize: 19, color: teal }} />
+                    </Box>
+                    <Typography style={{ fontSize: 12.5, color: teal, fontWeight: 600, marginTop: 2 }}>
+                      {request.requester_verification}
+                    </Typography>
+                    <Typography style={{ fontSize: 12.5, color: muted, marginTop: 3 }}>
+                      Lift taker
+                      {request.requester_gender ? ` · ${genderLabel(request.requester_gender)}` : ""}
+                      {request.member_since ? ` · Member since ${request.member_since}` : ""}
+                    </Typography>
+                  </Box>
+                  {request.same_gender && (
+                    <Box style={{ background: "#d6f3ef", color: "#00695f", borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>
+                      Same-gender match
+                    </Box>
+                  )}
+                </Box>
+
+                {/* journey */}
+                <Box style={{ marginTop: 20 }}>
+                  <Stop color={teal} label="Pickup" title={request.pickup} time={request.pickup_time} />
+                  <Box style={{ borderLeft: "2px dotted #c9cdea", height: 18, marginLeft: 5 }} />
+                  <Stop color={indigo} label="Drop-off" title={request.destination} time={request.arrival_time} approx />
+                </Box>
+
+                <Box className="vr-facts" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, marginTop: 20 }}>
+                  <Fact icon={<TrendingUpIcon />} label="Route overlap" value={`${request.overlap_pct}%`} />
+                  <Fact icon={<CurrencyRupeeOutlinedIcon />} label="Fixed fuel-split" value={`₹${request.fare}`} sub="Zero surge surcharge" />
+                  <Fact icon={<AccessTimeOutlinedIcon />} label="Ride time" value={`${request.duration_min} mins`} sub={request.route_note} />
+                  <Fact icon={<DirectionsWalkOutlinedIcon />} label="Detour" value={request.walk_note} />
+                </Box>
+
+                <Typography style={{ fontSize: 13, color: muted, marginTop: 16 }}>
+                  {formatDayLabel(request.travel_date)} · requested window {formatClock(request.window_start)} –{" "}
+                  {formatClock(request.window_end)}
+                </Typography>
+              </Box>
+
+              {/* decision */}
+              {accepted ? (
+                <Box style={{ ...cardStyle, padding: "18px 22px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <CheckCircleOutlinedIcon style={{ color: "#16794a", fontSize: 26 }} />
+                  <Box style={{ flex: 1, minWidth: 200 }}>
+                    <Typography style={{ fontSize: 15.5, fontWeight: 800 }}>You accepted this lift</Typography>
+                    <Typography style={{ fontSize: 13, color: muted }}>
+                      Your pillion seat is reserved for {request.requester_name}.
+                    </Typography>
+                  </Box>
+                  <Button
+                    disableElevation
+                    onClick={() => navigate("/trips")}
+                    style={{ background: teal, color: "#fff", borderRadius: 10, textTransform: "none", fontWeight: 700, padding: "8px 20px" }}
+                  >
+                    View Trips
+                  </Button>
+                </Box>
+              ) : (
+                <Box style={{ ...cardStyle, padding: "18px 22px" }}>
+                  <Box style={{ display: "flex", alignItems: "center", gap: 8, color: "#d44d4d", fontSize: 13, fontWeight: 700, marginBottom: 14 }}>
+                    <AccessTimeOutlinedIcon style={{ fontSize: 17 }} />
+                    Expires in {formatExpiry(request.expires_in_min)}
+                  </Box>
+                  <Box style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <Button
+                      disableElevation
+                      disabled={busy}
+                      onClick={() => navigate(`/confirmrequest/${request.id}`)}
+                      startIcon={<CheckCircleOutlinedIcon />}
+                      style={{ flex: 1, minWidth: 160, height: 46, background: teal, color: "#fff", borderRadius: 10, textTransform: "none", fontWeight: 800, fontSize: 14.5 }}
+                    >
+                      Accept Lift
+                    </Button>
+                    <Button
+                      disableElevation
+                      disabled={busy}
+                      onClick={handleDecline}
+                      style={{ flex: 1, minWidth: 160, height: 46, background: "#e3e7ff", color: "#28324c", borderRadius: 10, textTransform: "none", fontWeight: 700, fontSize: 14.5 }}
+                    >
+                      Decline
+                    </Button>
+                  </Box>
+                  <Typography style={{ fontSize: 12.5, color: muted, marginTop: 10, lineHeight: 1.5 }}>
+                    Declining only hides this request from you. It stays open for other riders.
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+
+            {/* ---------------- RIGHT: map + safety ---------------- */}
+            <Box style={{ display: "flex", flexDirection: "column", gap: 18, minWidth: 0 }}>
+              <Box style={{ ...cardStyle, overflow: "hidden" }}>
+                <Box style={{ height: 320, position: "relative", background: "#eef0fb" }}>
+                  {mapRoute.status === "ready" ? (
+                    <RouteMap
+                      start={mapRoute.start}
+                      end={mapRoute.end}
+                      line={mapRoute.line}
+                      minHeight={320}
+                      padTop={60}
+                      padBottom={40}
+                      startName={shortName(request.pickup)}
+                      startTag="PICKUP"
+                      endName={shortName(request.destination)}
+                      endTag="DROP-OFF"
+                    />
+                  ) : (
+                    <Box
+                      style={{
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        padding: 24,
+                        textAlign: "center",
+                        color: muted,
+                      }}
+                    >
+                      <MapOutlinedIcon style={{ fontSize: 34 }} />
+                      <Typography style={{ fontSize: 13.5, maxWidth: 300, lineHeight: 1.5 }}>
+                        {mapRoute.status === "unavailable"
+                          ? "The map isn't available because this lift taker's pickup and drop weren't located on the map."
+                          : "Loading the map…"}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+
+              <Box style={{ ...cardStyle, padding: "18px 20px" }}>
+                <Typography style={{ fontSize: 15.5, fontWeight: 800, display: "flex", alignItems: "center", gap: 7 }}>
+                  <ShieldOutlinedIcon style={{ color: teal, fontSize: 21 }} />
+                  Safety match
+                </Typography>
+                {[
+                  "Identity verified through Aadhaar and government ID",
+                  "AIS-140 route guardrails stay active for the whole ride",
+                  "Only accept when you are comfortable with the pickup, route and timing",
+                ].map((text) => (
+                  <Box key={text} style={{ display: "flex", gap: 9, marginTop: 10, fontSize: 13, lineHeight: 1.45, color: "#2f3550" }}>
+                    <CheckCircleOutlinedIcon style={{ fontSize: 17, color: teal, flexShrink: 0, marginTop: 1 }} />
+                    {text}
+                  </Box>
+                ))}
+                <Box style={{ display: "flex", gap: 9, marginTop: 14, background: "#eceefd", borderRadius: 10, padding: "10px 12px", fontSize: 12.5, color: "#3b4357", lineHeight: 1.5 }}>
+                  <LockOutlinedIcon style={{ fontSize: 17, color: muted, flexShrink: 0, marginTop: 1 }} />
+                  The lift taker's phone number stays masked. Contact happens inside FriendRide only.
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
+      </Box>
+
+      <RiderFooter />
+
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setToast((t) => ({ ...t, open: false }))}
+          severity={toast.severity}
+          variant="filled"
+          style={{ width: "100%" }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
 }
 
-export default function Home() {
-    return (
-        <Box
-            style={{
-                minHeight: "100vh",
-                background: "#F8F8FF",
-                color: dark,
-                fontFamily:
-                    "Inter, Arial, sans-serif",
-            }}
-        >
-            <Header />
+function Stop({ color, label, title, time, approx }) {
+  return (
+    <Box style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+      <Box style={{ width: 12, height: 12, borderRadius: "50%", background: color, marginTop: 5, flexShrink: 0 }} />
+      <Box style={{ minWidth: 0, flex: 1 }}>
+        <Typography style={{ fontSize: 12, color: muted, fontWeight: 600 }}>{label}</Typography>
+        <Typography style={{ fontSize: 14.5, fontWeight: 700, wordBreak: "break-word" }}>{title}</Typography>
+      </Box>
+      <Typography style={{ fontSize: 14, fontWeight: 800, whiteSpace: "nowrap" }}>
+        {approx ? "~" : ""}
+        {formatClock(time)}
+      </Typography>
+    </Box>
+  );
+}
 
-            {/* Second navigation/status bar */}
-            <Box
-                style={{
-                    height: 48,
-                    background: "#fff",
-                    borderBottom: "1px solid #ECECF3",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "0 24px",
-                }}
-            >
-                <Box
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        fontSize: 14.5,
-                        color: "#273043",
-                    }}
-                >
-                    <span style={{ color: "#333" }}>←</span>
-                    <span>Lift Requests</span>
-                    <span style={{ color: "#A7ABB4" }}>/</span>
-
-                    <b style={{ fontSize: 17 }}>Request #RQ-8421</b>
-
-                    <SmallBadge bg="#E7EAFF" color="#53607B">
-                        Pending Verification
-                    </SmallBadge>
-                </Box>
-
-                <Box
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 14,
-                    }}
-                >
-                    <SmallBadge bg="#EEF8F5" color="#475A58">
-                        <span style={{ color: teal }}>●</span>&nbsp; AIS-140 GPS Telemetry
-                        Sync: <b>Active</b>
-                    </SmallBadge>
-
-                    <SmallBadge bg="#FFF6E8" color="#87631D">
-                        ⏱ &nbsp;Expires in 11:39
-                    </SmallBadge>
-                </Box>
-            </Box>
-
-            <Box
-                style={{
-                    padding: "22px 24px 25px",
-                }}
-            >
-                <Box
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "40.5% 59.5%",
-                        gap: 22,
-                        maxWidth: 1560,
-                        margin: "0 auto",
-                    }}
-                >
-                    {/* LEFT */}
-                    <Box
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 18,
-                        }}
-                    >
-                        <ProfileCard />
-
-                        <RequestedJourney />
-
-                        <SafetyCard />
-                    </Box>
-
-                    {/* RIGHT */}
-                    <Box
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 18,
-                        }}
-                    >
-                        <CorridorMap />
-
-                        <StatCards />
-
-                        <PrivacyCard />
-                    </Box>
-                </Box>
-
-                <Box
-                    style={{
-                        maxWidth: 1560,
-                        margin: "24px auto 0",
-                    }}
-                >
-                    <OfferCard />
-                </Box>
-            </Box>
-
-            <Footer />
-        </Box>
-    );
+function Fact({ icon, label, value, sub }) {
+  return (
+    <Box style={{ background: "#f7f8fe", borderRadius: 12, padding: "12px 14px", minWidth: 0 }}>
+      <Box style={{ display: "flex", alignItems: "center", gap: 7, color: muted, fontSize: 12 }}>
+        {React.cloneElement(icon, { style: { fontSize: 16, color: teal } })}
+        {label}
+      </Box>
+      <Typography style={{ fontSize: 15, fontWeight: 800, marginTop: 5, wordBreak: "break-word" }}>{value}</Typography>
+      {sub && <Typography style={{ fontSize: 12, color: muted, marginTop: 2 }}>{sub}</Typography>}
+    </Box>
+  );
 }

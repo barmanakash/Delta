@@ -478,11 +478,22 @@ export default function FindLift() {
     if (!windowStart)
       return fail("No pickup windows are left today. Choose a later date.");
 
-    const start = pickupPoint || (route.status === "ready" ? route.start : null);
+    let start = pickupPoint || (route.status === "ready" ? route.start : null);
+    let end = destPoint || (route.status === "ready" ? route.end : null);
 
     setFormError("");
     setSubmitting(true);
     try {
+      // Riders are matched by where places are on the map, so find the point of
+      // any place that doesn't have one yet. If the lookup fails the search still
+      // goes through and is matched by name.
+      try {
+        if (!start) start = await geocode(p);
+        if (!end) end = await geocode(d);
+      } catch {
+        // map lookup unavailable: fall back to matching by name
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/lifts/requests`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
@@ -491,6 +502,8 @@ export default function FindLift() {
           destination: d,
           pickup_lat: start ? start.lat : null,
           pickup_lng: start ? start.lng : null,
+          destination_lat: end ? end.lat : null,
+          destination_lng: end ? end.lng : null,
           travel_date: travelDate,
           window_start: windowStart,
           window_end: addMinutes(windowStart, WINDOW_MINUTES),

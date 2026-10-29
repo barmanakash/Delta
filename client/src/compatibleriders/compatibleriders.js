@@ -127,7 +127,7 @@ const initialsOf = (name) =>
 
 const DEFAULT_FILTERS = {
   window: "full",
-  minOverlap: 75,
+  minOverlap: 50,
   arrival: "any",
   seats: 1,
   vehicle: "any",
