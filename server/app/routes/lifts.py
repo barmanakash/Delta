@@ -14,6 +14,7 @@ from app.models.lift import (
     LiftMatchesResponse,
     LiftRequestCreate,
     LiftRequestResponse,
+    SendLiftRequest,
 )
 from app.models.ride import RideMatch
 from app.utils.matching import build_match, explain_no_match
@@ -67,6 +68,7 @@ def _to_response(doc: dict) -> LiftRequestResponse:
         matched_offer_id=accepted.get("offer_id"),
         matched_rider_name=accepted.get("rider_name"),
         matched_pickup_time=accepted.get("pickup_time"),
+        requested_offer_ids=[str(o) for o in doc.get("requested_offer_ids", [])],
     )
 
 
@@ -314,6 +316,111 @@ async def cancel_lift_request(
             detail="No active lift request found",
         )
     return _to_response(doc)
+
+
+# ---------------------------------------------------------------------------
+#  POST /api/lifts/requests/{request_id}/send
+# ---------------------------------------------------------------------------
+
+def _offer_object_id(value: str) -> ObjectId:
+    try:
+        return ObjectId(value)
+    except (InvalidId, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Rider not found",
+        )
+
+
+@router.post(
+    "/requests/{request_id}/send",
+    response_model=LiftRequestResponse,
+    summary="Send this lift request to one specific rider",
+)
+async def send_lift_request(
+    request_id: str,
+    payload: SendLiftRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Powers 'Send Lift Request' on the Rider & Route Details screen.
+
+    The rider is checked again against the request right now (seat, route,
+    time window, same-gender rule), so a rider who became unavailable since the
+    lift taker opened the page is refused instead of silently accepted. Sending
+    twice to the same rider is harmless. The rider accepts through the normal
+    incoming-requests flow, which turns the request into 'matched'.
+    """
+    if current_user.get("role") != "lift":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only lift takers can request a lift",
+        )
+
+    requests = get_lift_requests_collection()
+    doc = await requests.find_one(
+        {"_id": _object_id(request_id), "user_id": current_user["_id"]}
+    )
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lift request not found",
+        )
+
+    state = _to_response(doc).status
+    if state != "searching":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"This search is {state}, so it can't be sent to a rider",
+        )
+
+    offer_id = _offer_object_id(payload.offer_id)
+    unavailable = HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail="This rider is no longer available for your route",
+    )
+
+    offer = await get_ride_offers_collection().find_one(
+        {"_id": offer_id, "status": "active", "seats_available": {"$gte": 1}}
+    )
+    if not offer or offer.get("user_id") in set(doc.get("declined_by", [])):
+        raise unavailable
+    # A one-off ride only fits its own day; commutes repeat
+    if not (offer.get("repeat_daily") or offer.get("travel_date") == doc["travel_date"]):
+        raise unavailable
+
+    # One pillion seat per trip per day
+    booked = await requests.count_documents(
+        {
+            "status": "matched",
+            "travel_date": doc["travel_date"],
+            "accepted_offer_id": offer_id,
+        }
+    )
+    if booked >= offer["seats_available"]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This rider's pillion seat is already booked for that day",
+        )
+
+    await _fill_rider_genders([offer])
+    if not build_match(offer, doc, datetime.now()):
+        raise unavailable
+
+    updated = await requests.find_one_and_update(
+        {"_id": doc["_id"], "status": "searching"},
+        {
+            "$addToSet": {"requested_offer_ids": offer_id},
+            "$set": {"last_sent_at": datetime.now(timezone.utc)},
+        },
+        return_document=ReturnDocument.AFTER,
+    )
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This search is no longer active",
+        )
+    return _to_response(updated)
 
 
 # ---------------------------------------------------------------------------

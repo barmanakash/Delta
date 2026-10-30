@@ -70,6 +70,12 @@ class LiftRequestCreate(BaseModel):
         return self
 
 
+class SendLiftRequest(BaseModel):
+    """Which rider a lift taker is sending their request to."""
+
+    offer_id: str = Field(min_length=1, max_length=64)
+
+
 # ---------------------------------------------------------------------------
 #  Response Models
 # ---------------------------------------------------------------------------
@@ -99,6 +105,8 @@ class LiftRequestResponse(BaseModel):
     matched_offer_id: Optional[str] = None
     matched_rider_name: Optional[str] = None
     matched_pickup_time: Optional[str] = None
+    # Riders (their route ids) this lift taker has sent the request to
+    requested_offer_ids: list[str] = []
 
 
 class LiftMatchesResponse(BaseModel):

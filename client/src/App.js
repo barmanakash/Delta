@@ -13,6 +13,7 @@ import CreateCommute from './createcommute/createcommute';
 import LiftTakerHome from './lifttakerhome/lifttakerhome';
 import FindLift from './findlift/findlift';
 import CompatibleRiders from './compatibleriders/compatibleriders';
+import RiderDetails from './riderdetails/riderdetails';
 import LiftRequest from './liftrequest/liftrequest';
 import ViewRequest from './viewRequest/viewrequest';
 import ConfirmRequest from './confimrequest/confirmrequest'
@@ -49,6 +50,7 @@ function AnimatedRoutes() {
         <Route path="/lifttakerhome" element={<LiftTakerHome />} />
         <Route path="/findlift" element={<FindLift />} />
         <Route path="/compatibleriders/:requestId" element={<CompatibleRiders />} />
+        <Route path="/riderdetails/:requestId/:offerId" element={<RiderDetails />} />
         <Route path="/liftrequest" element={<LiftRequest />} />
         <Route path="/viewRequest/:requestId" element={<ViewRequest />} />
         <Route path="/confirmrequest/:requestId" element={<ConfirmRequest />} />

@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Dialog,
   IconButton,
   Menu,
   MenuItem,
@@ -154,7 +153,6 @@ export default function CompatibleRiders() {
   const [selectedId, setSelectedId] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [lowOpen, setLowOpen] = useState(false);
-  const [viewing, setViewing] = useState(null); // the rider shown in the details dialog
 
   const today = toISODate(new Date());
 
@@ -383,6 +381,10 @@ export default function CompatibleRiders() {
         : undefined,
     });
   };
+
+  // "View Rider" opens the full Rider & Route Details page for that rider
+  const viewRider = (match) =>
+    navigate(`/riderdetails/${encodeURIComponent(requestId)}/${encodeURIComponent(match.offer_id)}`);
 
   const previewRoute = (offerId) => {
     setSelectedId(offerId);
@@ -819,7 +821,7 @@ export default function CompatibleRiders() {
                       request={request}
                       active={selected?.offer_id === m.offer_id}
                       onPreview={() => previewRoute(m.offer_id)}
-                      onView={() => setViewing(m)}
+                      onView={() => viewRider(m)}
                     />
                   ))}
 
@@ -1090,55 +1092,6 @@ export default function CompatibleRiders() {
         ]}
         copyright="FriendRide Technologies India Pvt Ltd. All rights reserved."
       />
-
-      {/* ============================ RIDER DIALOG ======================= */}
-      <Dialog
-        open={Boolean(viewing)}
-        onClose={() => setViewing(null)}
-        slotProps={{ paper: { style: { borderRadius: 20, maxWidth: 460, width: "100%", margin: 16 } } }}
-      >
-        {viewing && (
-          <Box style={{ padding: "24px 24px 20px" }}>
-            <Box style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <RiderAvatar match={viewing} size={58} />
-              <Box style={{ minWidth: 0 }}>
-                <Typography style={{ fontSize: 19, fontWeight: 800 }}>{viewing.rider_name}</Typography>
-                <Typography style={{ fontSize: 12.5, fontWeight: 600, color: tealBright, display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
-                  <ShieldOutlinedIcon style={{ fontSize: 15 }} />
-                  {viewing.rider_verification}
-                </Typography>
-              </Box>
-            </Box>
-
-            <Box style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 2 }}>
-              <DetailRow label="Vehicle" value={`${viewing.vehicle_model} · ${viewing.vehicle_plate}`} />
-              <DetailRow label="Pickup" value={`${formatTime(viewing.pickup_time)} · ${viewing.pickup_point}`} />
-              <DetailRow label="Drop-off" value={`${formatTime(viewing.arrival_time)} · ${viewing.arrival_point}`} />
-              <DetailRow label="Est. ride time" value={`~${viewing.duration_min} mins · ${viewing.route_note}`} />
-              <DetailRow label="Route overlap" value={`${viewing.overlap_pct}%`} />
-              <DetailRow label="Safety" value={`${viewing.helmet_note} · ${viewing.walk_note}`} />
-              <DetailRow label="Fuel-split fare" value={`₹${viewing.fare}`} />
-            </Box>
-
-            <Typography style={{ fontSize: 12.5, color: muted, lineHeight: 1.5, marginTop: 16 }}>
-              Sending a ride request to a rider isn't available yet. Check back soon.
-            </Typography>
-
-            <Box style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 18 }}>
-              <Button onClick={() => setViewing(null)} style={{ textTransform: "none", fontWeight: 700, color: muted }}>
-                Close
-              </Button>
-              <Button
-                disabled
-                disableElevation
-                style={{ textTransform: "none", fontWeight: 800, borderRadius: 10, padding: "8px 20px", background: "#dfe4ff", color: "#6c7579" }}
-              >
-                Request Lift
-              </Button>
-            </Box>
-          </Box>
-        )}
-      </Dialog>
     </Box>
   );
 }
@@ -1533,15 +1486,6 @@ function SafetyTile({ icon, title, text }) {
       <Box style={{ color: tealBright, display: "flex", justifyContent: "center" }}>{icon}</Box>
       <Typography style={{ fontSize: 12.5, fontWeight: 800, marginTop: 6 }}>{title}</Typography>
       <Typography style={{ fontSize: 12, color: muted, lineHeight: 1.35, marginTop: 2 }}>{text}</Typography>
-    </Box>
-  );
-}
-
-function DetailRow({ label, value }) {
-  return (
-    <Box style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "9px 0", borderBottom: "1px solid #eef0f8", fontSize: 13.5 }}>
-      <span style={{ color: muted, flexShrink: 0 }}>{label}</span>
-      <span style={{ fontWeight: 700, textAlign: "right", wordBreak: "break-word" }}>{value}</span>
     </Box>
   );
 }
