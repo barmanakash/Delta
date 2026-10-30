@@ -90,7 +90,7 @@ class RideOfferCreate(BaseModel):
 class RideOfferResponse(BaseModel):
     id: str
     stops: list[RideStop]
-    depart_time: str
+    depart_time: Optional[str] = None  # None = on-demand commute (no fixed time)
     travel_date: Optional[str] = None
     repeat_daily: bool
     seats_available: int
@@ -106,14 +106,12 @@ class RideOfferResponse(BaseModel):
 #  Commutes (the rider's "Create Your Commute" form)
 # ---------------------------------------------------------------------------
 
-DAY_CODES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
-
-
 class CommuteCreate(BaseModel):
     """
-    A rider's repeating commute: pickup -> destination (with an optional stop
-    on the way), leaving at `outbound_time` on the chosen weekdays, and
-    optionally coming back at `return_time`.
+    A rider's commute: pickup -> destination (with an optional stop on the
+    way), and optionally the same trip the other way. There are no fixed
+    times: like Uber or Ola, the rider is available whenever a lift taker's
+    trip fits the route, until the rider changes the commute.
 
     It is stored as ride offers (one per direction), so lift takers searching
     on a matching route find it.
@@ -136,10 +134,8 @@ class CommuteCreate(BaseModel):
     # Minutes from pickup to the optional stop (defaults to halfway)
     stop_offset_min: Optional[int] = Field(default=None, ge=1, le=299)
 
-    outbound_time: str  # 24h "HH:MM"
+    # Also offer lifts on the way back (the same stops in reverse)
     return_enabled: bool = True
-    return_time: Optional[str] = None
-    days: list[str] = Field(min_length=1)
 
     seats: int = Field(default=1, ge=1, le=1)  # standard pillion: one seat
     vehicle_type: Literal["bike", "scooter"] = "bike"
@@ -166,25 +162,6 @@ class CommuteCreate(BaseModel):
             raise ValueError("The stop must be 2 to 100 characters")
         return v
 
-    @field_validator("outbound_time", "return_time")
-    @classmethod
-    def validate_time(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return None
-        v = v.strip()
-        if not _TIME_RE.match(v):
-            raise ValueError("Times must be in 24-hour HH:MM format")
-        return v
-
-    @field_validator("days")
-    @classmethod
-    def validate_days(cls, v: list[str]) -> list[str]:
-        cleaned = {d.strip().lower() for d in v}
-        unknown = cleaned - set(DAY_CODES)
-        if unknown:
-            raise ValueError("Days must be mon, tue, wed, thu, fri, sat or sun")
-        return [d for d in DAY_CODES if d in cleaned]  # week order, no duplicates
-
     @field_validator("vehicle_model", "vehicle_plate")
     @classmethod
     def validate_vehicle(cls, v: str) -> str:
@@ -206,14 +183,6 @@ class CommuteCreate(BaseModel):
             raise ValueError("The stop must be reached before the destination")
 
         self.vehicle_plate = self.vehicle_plate.upper()
-
-        if self.return_enabled:
-            if not self.return_time:
-                raise ValueError("Choose a return time or turn the return trip off")
-            if self.return_time <= self.outbound_time:
-                raise ValueError("The return trip must be later than the outbound trip")
-        else:
-            self.return_time = None
         return self
 
 

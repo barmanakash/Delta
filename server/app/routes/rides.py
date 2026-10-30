@@ -171,17 +171,18 @@ def _rider_snapshot(user: dict) -> dict:
     "/commutes",
     response_model=CommuteResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Publish a repeating commute (outbound and optional return trip)",
+    summary="Publish a commute (outbound and optional return trip)",
 )
 async def create_commute(
     payload: CommuteCreate,
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Saves the commute as ride offers that repeat on the chosen weekdays: one
-    for the outbound trip and, when the return trip is on, one for the way
-    back along the same stops in reverse. A rider has one active commute at a
-    time, so publishing a new one replaces the previous one.
+    Saves the commute as ride offers: one for the outbound trip and, when the
+    return trip is on, one for the way back along the same stops in reverse.
+    Like other ride apps, a commute is available every day until the rider
+    changes it. A rider has one active commute at a time, so publishing a new
+    one replaces the previous one.
     """
     if current_user.get("role") != "rider":
         raise HTTPException(
@@ -236,8 +237,7 @@ async def create_commute(
         "user_id": current_user["_id"],
         **_rider_snapshot(current_user),
         "travel_date": None,
-        "repeat_daily": True,  # repeats ...
-        "repeat_days": payload.days,  # ... but only on these weekdays
+        "repeat_daily": True,  # available every day, until the rider replaces it
         "seats_available": payload.seats,
         "vehicle_type": payload.vehicle_type,
         "vehicle_model": payload.vehicle_model,

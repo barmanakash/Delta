@@ -6,7 +6,9 @@ each one. A rider is compatible when
 
   * the lift taker's pickup is on (or very near) the rider's route,
   * the lift taker's drop is LATER along that route (same direction of travel),
-  * the rider reaches the pickup inside the requested time window,
+  * the rider reaches the pickup inside the requested time window (riders who
+    made a commute on the Create Route screen have no fixed times: they are
+    available on demand, like Uber / Ola, so this check is skipped for them),
   * the rider still has a seat, and the same-gender rule (if on) is met.
 
 Two ways of deciding "on the route" are used, in this order:
@@ -45,12 +47,15 @@ MIN_PLACE_SIMILARITY = 0.5
 # straight lines between their stops, so a little slack is needed for bends.
 GEO_MAX_KM = 1.5
 
+# SIMPLE RADIUS MATCH (tried first). If the lift taker's pickup is within this many
+# km of one of the rider's stops, and the lift taker's destination is within this
+# many km of a LATER stop of the rider, the two match right away. Same place =
+# distance 0 = instant match. Change this one number to widen / narrow the radius.
+RADIUS_KM = 2.0
+
 # The drop must be at least this far past the pickup, measured in stop-to-stop
 # segments (stops: 0, 1, 2 ...), so a pickup and drop on the same spot don't match.
 MIN_PROGRESS = 0.05
-
-# date.weekday() -> the day codes riders pick on the Create Commute screen
-_WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 
 # Score penalties (rupees-free "points" out of 100)
 MAX_PICKUP_PENALTY = 14
@@ -234,6 +239,86 @@ def _fit_by_location(stops: list[dict], request: dict) -> tuple[Optional[dict], 
 
 
 # ---------------------------------------------------------------------------
+#  Matching by radius (the simple, fast rule - tried first)
+# ---------------------------------------------------------------------------
+
+def _distance_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """Straight-line distance between two map points (haversine), in km."""
+    r = 6371.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp = p2 - p1
+    dl = math.radians(lng2 - lng1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * r * math.asin(math.sqrt(a))
+
+
+def _nearest_stop_within(
+    stops: list[dict], lat: float, lng: float, start: int, end: int
+) -> Optional[tuple[int, float]]:
+    """(index, km) of the located stop in stops[start:end] closest to the point,
+    but only if it is inside RADIUS_KM."""
+    best: Optional[tuple[int, float]] = None
+    for i in range(start, end):
+        if not _is_located(stops[i]):
+            continue
+        d = _distance_km(lat, lng, stops[i]["lat"], stops[i]["lng"])
+        if d <= RADIUS_KM and (best is None or d < best[1]):
+            best = (i, d)
+    return best
+
+
+def _fit_by_radius(stops: list[dict], request: dict) -> Optional[dict]:
+    """
+    Pickup near one rider stop, destination near a later rider stop. No word
+    matching and no route geometry: just 'is it within the radius?'.
+    Returns None when the request or stops have no map points, or nothing is
+    in range (the name / route matching below then gets its turn).
+    """
+    needed = (
+        request.get("pickup_lat"),
+        request.get("pickup_lng"),
+        request.get("destination_lat"),
+        request.get("destination_lng"),
+    )
+    if any(v is None for v in needed):
+        return None
+
+    pickup = _nearest_stop_within(
+        stops, request["pickup_lat"], request["pickup_lng"], 0, len(stops) - 1
+    )
+    if not pickup:
+        return None
+    drop = _nearest_stop_within(
+        stops,
+        request["destination_lat"],
+        request["destination_lng"],
+        pickup[0] + 1,
+        len(stops),
+    )
+    if not drop:
+        return None
+
+    (pick_idx, pick_km), (drop_idx, drop_km) = pickup, drop
+
+    # Closer = better; right at the edge of the radius still scores 0.5
+    def closeness(km: float) -> float:
+        return 1 - 0.5 * min(1.0, km / RADIUS_KM)
+
+    worst = max(pick_km, drop_km)
+    return {
+        "pick_idx": pick_idx,
+        "drop_idx": drop_idx,
+        "pick_sim": closeness(pick_km),
+        "drop_sim": closeness(drop_km),
+        "pick_off": stops[pick_idx]["offset_min"],
+        "drop_off": stops[drop_idx]["offset_min"],
+        "pickup_point": stops[pick_idx]["name"],
+        "arrival_point": stops[drop_idx]["name"],
+        "walk_note": f"~{round(worst * 1000)} m from route" if worst > 0.2 else None,
+    }
+
+
+# ---------------------------------------------------------------------------
 #  Putting it together
 # ---------------------------------------------------------------------------
 
@@ -249,17 +334,6 @@ def _evaluate(
     if len(stops) < 2 or offer.get("seats_available", 0) < 1:
         return None, "this rider has no free pillion seat"
 
-    # Commutes repeat only on the weekdays the rider picked (offers without
-    # repeat_days, such as the demo riders, repeat every day)
-    days = offer.get("repeat_days")
-    if offer.get("repeat_daily") and days:
-        weekday = _WEEKDAYS[datetime.strptime(request["travel_date"], "%Y-%m-%d").weekday()]
-        if weekday not in days:
-            return None, (
-                f"this rider doesn't ride on {weekday.capitalize()} "
-                f"(rides {', '.join(d.capitalize() for d in days)})"
-            )
-
     # Same-gender rule
     if request.get("same_gender_only"):
         wanted = request.get("requester_gender")
@@ -270,34 +344,44 @@ def _evaluate(
         if offer.get("rider_gender") != wanted:
             return None, "same-gender filter is on and this rider's gender is different"
 
-    # Direction of travel: pickup first, drop later. Names first, then map points.
-    fit = _fit_by_name(stops, request)
+    # Direction of travel: pickup first, drop later.
+    # 1) radius (simple + instant)  2) place names  3) along-the-route geometry
+    fit = _fit_by_radius(stops, request) or _fit_by_name(stops, request)
     if not fit:
         fit, reason = _fit_by_location(stops, request)
         if not fit:
             return None, reason
 
-    # When the rider reaches the pickup must fall inside the search window
-    pickup_min = to_minutes(offer["depart_time"]) + round(fit["pick_off"])
-    window_start = to_minutes(request.get("search_window_start") or request["window_start"])
-    window_end = to_minutes(request.get("search_window_end") or request["window_end"])
-    if not window_start <= pickup_min <= window_end:
-        return None, (
-            f"this rider reaches your pickup at {from_minutes(pickup_min)}, outside your time "
-            f"window {from_minutes(window_start)}–{from_minutes(window_end)}"
-        )
+    requested_min = to_minutes(request["window_start"])
 
-    # A rider who has already passed the pickup stop today is no use
-    if request["travel_date"] == date.today().isoformat():
-        if pickup_min < now.hour * 60 + now.minute:
-            return None, f"this rider already passed your pickup today (at {from_minutes(pickup_min)})"
+    if offer.get("commute_id") or not offer.get("depart_time"):
+        # On-demand rider: a commute made on the Create Route screen has no fixed
+        # times (like Uber / Ola). They are available whenever the lift taker wants
+        # to go, so there is no time to compare and the pickup is at the time the
+        # lift taker asked for.
+        pickup_min = requested_min
+    else:
+        # A rider with a fixed departure (e.g. the demo riders): when they reach
+        # the pickup must fall inside the search window
+        pickup_min = to_minutes(offer["depart_time"]) + round(fit["pick_off"])
+        window_start = to_minutes(request.get("search_window_start") or request["window_start"])
+        window_end = to_minutes(request.get("search_window_end") or request["window_end"])
+        if not window_start <= pickup_min <= window_end:
+            return None, (
+                f"this rider reaches your pickup at {from_minutes(pickup_min)}, outside your time "
+                f"window {from_minutes(window_start)}–{from_minutes(window_end)}"
+            )
+
+        # A rider who has already passed the pickup stop today is no use
+        if request["travel_date"] == date.today().isoformat():
+            if pickup_min < now.hour * 60 + now.minute:
+                return None, f"this rider already passed your pickup today (at {from_minutes(pickup_min)})"
 
     duration = max(1, round(fit["drop_off"] - fit["pick_off"]))
     arrival_min = pickup_min + duration
 
     # How closely the rider's route follows the lift taker's: close places
     # and a pickup right at the requested time score highest.
-    requested_min = to_minutes(request["window_start"])
     time_penalty = min(MAX_TIME_PENALTY, abs(pickup_min - requested_min) / 3)
     overlap = round(
         100

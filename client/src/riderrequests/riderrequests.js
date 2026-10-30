@@ -11,6 +11,9 @@ import { useNavigate } from "react-router-dom";
 
 export const API_BASE_URL = "http://localhost:8000";
 
+// How often the rider's request list refreshes by itself (milliseconds)
+const INCOMING_POLL_MS = 5000;
+
 /* ------------------------------------------------------------------ */
 /*  Requests                                                           */
 /* ------------------------------------------------------------------ */
@@ -133,42 +136,69 @@ export function useIncomingRequests() {
     earnings: 0,
   });
 
-  const load = useCallback(async () => {
-    if (!localStorage.getItem("access_token")) {
-      navigate("/signin");
-      return;
-    }
-    try {
-      const { ok, status, data } = await apiRequest("/api/rides/requests/incoming");
-      if (guard(status)) return;
-      if (!ok) {
-        setState((s) => ({
-          ...s,
-          loading: false,
-          error: errorText(data, "Couldn't load your lift requests."),
-        }));
+  // `silent` = a background refresh: no error banner if it fails, the list on
+  // screen just stays as it was
+  const fetchRequests = useCallback(
+    async (silent) => {
+      if (!localStorage.getItem("access_token")) {
+        navigate("/signin");
         return;
       }
-      setState({
-        loading: false,
-        error: "",
-        requests: data.requests,
-        pendingCount: data.pending_count,
-        acceptedCount: data.accepted_count,
-        earnings: data.earnings,
-      });
-    } catch {
-      setState((s) => ({
-        ...s,
-        loading: false,
-        error: "Unable to connect to server. Please make sure the backend is running.",
-      }));
-    }
-  }, [navigate, guard]);
+      try {
+        const { ok, status, data } = await apiRequest("/api/rides/requests/incoming");
+        if (guard(status)) return;
+        if (!ok) {
+          if (!silent) {
+            setState((s) => ({
+              ...s,
+              loading: false,
+              error: errorText(data, "Couldn't load your lift requests."),
+            }));
+          }
+          return;
+        }
+        setState({
+          loading: false,
+          error: "",
+          requests: data.requests,
+          pendingCount: data.pending_count,
+          acceptedCount: data.accepted_count,
+          earnings: data.earnings,
+        });
+      } catch {
+        if (!silent) {
+          setState((s) => ({
+            ...s,
+            loading: false,
+            error: "Unable to connect to server. Please make sure the backend is running.",
+          }));
+        }
+      }
+    },
+    [navigate, guard]
+  );
+
+  // Same name and no-argument shape as before, so existing screens keep working
+  const load = useCallback(() => fetchRequests(false), [fetchRequests]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    fetchRequests(false);
+
+    // New lift requests show up on their own: refresh every few seconds while the
+    // tab is open, and straight away when the rider comes back to the tab
+    const timer = setInterval(() => {
+      if (!document.hidden) fetchRequests(true);
+    }, INCOMING_POLL_MS);
+    const onVisible = () => {
+      if (!document.hidden) fetchRequests(true);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [fetchRequests]);
 
   return { ...state, reload: load };
 }

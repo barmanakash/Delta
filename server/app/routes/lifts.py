@@ -373,18 +373,31 @@ async def get_request_matches(
                 no_match_reasons,
                 "no rider has published an active route for this date yet",
             )
+
+        # How many lift takers are already accepted on each ride that day, in ONE
+        # query (it used to be one query per rider, which made every refresh slow)
+        booked_by_offer: dict = {}
+        if offers:
+            booked_rows = await requests_col.aggregate(
+                [
+                    {
+                        "$match": {
+                            "status": "matched",
+                            "travel_date": doc["travel_date"],
+                            "accepted_offer_id": {"$in": [o["_id"] for o in offers]},
+                        }
+                    },
+                    {"$group": {"_id": "$accepted_offer_id", "n": {"$sum": 1}}},
+                ]
+            ).to_list(length=None)
+            booked_by_offer = {row["_id"]: row["n"] for row in booked_rows}
+
         for offer in offers:
             if offer.get("user_id") in declined:
                 continue
             # One pillion seat per trip per day: skip a ride another lift taker
             # has already been accepted on for this date
-            booked = await requests_col.count_documents(
-                {
-                    "status": "matched",
-                    "accepted_offer_id": offer["_id"],
-                    "travel_date": doc["travel_date"],
-                }
-            )
+            booked = booked_by_offer.get(offer["_id"], 0)
             if booked >= offer["seats_available"]:
                 _note_reason(
                     no_match_reasons,

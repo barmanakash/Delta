@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -61,25 +61,15 @@ const cardStyle = {
   boxShadow: "0 4px 20px rgba(30,35,90,0.06)",
 };
 
-const DAYS = [
-  ["mon", "Mon"],
-  ["tue", "Tue"],
-  ["wed", "Wed"],
-  ["thu", "Thu"],
-  ["fri", "Fri"],
-  ["sat", "Sat"],
-  ["sun", "Sun"],
-];
-const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri"];
-const ALL_DAYS = DAYS.map(([code]) => code);
-
 // Fuel-split a lift taker pays: rupees per minute of ride. Keep in step with
 // the default rate_per_min on the server (RideOfferCreate).
 const RATE_PER_MIN = 1.65;
 const MIN_FARE = 10;
 
-// Average CO2 offset per pooled journey, and working weeks in a month
+// Average CO2 offset per pooled journey, and a typical month of commuting
+// (used only for the "~kg/mo" estimate on this screen)
 const KG_CO2_PER_JOURNEY = 1.8;
+const COMMUTE_DAYS_PER_WEEK = 5;
 const WEEKS_PER_MONTH = 4.2;
 
 // The app serves one city at a time. Place searches are biased to it so
@@ -118,8 +108,6 @@ const formatTime = (t) => {
 };
 
 const estimateFare = (minutes) => Math.max(MIN_FARE, Math.round(minutes * RATE_PER_MIN));
-
-const sameDays = (a, b) => a.length === b.length && a.every((d) => b.includes(d));
 
 const errorMessage = (data, fallback) => {
   if (!data) return fallback;
@@ -328,7 +316,6 @@ export default function CreateCommute() {
   const [outboundTime, setOutboundTime] = useState("09:15");
   const [returnOn, setReturnOn] = useState(true);
   const [returnTime, setReturnTime] = useState("18:30");
-  const [days, setDays] = useState(WEEKDAYS);
 
   // Step 2: vehicle
   const [vehicleType, setVehicleType] = useState("bike");
@@ -415,7 +402,6 @@ export default function CreateCommute() {
         setOutboundTime(active.outbound_time);
         setReturnOn(active.return_enabled);
         if (active.return_time) setReturnTime(active.return_time);
-        setDays(active.days);
         setVehicleType(active.vehicle_type);
         setVehicleModel(active.vehicle_model);
         setVehiclePlate(active.vehicle_plate);
@@ -493,11 +479,7 @@ export default function CreateCommute() {
   /* ---- derived values ---------------------------------------------- */
   const routeReady = route.status === "ready";
   const durationMin = routeReady ? route.durationMin : parseInt(manualMinutes, 10) || 0;
-  const co2PerMonth = Math.round(KG_CO2_PER_JOURNEY * days.length * WEEKS_PER_MONTH);
-  const dayLabels = useMemo(
-    () => DAYS.filter(([code]) => days.includes(code)).map(([, label]) => label),
-    [days]
-  );
+  const co2PerMonth = Math.round(KG_CO2_PER_JOURNEY * COMMUTE_DAYS_PER_WEEK * WEEKS_PER_MONTH);
 
   /* ---- handlers ----------------------------------------------------- */
   const swapPlaces = () => {
@@ -580,11 +562,6 @@ export default function CreateCommute() {
     );
   };
 
-  const toggleDay = (code) =>
-    setDays((current) =>
-      current.includes(code) ? current.filter((d) => d !== code) : [...current, code]
-    );
-
   const removeStop = () => {
     setStop("");
     setStopPoint(null);
@@ -609,7 +586,6 @@ export default function CreateCommute() {
       if (toMinutes(returnTime) <= toMinutes(outboundTime))
         return fail("Your evening return must be later than your morning outbound.");
     }
-    if (!days.length) return fail("Pick at least one day to repeat on.");
 
     setFormError("");
     setStep(2);
@@ -647,7 +623,6 @@ export default function CreateCommute() {
           outbound_time: outboundTime,
           return_enabled: returnOn,
           return_time: returnOn ? returnTime : null,
-          days,
           seats: 1,
           vehicle_type: vehicleType,
           vehicle_model: vehicleModel.trim(),
@@ -900,7 +875,7 @@ export default function CreateCommute() {
                     stop, changeStop, pickStop, locateMe, locating,
                     showStop, setShowStop, removeStop, swapPlaces,
                     outboundTime, setOutboundTime, returnOn, setReturnOn,
-                    returnTime, setReturnTime, days, setDays, toggleDay,
+                    returnTime, setReturnTime,
                     formError, goToReview,
                   }}
                 />
@@ -910,7 +885,7 @@ export default function CreateCommute() {
                 <StepTwo
                   {...{
                     pickup, destination, stop: showStop ? stop.trim() : "",
-                    outboundTime, returnOn, returnTime, dayLabels,
+                    outboundTime, returnOn, returnTime,
                     route, routeReady, durationMin,
                     manualMinutes, setManualMinutes,
                     vehicleType, setVehicleType, vehicleModel, setVehicleModel,
@@ -928,7 +903,6 @@ export default function CreateCommute() {
                 <Done
                   pickup={pickup.trim()}
                   destination={destination.trim()}
-                  dayLabels={dayLabels}
                   onDashboard={() => navigate("/home")}
                   onEdit={() => setStep(1)}
                 />
@@ -1140,12 +1114,9 @@ function StepOne({
   stop, changeStop, pickStop, locateMe, locating,
   showStop, setShowStop, removeStop, swapPlaces,
   outboundTime, setOutboundTime, returnOn, setReturnOn,
-  returnTime, setReturnTime, days, setDays, toggleDay,
+  returnTime, setReturnTime,
   formError, goToReview,
 }) {
-  const weekdaysActive = sameDays(days, WEEKDAYS);
-  const allActive = sameDays(days, ALL_DAYS);
-
   return (
     <>
       <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
@@ -1315,66 +1286,6 @@ function StepOne({
           />
         </Box>
 
-        <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 20 }}>
-          <Typography style={{ fontSize: 13.5, fontWeight: 600 }}>Repeat on days</Typography>
-          <Box style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, fontWeight: 600 }}>
-            <Box
-              className="cc-btn"
-              role="button"
-              tabIndex={0}
-              onClick={() => setDays(WEEKDAYS)}
-              onKeyDown={activateOnKey(() => setDays(WEEKDAYS))}
-              style={{ cursor: "pointer", color: weekdaysActive ? teal : muted, fontWeight: weekdaysActive ? 800 : 600 }}
-            >
-              Weekdays (Mon-Fri)
-            </Box>
-            <span style={{ color: "#c3c8da" }} aria-hidden="true">•</span>
-            <Box
-              className="cc-btn"
-              role="button"
-              tabIndex={0}
-              onClick={() => setDays(ALL_DAYS)}
-              onKeyDown={activateOnKey(() => setDays(ALL_DAYS))}
-              style={{ cursor: "pointer", color: allActive ? teal : muted, fontWeight: allActive ? 800 : 600 }}
-            >
-              All Days
-            </Box>
-          </Box>
-        </Box>
-
-        <Box style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          {DAYS.map(([code, label]) => {
-            const on = days.includes(code);
-            return (
-              <Box
-                key={code}
-                className="cc-btn"
-                role="button"
-                tabIndex={0}
-                aria-pressed={on}
-                onClick={() => toggleDay(code)}
-                onKeyDown={activateOnKey(() => toggleDay(code))}
-                style={{
-                  flex: 1,
-                  height: 34,
-                  borderRadius: 8,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  userSelect: "none",
-                  background: on ? teal : "#e6e8f7",
-                  color: on ? "#fff" : "#4b5468",
-                }}
-              >
-                {label}
-              </Box>
-            );
-          })}
-        </Box>
-
         <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 22 }}>
           <Typography style={{ fontSize: 13.5, fontWeight: 600 }}>Available passenger seats</Typography>
           <Typography style={{ fontSize: 12.5, color: muted }}>Two-wheeler pillion</Typography>
@@ -1481,7 +1392,7 @@ function StepOne({
 /* ------------------------------------------------------------------ */
 
 function StepTwo({
-  pickup, destination, stop, outboundTime, returnOn, returnTime, dayLabels,
+  pickup, destination, stop, outboundTime, returnOn, returnTime,
   route, routeReady, durationMin, manualMinutes, setManualMinutes,
   vehicleType, setVehicleType, vehicleModel, setVehicleModel,
   vehiclePlate, setVehiclePlate,
@@ -1520,7 +1431,6 @@ function StepTwo({
         </SummaryRow>
         <SummaryRow label="Morning outbound">{formatTime(outboundTime)}</SummaryRow>
         <SummaryRow label="Evening return">{returnOn ? formatTime(returnTime) : "Not offered"}</SummaryRow>
-        <SummaryRow label="Repeats on">{dayLabels.join(", ")}</SummaryRow>
         <SummaryRow label="Seats" last>
           1 commuter (standard pillion)
         </SummaryRow>
@@ -1652,7 +1562,7 @@ function StepTwo({
 /*  Done                                                               */
 /* ------------------------------------------------------------------ */
 
-function Done({ pickup, destination, dayLabels, onDashboard, onEdit }) {
+function Done({ pickup, destination, onDashboard, onEdit }) {
   return (
     <Box style={{ textAlign: "center", padding: "20px 4px 8px" }} role="status">
       <CheckCircleIcon style={{ fontSize: 60, color: tealBright }} />
@@ -1661,8 +1571,7 @@ function Done({ pickup, destination, dayLabels, onDashboard, onEdit }) {
       </Typography>
       <Typography style={{ fontSize: 14.5, color: muted, lineHeight: 1.6, marginTop: 10 }}>
         Lift takers travelling from <strong>{pickup}</strong> to{" "}
-        <strong>{destination}</strong> on {dayLabels.join(", ")} can now find
-        you.
+        <strong>{destination}</strong> can now find you.
       </Typography>
       <Button
         fullWidth

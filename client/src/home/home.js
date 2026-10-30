@@ -54,16 +54,6 @@ const lightBg = "#f8f8ff";
 const lavender = "#f0f1fc";
 const API_BASE_URL = "http://localhost:8000";
 
-const DAY_LABELS = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
-const WEEKDAY_CODES = ["mon", "tue", "wed", "thu", "fri"];
-
-// ["mon","tue","wed","thu","fri"] -> "Mon–Fri"
-function describeDays(days = []) {
-  if (days.length === 7) return "Every day";
-  if (days.length === 5 && WEEKDAY_CODES.every((d) => days.includes(d))) return "Mon–Fri";
-  return days.map((d) => DAY_LABELS[d] || d).join(", ");
-}
-
 // "18:30" -> "6:30 PM"
 function formatClock(t) {
   const [h, m] = t.split(":").map(Number);
@@ -87,9 +77,6 @@ export default function App() {
   const [busyId, setBusyId] = useState(null);
   const [routeOpen, setRouteOpen] = useState(false); // the "View Route" map dialog
   const [toast, setToast] = useState({ open: false, message: "", severity: "info" });
-
-  const todayCode = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
-  const runsToday = Boolean(commute && commute.days.includes(todayCode));
 
   const handleDecline = async (requestId) => {
     if (busyId) return;
@@ -926,17 +913,6 @@ export default function App() {
                           }`}
                       </Typography>
                     </Box>
-
-                    <Chip
-                      label={describeDays(commute.days)}
-                      style={{
-                        height: 20,
-                        background: "#dddfff",
-                        color: "#5b4ee4",
-                        fontSize: 12,
-                        fontWeight: 700,
-                      }}
-                    />
                   </Box>
 
                   <Box
@@ -1218,8 +1194,7 @@ export default function App() {
                     }}
                   >
                     {commute
-                      ? `Morning Departure: ${formatClock(commute.outbound_time)} (${runsToday ? "Today" : describeDays(commute.days)
-                      }) •`
+                      ? `Morning Departure: ${formatClock(commute.outbound_time)} (Today)`
                       : "No commute scheduled yet"}
                   </Typography>
 
@@ -1768,7 +1743,6 @@ export default function App() {
                     ? formatClock(commute.return_time)
                     : "No return",
                 ],
-                ["Runs", describeDays(commute.days)],
                 ["Vehicle", `${commute.vehicle_model} · ${commute.vehicle_plate}`],
               ].map(([label, value]) => (
                 <Box key={label} style={{ background: "#f4f5fd", borderRadius: 12, padding: "12px 14px", minWidth: 0 }}>

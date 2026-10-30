@@ -44,7 +44,7 @@ import { LT, LiftTakerHeader, LiftTakerFooter } from "../lifttakerlayout/lifttak
 /* ------------------------------------------------------------------ */
 
 const API_BASE_URL = "http://localhost:8000";
-const POLL_MS = 30000;
+const POLL_MS = 5000;
 
 const { teal, tealBright, indigo, dark, muted, pageBg } = LT;
 
@@ -253,7 +253,15 @@ export default function CompatibleRiders() {
     const id = setInterval(() => {
       if (!document.hidden) load(true);
     }, POLL_MS);
-    return () => clearInterval(id);
+    // refresh straight away when the lift taker comes back to this tab
+    const onVisible = () => {
+      if (!document.hidden) load(true);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [searching, load]);
 
   /* ---- filter options (depend on the searched time window) --------- */
