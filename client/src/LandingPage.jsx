@@ -215,10 +215,20 @@ const Row = ({ justify, align = "center", spacing, wrap, sx, children }) => (
   </Stack>
 );
 
-const FeatureCard = ({ iconBg, icon, title, desc }) => (
+// Cards reveal themselves on scroll (RevealItem) and share one hover style:
+// an accent bar grows across the top, the border tints, the icon tilts.
+const FeatureCard = (props) => (
+  <RevealItem>
+    <FeatureCardBody {...props} />
+  </RevealItem>
+);
+
+const FeatureCardBody = ({ iconBg, icon, title, desc, accent = "#0E9F76" }) => (
   <Box
     className="hover-lift"
     sx={{
+      position: "relative",
+      overflow: "hidden",
       flex: 1,
       bgcolor: "#fff",
       borderRadius: "16px",
@@ -227,10 +237,28 @@ const FeatureCard = ({ iconBg, icon, title, desc }) => (
       display: "flex",
       flexDirection: "column",
       gap: "12px",
+      transition: CARD_TRANSITION,
+      "&::before": {
+        content: '""',
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 3,
+        background: accent,
+        transform: "scaleX(0)",
+        transformOrigin: "left",
+        transition: `transform 480ms ${EASE}`,
+      },
+      "&:hover": { borderColor: accent },
+      "&:hover::before": { transform: "scaleX(1)" },
+      "&:hover .fr-icon": { transform: "scale(1.12) rotate(-8deg)" },
     }}
   >
     <Box
+      className="fr-icon"
       sx={{
+        transition: `transform 300ms ${EASE}`,
         width: 42,
         height: 42,
         borderRadius: "12px",
@@ -282,6 +310,7 @@ const Navbar = () => (
       zIndex: 20,
     }}
   >
+    <ScrollProgress />
     <Row
       justify="space-between"
       sx={{
@@ -433,7 +462,7 @@ const growBar = keyframes`from { transform: scaleX(0); } to { transform: scaleX(
 /* ---- small live pieces (own state, so the hero itself never re-renders) ---- */
 
 // Eased count-up, e.g. <Count to={25000} />
-const Count = ({ to, decimals = 0, duration = 1600, delay = 0 }) => {
+const Count = ({ to, decimals = 0, duration = 1600, delay = 0, start = true }) => {
   const [value, setValue] = useState(() => (prefersReducedMotion() ? to : 0));
 
   useEffect(() => {
@@ -441,12 +470,13 @@ const Count = ({ to, decimals = 0, duration = 1600, delay = 0 }) => {
       setValue(to);
       return undefined;
     }
+    if (!start) return undefined; // waits until it scrolls into view
     let raf;
-    let start;
+    let startTime;
     const timer = setTimeout(() => {
       const tick = (now) => {
-        if (start === undefined) start = now;
-        const p = Math.min((now - start) / duration, 1);
+        if (startTime === undefined) startTime = now;
+        const p = Math.min((now - startTime) / duration, 1);
         setValue(to * (1 - Math.pow(1 - p, 3)));
         if (p < 1) raf = requestAnimationFrame(tick);
       };
@@ -456,7 +486,7 @@ const Count = ({ to, decimals = 0, duration = 1600, delay = 0 }) => {
       clearTimeout(timer);
       cancelAnimationFrame(raf);
     };
-  }, [to, duration, delay]);
+  }, [to, duration, delay, start]);
 
   return decimals ? value.toFixed(decimals) : Math.round(value).toLocaleString("en-IN");
 };
@@ -1193,24 +1223,273 @@ const Hero = () => {
 };
 
 /* ---------------------------------------------------------------------- */
+/*  Scroll animation helpers (used by every section below the hero)       */
+/* ---------------------------------------------------------------------- */
+
+const gradientShift = keyframes`
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+const spinSlow = keyframes`to { transform: rotate(360deg); }`;
+const travelDot = keyframes`
+  0%   { top: 0; opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { top: calc(100% - 8px); opacity: 0; }
+`;
+const sosPulse = keyframes`
+  0%   { box-shadow: 0 0 0 0 rgba(225, 83, 102, 0.45); transform: scale(1); }
+  60%  { box-shadow: 0 0 0 10px rgba(225, 83, 102, 0); transform: scale(1.12); }
+  100% { box-shadow: 0 0 0 0 rgba(225, 83, 102, 0); transform: scale(1); }
+`;
+const flowDash = keyframes`to { stroke-dashoffset: -64; }`;
+
+// keeps the card lift from index.css working while we also animate border colour
+const CARD_TRANSITION =
+  "border-color 260ms ease, transform var(--motion-base) var(--motion-ease), filter var(--motion-base) var(--motion-ease)";
+
+// put on a row of cards: the 2nd and 3rd card reveal a beat after the 1st
+const staggerRow = {
+  "& > *:nth-of-type(2)": { "--stagger": "130ms" },
+  "& > *:nth-of-type(3)": { "--stagger": "260ms" },
+};
+
+// true once the element has scrolled into view (and stays true)
+function useInView(threshold = 0.15) {
+  const ref = useRef(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || prefersReducedMotion() || !("IntersectionObserver" in window)) {
+      setShown(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShown(true);
+          observer.disconnect();
+        }
+      },
+      { threshold, rootMargin: "0px 0px -6% 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  return [ref, shown];
+}
+
+// Wraps one card: rises + fades in when scrolled to. Delay comes from staggerRow.
+const RevealItem = ({ children }) => {
+  const [ref, shown] = useInView(0.12);
+  return (
+    <Box
+      ref={ref}
+      sx={{
+        display: "flex",
+        flex: 1,
+        minWidth: 0,
+        opacity: shown ? 1 : 0,
+        transform: shown ? "none" : "translateY(34px) scale(0.97)",
+        transition: `opacity 700ms ease, transform 800ms ${EASE}`,
+        transitionDelay: "var(--stagger, 0ms)",
+      }}
+    >
+      {children}
+    </Box>
+  );
+};
+
+// Number that counts up the moment it scrolls into view
+const CountOnView = (props) => {
+  const [ref, shown] = useInView(0.4);
+  return (
+    <Box component="span" ref={ref}>
+      <Count {...props} start={shown} />
+    </Box>
+  );
+};
+
+/* ---- stat visuals: each card gets its own animated picture ---- */
+
+const leafRise = keyframes`
+  0%   { transform: translateY(12px) rotate(0deg); opacity: 0; }
+  20%  { opacity: 0.9; }
+  100% { transform: translateY(-58px) rotate(45deg); opacity: 0; }
+`;
+const pipWave = keyframes`
+  0%, 100% { transform: scaleY(0.78); }
+  50%      { transform: scaleY(1.1); }
+`;
+
+// Savings: bars that grow in one after another (decorative "growing savings")
+const SAVINGS_BARS = [26, 34, 31, 42, 47, 45, 57, 64];
+const BarsVisual = ({ color }) => {
+  const [ref, shown] = useInView(0.4);
+  return (
+    <Box ref={ref} sx={{ display: "flex", alignItems: "flex-end", gap: "7px", height: 64, mt: "20px" }}>
+      {SAVINGS_BARS.map((h, i) => (
+        <Box
+          key={i}
+          sx={{
+            flex: 1,
+            height: h,
+            bgcolor: color,
+            opacity: 0.28 + i * 0.1,
+            borderRadius: "6px 6px 3px 3px",
+            transformOrigin: "bottom",
+            transform: shown ? "scaleY(1)" : "scaleY(0)",
+            transition: `transform 700ms ${EASE} ${i * 90}ms, opacity 250ms ease`,
+            "&:hover": { opacity: 1 },
+          }}
+        />
+      ))}
+    </Box>
+  );
+};
+
+// Emissions: a ring that fills to the percentage, with leaves drifting up beside it
+const LEAVES = [[8, 0, 3.4], [30, 1.1, 4], [54, 0.5, 3.6], [78, 1.8, 4.2]];
+const RingVisual = ({ color, percent }) => {
+  const [ref, shown] = useInView(0.4);
+  const R = 26;
+  const C = 2 * Math.PI * R;
+  return (
+    <Box ref={ref} sx={{ display: "flex", alignItems: "center", gap: "18px", height: 64, mt: "20px" }}>
+      <Box sx={{ position: "relative", width: 64, height: 64, flexShrink: 0 }}>
+        <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" style={{ transform: "rotate(-90deg)" }}>
+          <circle cx="32" cy="32" r={R} fill="none" stroke={`${color}22`} strokeWidth="7" />
+          <circle
+            cx="32"
+            cy="32"
+            r={R}
+            fill="none"
+            stroke={color}
+            strokeWidth="7"
+            strokeLinecap="round"
+            strokeDasharray={C}
+            strokeDashoffset={shown ? C * (1 - percent / 100) : C}
+            style={{ transition: `stroke-dashoffset 1600ms ${EASE} 300ms` }}
+          />
+        </svg>
+        <Box sx={{ position: "absolute", top: 23, left: 23 }}>
+          <IconLeaf size={18} color={color} />
+        </Box>
+      </Box>
+      <Box sx={{ position: "relative", flex: 1, height: 64, overflow: "hidden" }}>
+        {LEAVES.map(([left, delay, dur]) => (
+          <Box
+            key={left}
+            sx={{
+              position: "absolute",
+              bottom: 0,
+              left: `${left}%`,
+              opacity: 0,
+              animation: `${leafRise} ${dur}s ease-in ${delay}s infinite`,
+            }}
+          >
+            <IconLeaf size={14} color={color} />
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
+// Trust score: a level meter that lights up pip by pip, then keeps a gentle wave going
+const PipsVisual = ({ color, percent }) => {
+  const [ref, shown] = useInView(0.4);
+  const total = 40;
+  const lit = Math.round((percent / 100) * total);
+  return (
+    <Box ref={ref} sx={{ display: "flex", alignItems: "flex-end", gap: "3px", height: 64, mt: "20px" }}>
+      {Array.from({ length: total }).map((_, i) => (
+        <Box
+          key={i}
+          sx={{
+            flex: 1,
+            height: 22 + (Math.sin(i * 0.5) + 1) * 14,
+            borderRadius: "3px",
+            bgcolor: shown && i < lit ? color : "#E4E6EE",
+            transformOrigin: "bottom",
+            transition: `background-color 300ms ease ${i * 28}ms`,
+            animation: `${pipWave} 2.6s ease-in-out ${i * 0.07}s infinite`,
+          }}
+        />
+      ))}
+    </Box>
+  );
+};
+
+// Thin bar under the navbar that fills as you scroll down the page
+const ScrollProgress = () => {
+  const barRef = useRef(null);
+
+  useEffect(() => {
+    if (prefersReducedMotion()) return undefined;
+    const update = () => {
+      const el = document.documentElement;
+      const max = el.scrollHeight - el.clientHeight;
+      const p = max > 0 ? el.scrollTop / max : 0;
+      if (barRef.current) barRef.current.style.transform = `scaleX(${p})`;
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  return (
+    <Box
+      ref={barRef}
+      aria-hidden="true"
+      sx={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: -1,
+        height: 3,
+        transformOrigin: "left",
+        transform: "scaleX(0)",
+        background: "linear-gradient(90deg, #0E9F76, #33D6A6, #5B4CF0)",
+        pointerEvents: "none",
+      }}
+    />
+  );
+};
+
+/* ---------------------------------------------------------------------- */
 /*  Feature cards row                                                     */
 /* ---------------------------------------------------------------------- */
 
 const FeatureRow = () => (
-  <Stack direction={{ xs: "column", md: "row" }} spacing={2.5} sx={{ mt: { xs: 3, md: 5 } }}>
+  <Stack
+    direction={{ xs: "column", md: "row" }}
+    spacing={2.5}
+    sx={{ mt: { xs: 3, md: 5 }, ...staggerRow }}
+  >
     <FeatureCard
+      accent="#0E9F76"
       iconBg="#E4F6EE"
       icon={<IconShield color="#0E9F76" />}
       title="Verified Members"
       desc="Identity-focused verification. Aadhaar and work email verified commuters only."
     />
     <FeatureCard
+      accent="#5B4CF0"
       iconBg="#EAE7FC"
       icon={<IconRoute color="#5B4CF0" />}
       title="Route-Based Matching"
       desc="Find people travelling your way. Instant corridor overlap calculation with minimal detours."
     />
     <FeatureCard
+      accent="#D98A2B"
       iconBg="#FBEAD6"
       icon={<IconLock color="#D98A2B" />}
       title="Safety First"
@@ -1223,10 +1502,18 @@ const FeatureRow = () => (
 /*  Process section                                                       */
 /* ---------------------------------------------------------------------- */
 
-const ProcessCard = ({ number, iconBg, icon, title, desc, children }) => (
+const ProcessCard = (props) => (
+  <RevealItem>
+    <ProcessCardBody {...props} />
+  </RevealItem>
+);
+
+const ProcessCardBody = ({ number, iconBg, icon, title, desc, children, accent = "#0E9F76" }) => (
   <Box
     className="hover-lift"
     sx={{
+      position: "relative",
+      overflow: "hidden",
       flex: 1,
       bgcolor: "#fff",
       borderRadius: "18px",
@@ -1235,14 +1522,43 @@ const ProcessCard = ({ number, iconBg, icon, title, desc, children }) => (
       display: "flex",
       flexDirection: "column",
       gap: "14px",
+      transition: CARD_TRANSITION,
+      // accent bar sweeps along the bottom on hover
+      "&::after": {
+        content: '""',
+        position: "absolute",
+        left: 0,
+        bottom: 0,
+        width: "100%",
+        height: 3,
+        background: accent,
+        transform: "scaleX(0)",
+        transformOrigin: "left",
+        transition: `transform 480ms ${EASE}`,
+      },
+      "&:hover": { borderColor: accent },
+      "&:hover::after": { transform: "scaleX(1)" },
+      "&:hover .fr-num": { color: accent, transform: "translateX(4px)" },
+      "&:hover .fr-icon": { transform: "scale(1.12) rotate(-8deg)" },
     }}
   >
     <Row justify="space-between" align="flex-start">
-      <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 30, color: "#DDE0E8" }}>
+      <Typography
+        className="fr-num"
+        sx={{
+          fontFamily: pageFont,
+          fontWeight: 800,
+          fontSize: 30,
+          color: "#DDE0E8",
+          transition: `color 300ms ease, transform 300ms ${EASE}`,
+        }}
+      >
         {number}
       </Typography>
       <Box
+        className="fr-icon"
         sx={{
+          transition: `transform 300ms ${EASE}`,
           width: 38,
           height: 38,
           borderRadius: "10px",
@@ -1267,26 +1583,33 @@ const ProcessCard = ({ number, iconBg, icon, title, desc, children }) => (
 
 const ProcessSection = () => (
   <Box id="how-it-works" sx={{ py: { xs: 7, md: 10 }, textAlign: "center", scrollMarginTop: "72px" }}>
-    <Pill sx={{ bgcolor: "#EEF0F6", color: "#5B6472", mb: "18px" }}>PROCESS</Pill>
-    <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: { xs: 26, md: 34 }, color: "#12151A" }}>
-      Simple, Predictable Commuting
-    </Typography>
-    <Typography
-      sx={{
-        fontFamily: pageFont,
-        fontSize: 15,
-        color: "#7A8090",
-        maxWidth: 480,
-        mx: "auto",
-        mt: "12px",
-        lineHeight: 1.6,
-      }}
-    >
-      Three intuitive steps to transform your daily transit routine from congested to collaborative.
-    </Typography>
+    <Reveal>
+      <Pill sx={{ bgcolor: "#EEF0F6", color: "#5B6472", mb: "18px" }}>PROCESS</Pill>
+      <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: { xs: 26, md: 34 }, color: "#12151A" }}>
+        Simple, Predictable Commuting
+      </Typography>
+      <Typography
+        sx={{
+          fontFamily: pageFont,
+          fontSize: 15,
+          color: "#7A8090",
+          maxWidth: 480,
+          mx: "auto",
+          mt: "12px",
+          lineHeight: 1.6,
+        }}
+      >
+        Three intuitive steps to transform your daily transit routine from congested to collaborative.
+      </Typography>
+    </Reveal>
 
-    <Stack direction={{ xs: "column", md: "row" }} spacing={2.5} sx={{ mt: 5, textAlign: "left" }}>
+    <Stack
+      direction={{ xs: "column", md: "row" }}
+      spacing={2.5}
+      sx={{ mt: 5, textAlign: "left", ...staggerRow }}
+    >
       <ProcessCard
+        accent="#0E9F76"
         number="01"
         iconBg="#E4F6EE"
         icon={<IconShieldPlus size={18} />}
@@ -1300,9 +1623,21 @@ const ProcessSection = () => (
               South Extn. Metro, Gate 2
             </Typography>
           </Row>
-          <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#B5BAC4", pl: "15px", lineHeight: 1.6 }}>
-            ⋮
-          </Typography>
+          {/* dashed link with a dot travelling from start to destination */}
+          <Box sx={{ position: "relative", height: 22, ml: "3px", borderLeft: "2px dashed #CBD0DB" }}>
+            <Box
+              sx={{
+                position: "absolute",
+                left: "-5px",
+                top: 0,
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                bgcolor: "#0E9F76",
+                animation: `${travelDot} 2.2s ease-in-out infinite`,
+              }}
+            />
+          </Box>
           <Row spacing={1}>
             <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#7C6CF0" }} />
             <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, color: "#151A21", fontWeight: 600 }}>
@@ -1313,6 +1648,7 @@ const ProcessSection = () => (
       </ProcessCard>
 
       <ProcessCard
+        accent="#5B4CF0"
         number="02"
         iconBg="#EAE7FC"
         icon={<IconNetwork size={18} />}
@@ -1333,7 +1669,9 @@ const ProcessSection = () => (
               </Box>
             </Row>
             <Pill sx={{ bgcolor: "#E4F6EE", color: "#0E9F76", fontSize: 12, py: "4px", px: "9px" }}>
-              92% match
+              <span>
+                <CountOnView to={92} />% match
+              </span>
             </Pill>
           </Row>
           <Row justify="space-between" sx={{ mt: "8px" }}>
@@ -1348,6 +1686,7 @@ const ProcessSection = () => (
       </ProcessCard>
 
       <ProcessCard
+        accent="#0E9F76"
         number="03"
         iconBg="#E4F6EE"
         icon={<IconLoop size={18} />}
@@ -1366,6 +1705,7 @@ const ProcessSection = () => (
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  animation: `${pulseDot} 2.2s ease-out infinite`,
                 }}
               >
                 <IconCheck size={12} color="#fff" />
@@ -1381,7 +1721,7 @@ const ProcessSection = () => (
             </Row>
             <Box sx={{ textAlign: "right" }}>
               <Typography sx={{ fontFamily: pageFont, fontSize: 13, fontWeight: 800, color: "#151A21" }}>
-                ₹45
+                ₹<CountOnView to={45} />
               </Typography>
               <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
                 Fuel share
@@ -1398,21 +1738,48 @@ const ProcessSection = () => (
 /*  Safety section                                                        */
 /* ---------------------------------------------------------------------- */
 
-const SafetyCard = ({ iconBg, icon, title, desc }) => (
+const SafetyCard = (props) => (
+  <RevealItem>
+    <SafetyCardBody {...props} />
+  </RevealItem>
+);
+
+const SafetyCardBody = ({ iconBg, icon, title, desc, accent = "#0E9F76" }) => (
   <Box
     className="hover-lift"
     sx={{
+      position: "relative",
+      overflow: "hidden",
       flex: 1,
       bgcolor: "#fff",
       borderRadius: "16px",
+      border: "1px solid transparent",
       p: "22px",
       display: "flex",
       flexDirection: "column",
       gap: "12px",
+      transition: CARD_TRANSITION,
+      "&::before": {
+        content: '""',
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 3,
+        background: accent,
+        transform: "scaleX(0)",
+        transformOrigin: "left",
+        transition: `transform 480ms ${EASE}`,
+      },
+      "&:hover": { borderColor: accent },
+      "&:hover::before": { transform: "scaleX(1)" },
+      "&:hover .fr-icon": { transform: "scale(1.12) rotate(-8deg)" },
     }}
   >
     <Box
+      className="fr-icon"
       sx={{
+        transition: `transform 300ms ${EASE}`,
         width: 38,
         height: 38,
         borderRadius: "10px",
@@ -1435,13 +1802,48 @@ const SafetyCard = ({ iconBg, icon, title, desc }) => (
 
 const SafetySection = () => (
   <Box
+    id="safety"
     sx={{
+      position: "relative",
+      overflow: "hidden",
+      isolation: "isolate",
+      scrollMarginTop: "80px",
       borderRadius: "24px",
-      background: "linear-gradient(135deg, #E4E7FB 0%, #ECEFFB 100%)",
+      background: "linear-gradient(135deg, #E4E7FB 0%, #ECEFFB 35%, #E1F3EC 70%, #E4E7FB 100%)",
+      backgroundSize: "220% 220%",
+      animation: `${gradientShift} 18s ease infinite`,
       p: { xs: 3, md: 5 },
       mt: { xs: 3, md: 4 },
     }}
   >
+    {/* decorative layers sit behind the content (z-index -1 inside this box) */}
+    <Box
+      aria-hidden="true"
+      sx={{
+        position: "absolute",
+        top: -70,
+        right: -70,
+        zIndex: -1,
+        opacity: 0.1,
+        animation: `${spinSlow} 45s linear infinite`,
+      }}
+    >
+      <IconShield size={320} color="#0B4B3D" />
+    </Box>
+    <Box
+      aria-hidden="true"
+      sx={{
+        position: "absolute",
+        bottom: -120,
+        left: -80,
+        zIndex: -1,
+        width: 360,
+        height: 360,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(14,159,118,0.18), transparent 65%)",
+        animation: `${blobA} 15s ease-in-out infinite`,
+      }}
+    />
     <Pill sx={{ bgcolor: "#0B4B3D", color: "#fff", mb: "18px" }}>
       <IconCompass size={13} color="#8CF0C9" /> FriendRide Safety Architecture
     </Pill>
@@ -1452,23 +1854,35 @@ const SafetySection = () => (
       Safety isn't an afterthought; it's our core operating framework designed from day one.
     </Typography>
 
-    <Stack direction={{ xs: "column", md: "row" }} spacing={2.5} sx={{ mt: 4 }}>
+    <Stack direction={{ xs: "column", md: "row" }} spacing={2.5} sx={{ mt: 4, ...staggerRow }}>
       <SafetyCard
+        accent="#0E9F76"
         iconBg="#DCF3E9"
         icon={<IconIdCard size={18} />}
         title="Verified Profiles"
         desc="Know who you're travelling with. Every rider and passenger completes multi-tier identity checks before taking a seat."
       />
       <SafetyCard
+        accent="#5B4CF0"
         iconBg="#E4E1FA"
         icon={<IconTarget size={18} />}
         title="Route Visibility"
         desc="Understand the shared commute before connecting. Precise pickup points, transparent detour times, and zero mystery."
       />
       <SafetyCard
+        accent="#E15366"
         iconBg="#FBE2E4"
         icon={
-          <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 12, color: "#E15366" }}>
+          <Typography
+            sx={{
+              fontFamily: pageFont,
+              fontWeight: 800,
+              fontSize: 12,
+              color: "#E15366",
+              borderRadius: "50%",
+              animation: `${sosPulse} 1.8s ease-out infinite`,
+            }}
+          >
             SOS
           </Typography>
         }
@@ -1494,8 +1908,26 @@ const SafetySection = () => (
           Comprehensive ₹5,00,000 accidental cover included on all scheduled shared commutes.
         </Typography>
       </Row>
-      <Typography sx={{ fontFamily: pageFont, fontSize: 13.5, fontWeight: 700, color: "#0B6B4F" }}>
-        Read Policy &gt;
+      <Typography
+        sx={{
+          fontFamily: pageFont,
+          fontSize: 13.5,
+          fontWeight: 700,
+          color: "#0B6B4F",
+          display: "inline-flex",
+          gap: "6px",
+          cursor: "pointer",
+          "&:hover .fr-arrow-s": { transform: "translateX(6px)" },
+        }}
+      >
+        Read Policy{" "}
+        <Box
+          component="span"
+          className="fr-arrow-s"
+          sx={{ display: "inline-block", transition: `transform 240ms ${EASE}` }}
+        >
+          &gt;
+        </Box>
       </Typography>
     </Row>
   </Box>
@@ -1505,67 +1937,156 @@ const SafetySection = () => (
 /*  Stats row                                                             */
 /* ---------------------------------------------------------------------- */
 
-const StatCard = ({ iconBg, icon, tag, tagColor, value, desc }) => (
-  <Box
-    className="hover-lift"
-    sx={{
-      flex: 1,
-      bgcolor: "#fff",
-      borderRadius: "16px",
-      border: "1px solid #ECEDF3",
-      p: "22px",
-    }}
-  >
-    <Row justify="space-between">
-      <Box
-        sx={{
-          width: 34,
-          height: 34,
-          borderRadius: "50%",
-          bgcolor: iconBg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {icon}
-      </Box>
-      <Pill sx={{ bgcolor: "#F2F3F8", color: tagColor, fontSize: 12, py: "5px" }}>{tag}</Pill>
-    </Row>
-    <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 28, color: "#12151A", mt: "16px" }}>
-      {value}
-    </Typography>
-    <Typography sx={{ fontFamily: pageFont, fontSize: 13, color: "#7A8090", mt: "4px" }}>
-      {desc}
-    </Typography>
-  </Box>
+const StatCard = (props) => (
+  <RevealItem>
+    <StatCardBody {...props} />
+  </RevealItem>
 );
 
+const StatCardBody = ({ iconBg, icon, tag, tagColor, value, desc, visual }) => {
+  // cursor-follow glow: the pointer position is written to CSS variables (no re-render)
+  const handleMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--sx", `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty("--sy", `${e.clientY - r.top}px`);
+  };
+
+  return (
+    <Box
+      className="hover-lift"
+      onMouseMove={handleMove}
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        flex: 1,
+        bgcolor: "#fff",
+        borderRadius: "20px",
+        border: "1px solid #ECEDF3",
+        p: "24px",
+        transition: CARD_TRANSITION,
+        "& > *": { position: "relative", zIndex: 1 },
+        // soft coloured glow that follows the mouse
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          opacity: 0,
+          transition: "opacity 300ms ease",
+          background: `radial-gradient(280px circle at var(--sx, 50%) var(--sy, 0%), ${tagColor}26, transparent 70%)`,
+        },
+        // light streak that sweeps across once on hover
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          width: "35%",
+          zIndex: 2,
+          pointerEvents: "none",
+          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent)",
+          transform: "translateX(-160%) skewX(-20deg)",
+        },
+        "&:hover": { borderColor: tagColor },
+        "&:hover::before": { opacity: 1 },
+        "&:hover::after": { transform: "translateX(420%) skewX(-20deg)", transition: "transform 900ms ease" },
+        "&:hover .fr-icon": { transform: "scale(1.15) rotate(-10deg)" },
+        "&:hover .fr-value": { backgroundPosition: "0% 50%", transform: "translateX(4px)" },
+      }}
+    >
+      <Row justify="space-between">
+        <Box
+          className="fr-icon"
+          sx={{
+            transition: `transform 300ms ${EASE}`,
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            bgcolor: iconBg,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {icon}
+        </Box>
+        <Pill sx={{ bgcolor: "#F2F3F8", color: tagColor, fontSize: 12, py: "5px" }}>{tag}</Pill>
+      </Row>
+      <Typography
+        className="fr-value"
+        sx={{
+          fontFamily: pageFont,
+          fontWeight: 800,
+          fontSize: { xs: 36, md: 44 },
+          lineHeight: 1.1,
+          mt: "18px",
+          width: "fit-content",
+          // dark → accent colour gradient; slides to the accent on hover
+          background: `linear-gradient(100deg, #12151A 20%, ${tagColor} 80%, ${tagColor} 100%)`,
+          backgroundSize: "220% 100%",
+          backgroundPosition: "100% 50%",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          transition: `background-position 600ms ${EASE}, transform 300ms ${EASE}`,
+        }}
+      >
+        {value}
+      </Typography>
+      <Typography sx={{ fontFamily: pageFont, fontSize: 13.5, color: "#7A8090", mt: "6px" }}>
+        {desc}
+      </Typography>
+      {visual}
+    </Box>
+  );
+};
+
 const StatsRow = () => (
-  <Stack direction={{ xs: "column", md: "row" }} spacing={2.5} sx={{ mt: { xs: 6, md: 8 } }}>
+  <Stack
+    direction={{ xs: "column", md: "row" }}
+    spacing={2.5}
+    sx={{ mt: { xs: 6, md: 8 }, ...staggerRow }}
+  >
     <StatCard
       iconBg="#FBEAD6"
       icon={<IconRupee size={16} />}
       tag="Cost Optimized"
       tagColor="#D98A2B"
-      value="₹4,200"
+      value={
+        <>
+          ₹<CountOnView to={4200} duration={1800} />
+        </>
+      }
       desc="avg. monthly fuel savings for daily commuters"
+      visual={<BarsVisual color="#D98A2B" />}
     />
     <StatCard
       iconBg="#E4F6EE"
       icon={<IconLeaf size={16} />}
       tag="Cleaner Cities"
       tagColor="#0E9F76"
-      value="45%"
+      value={
+        <>
+          <CountOnView to={45} duration={1600} />%
+        </>
+      }
       desc="reduction in individual city two-wheeler emissions"
+      visual={<RingVisual color="#0E9F76" percent={45} />}
     />
     <StatCard
       iconBg="#EAE7FC"
       icon={<IconThumb size={16} />}
       tag="Verified Only"
       tagColor="#5B4CF0"
-      value="98%"
+      value={
+        <>
+          <CountOnView to={98} duration={1800} />%
+        </>
+      }
       desc="rider safety and punctual trust rating score"
+      visual={<PipsVisual color="#5B4CF0" percent={98} />}
     />
   </Stack>
 );
@@ -1577,14 +2098,84 @@ const StatsRow = () => (
 const CTASection = () => (
   <Box
     sx={{
+      position: "relative",
+      overflow: "hidden",
+      isolation: "isolate",
       mt: { xs: 6, md: 8 },
       mb: { xs: 6, md: 8 },
       borderRadius: "24px",
-      background: "linear-gradient(120deg, #0E7C5E 0%, #0B4F5C 55%, #0B2A3D 100%)",
+      background: "linear-gradient(120deg, #0E7C5E 0%, #0B4F5C 35%, #0B2A3D 65%, #0E7C5E 100%)",
+      backgroundSize: "250% 250%",
+      animation: `${gradientShift} 16s ease infinite`,
       p: { xs: 5, md: 8 },
       textAlign: "center",
     }}
   >
+    {/* drifting light orbs + a route line that keeps flowing along the bottom */}
+    <Box
+      aria-hidden="true"
+      sx={{
+        position: "absolute",
+        top: -90,
+        left: -60,
+        zIndex: -1,
+        width: 320,
+        height: 320,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(51,214,166,0.35), transparent 65%)",
+        animation: `${blobA} 13s ease-in-out infinite`,
+      }}
+    />
+    <Box
+      aria-hidden="true"
+      sx={{
+        position: "absolute",
+        bottom: -110,
+        right: -50,
+        zIndex: -1,
+        width: 360,
+        height: 360,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(124,108,240,0.30), transparent 65%)",
+        animation: `${blobB} 16s ease-in-out infinite`,
+      }}
+    />
+    <Box
+      aria-hidden="true"
+      component="svg"
+      viewBox="0 0 800 120"
+      preserveAspectRatio="none"
+      sx={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: "100%",
+        height: "45%",
+        zIndex: -1,
+        opacity: 0.35,
+      }}
+    >
+      <Box
+        component="path"
+        d="M0 90 C 140 20, 260 120, 400 60 S 660 10, 800 70"
+        fill="none"
+        stroke="#8CF0C9"
+        strokeWidth="2"
+        strokeDasharray="6 10"
+        sx={{ animation: `${flowDash} 4s linear infinite` }}
+      />
+      <Box
+        component="path"
+        d="M0 105 C 160 55, 300 125, 440 85 S 680 40, 800 95"
+        fill="none"
+        stroke="#fff"
+        strokeOpacity="0.6"
+        strokeWidth="1.5"
+        strokeDasharray="3 12"
+        sx={{ animation: `${flowDash} 6s linear infinite` }}
+      />
+    </Box>
     <Pill sx={{ bgcolor: "rgba(255,255,255,0.12)", color: "#DDEFE8", mb: "18px" }}>
       Start Travelling Together
     </Pill>
@@ -1617,7 +2208,11 @@ const CTASection = () => (
 
     <Row justify="center" spacing={1.5} sx={{ mt: "28px" }}>
       <Button
+        component={RouterLink}
+        to="/signin"
         sx={{
+          position: "relative",
+          overflow: "hidden",
           bgcolor: "#fff",
           color: "#0B4F5C",
           textTransform: "none",
@@ -1625,15 +2220,40 @@ const CTASection = () => (
           fontWeight: 700,
           fontSize: 14.5,
           borderRadius: "10px",
-          px: "20px",
-          py: "10px",
+          px: "22px",
+          py: "11px",
           gap: "8px",
+          boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
           "&:hover": { bgcolor: "#F0F2F5" },
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: "40%",
+            background: "linear-gradient(90deg, transparent, rgba(14,159,118,0.25), transparent)",
+            transform: "translateX(-130%) skewX(-20deg)",
+            animation: `${sheen} 3.8s ease-in-out 1s infinite`,
+            pointerEvents: "none",
+          },
+          "&:hover .fr-arrow": { transform: "translateX(6px)" },
         }}
       >
-        Get Started <IconArrowRight color="#0B4F5C" />
+        Get Started{" "}
+        <Box
+          component="span"
+          className="fr-arrow"
+          sx={{ display: "inline-flex", transition: `transform 240ms ${EASE}` }}
+        >
+          <IconArrowRight color="#0B4F5C" />
+        </Box>
       </Button>
       <Button
+        onClick={() => {
+          const el = document.getElementById("safety");
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
         sx={{
           bgcolor: "rgba(255,255,255,0.1)",
           color: "#fff",
@@ -1710,18 +2330,13 @@ export default function LandingPage() {
         <Reveal>
           <Hero />
         </Reveal>
-        <Reveal>
-          <FeatureRow />
-        </Reveal>
-        <Reveal>
-          <ProcessSection />
-        </Reveal>
+        {/* these rows reveal their own cards one by one */}
+        <FeatureRow />
+        <ProcessSection />
         <Reveal>
           <SafetySection />
         </Reveal>
-        <Reveal>
-          <StatsRow />
-        </Reveal>
+        <StatsRow />
         <Reveal>
           <CTASection />
         </Reveal>
