@@ -1744,61 +1744,377 @@ const SafetyCard = (props) => (
   </RevealItem>
 );
 
-const SafetyCardBody = ({ iconBg, icon, title, desc, accent = "#0E9F76" }) => (
+const SafetyCardBody = ({ icon, title, desc, accent = "#33D6A6", visual }) => {
+  // cursor-follow glow: pointer position goes into CSS variables (no re-render)
+  const handleMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--sx", `${e.clientX - r.left}px`);
+    e.currentTarget.style.setProperty("--sy", `${e.clientY - r.top}px`);
+  };
+
+  return (
+    <Box
+      className="hover-lift"
+      onMouseMove={handleMove}
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        borderRadius: "20px",
+        p: "24px",
+        bgcolor: "rgba(255,255,255,0.06)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+        transition: `${CARD_TRANSITION}, background-color 300ms ease`,
+        "& > *": { position: "relative", zIndex: 1 },
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          opacity: 0,
+          transition: "opacity 300ms ease",
+          background: `radial-gradient(300px circle at var(--sx, 50%) var(--sy, 0%), ${accent}33, transparent 70%)`,
+        },
+        "&:hover": { borderColor: accent, bgcolor: "rgba(255,255,255,0.09)" },
+        "&:hover::before": { opacity: 1 },
+        "&:hover .fr-icon": { transform: "scale(1.12) rotate(-8deg)" },
+      }}
+    >
+      <Box
+        className="fr-icon"
+        sx={{
+          transition: `transform 300ms ${EASE}`,
+          width: 44,
+          height: 44,
+          borderRadius: "12px",
+          bgcolor: `${accent}26`,
+          border: `1px solid ${accent}55`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {icon}
+      </Box>
+      <Typography sx={{ fontFamily: pageFont, fontWeight: 700, fontSize: 17, color: "#fff" }}>
+        {title}
+      </Typography>
+      <Typography sx={{ fontFamily: pageFont, fontSize: 13.5, lineHeight: 1.6, color: "rgba(255,255,255,0.66)" }}>
+        {desc}
+      </Typography>
+      {visual}
+    </Box>
+  );
+};
+
+/* ---- Safety section: radar shield + one live mini-demo per card ---- */
+
+const spinRev = keyframes`to { transform: rotate(-360deg); }`;
+const radarPulse = keyframes`
+  0%   { transform: scale(0.25); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 0; }
+`;
+const scanDown = keyframes`
+  0%   { transform: translateY(-120%); }
+  100% { transform: translateY(520%); }
+`;
+const checkCycle = keyframes`
+  0%, 8%   { opacity: 0.25; transform: scale(0.6); }
+  16%      { opacity: 1; transform: scale(1.25); }
+  24%, 86% { opacity: 1; transform: scale(1); }
+  100%     { opacity: 0.25; transform: scale(0.6); }
+`;
+const sosWave = keyframes`
+  0%   { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(2.6); opacity: 0; }
+`;
+
+const RADAR_SIZE = 230;
+const SATELLITES = [
+  { angle: 0, node: <IconIdCard size={16} color="#8CF0C9" /> },
+  { angle: 120, node: <IconTarget size={16} color="#B9B1FF" /> },
+  {
+    angle: 240,
+    node: (
+      <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 9, color: "#FF8A99" }}>SOS</Typography>
+    ),
+  },
+];
+
+// Shield in the middle of a radar: sweep, expanding pulses, and three icons orbiting it
+const ShieldRadar = () => (
   <Box
-    className="hover-lift"
+    aria-hidden="true"
     sx={{
       position: "relative",
-      overflow: "hidden",
-      flex: 1,
-      bgcolor: "#fff",
-      borderRadius: "16px",
-      border: "1px solid transparent",
-      p: "22px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "12px",
-      transition: CARD_TRANSITION,
-      "&::before": {
-        content: '""',
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 3,
-        background: accent,
-        transform: "scaleX(0)",
-        transformOrigin: "left",
-        transition: `transform 480ms ${EASE}`,
-      },
-      "&:hover": { borderColor: accent },
-      "&:hover::before": { transform: "scaleX(1)" },
-      "&:hover .fr-icon": { transform: "scale(1.12) rotate(-8deg)" },
+      width: RADAR_SIZE,
+      height: RADAR_SIZE,
+      flexShrink: 0,
+      display: { xs: "none", md: "block" },
     }}
   >
+    {[100, 72, 46].map((p) => (
+      <Box
+        key={p}
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          width: `${p}%`,
+          height: `${p}%`,
+          transform: "translate(-50%, -50%)",
+          borderRadius: "50%",
+          border: "1px solid rgba(51,214,166,0.22)",
+        }}
+      />
+    ))}
     <Box
-      className="fr-icon"
       sx={{
-        transition: `transform 300ms ${EASE}`,
-        width: 38,
-        height: 38,
-        borderRadius: "10px",
-        bgcolor: iconBg,
+        position: "absolute",
+        inset: 0,
+        borderRadius: "50%",
+        background: "conic-gradient(from 0deg, rgba(51,214,166,0.38), rgba(51,214,166,0) 28%)",
+        animation: `${spinSlow} 5s linear infinite`,
+      }}
+    />
+    {[0, 1.5].map((d) => (
+      <Box
+        key={d}
+        sx={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: "50%",
+          border: "2px solid rgba(51,214,166,0.5)",
+          animation: `${radarPulse} 3s ease-out ${d}s infinite`,
+        }}
+      />
+    ))}
+    <Box
+      sx={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        width: 88,
+        height: 88,
+        transform: "translate(-50%, -50%)",
+        borderRadius: "50%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        background: "radial-gradient(circle at 30% 25%, #1C6B58, #0B3B34)",
+        border: "1px solid rgba(140,240,201,0.45)",
+        boxShadow: "0 0 40px rgba(51,214,166,0.35)",
       }}
     >
-      {icon}
+      <IconShield size={42} color="#8CF0C9" />
+      <Box sx={{ position: "absolute", display: "flex" }}>
+        <IconCheck size={16} color="#8CF0C9" />
+      </Box>
     </Box>
-    <Typography sx={{ fontFamily: pageFont, fontWeight: 700, fontSize: 16, color: "#151A21" }}>
-      {title}
-    </Typography>
-    <Typography sx={{ fontFamily: pageFont, fontSize: 13.5, lineHeight: 1.6, color: "#7A8090" }}>
-      {desc}
-    </Typography>
+    <Box sx={{ position: "absolute", inset: 0, animation: `${spinSlow} 22s linear infinite` }}>
+      {SATELLITES.map(({ angle, node }) => (
+        <Box
+          key={angle}
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            width: 38,
+            height: 38,
+            mt: "-19px",
+            ml: "-19px",
+            // park the icon on the outer ring, then undo its own rotation so it stays upright
+            transform: `rotate(${angle}deg) translateY(-${RADAR_SIZE / 2 - 6}px) rotate(-${angle}deg)`,
+          }}
+        >
+          <Box
+            sx={{
+              width: "100%",
+              height: "100%",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.25)",
+              backdropFilter: "blur(6px)",
+              animation: `${spinRev} 22s linear infinite`,
+            }}
+          >
+            {node}
+          </Box>
+        </Box>
+      ))}
+    </Box>
   </Box>
 );
+
+const demoBox = {
+  position: "relative",
+  overflow: "hidden",
+  borderRadius: "12px",
+  border: "1px solid rgba(255,255,255,0.14)",
+  bgcolor: "rgba(255,255,255,0.05)",
+};
+
+// Card 1: an ID card being scanned, with the checks ticking on one after another
+const ID_CHECKS = ["Govt ID verified", "Work email verified", "Selfie match"];
+const IdScanVisual = () => (
+  <Box sx={{ mt: "auto", pt: "18px" }}>
+    <Box sx={{ ...demoBox, p: "12px" }}>
+      <Row spacing={1.2}>
+        <Box sx={{ width: 34, height: 34, borderRadius: "50%", bgcolor: "rgba(140,240,201,0.25)", flexShrink: 0 }} />
+        <Box sx={{ flex: 1 }}>
+          <Box sx={{ height: 7, width: "70%", borderRadius: "4px", bgcolor: "rgba(255,255,255,0.35)" }} />
+          <Box sx={{ height: 6, width: "45%", borderRadius: "4px", bgcolor: "rgba(255,255,255,0.18)", mt: "7px" }} />
+        </Box>
+      </Row>
+      <Stack spacing="6px" sx={{ mt: "12px" }}>
+        {ID_CHECKS.map((label, i) => (
+          <Row key={label} spacing={1}>
+            <Box sx={{ display: "inline-flex", animation: `${checkCycle} 4.8s ease-in-out ${i * 0.7}s infinite` }}>
+              <IconCheck size={13} color="#33D6A6" />
+            </Box>
+            <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "rgba(255,255,255,0.75)" }}>
+              {label}
+            </Typography>
+          </Row>
+        ))}
+      </Stack>
+      <Box
+        aria-hidden="true"
+        sx={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: 0,
+          height: "28%",
+          pointerEvents: "none",
+          background: "linear-gradient(180deg, transparent, rgba(51,214,166,0.4), transparent)",
+          animation: `${scanDown} 2.8s ease-in-out infinite`,
+        }}
+      />
+    </Box>
+  </Box>
+);
+
+// Card 2: a tiny live map – dashed route, pickup pin, and a dot travelling along it
+const MINI_ROUTE = "M12 72 C 60 74, 84 22, 132 40 S 204 70, 248 18";
+const RouteShareVisual = () => {
+  const reduce = prefersReducedMotion();
+  return (
+    <Box sx={{ mt: "auto", pt: "18px" }}>
+      <Box sx={demoBox}>
+        <svg viewBox="0 0 260 90" width="100%" style={{ display: "block" }} aria-hidden="true">
+          <Box
+            component="path"
+            d={MINI_ROUTE}
+            fill="none"
+            stroke="#9D90FF"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeDasharray="5 7"
+            sx={{ animation: `${marching} 1.2s linear infinite` }}
+          />
+          <circle cx="12" cy="72" r="4" fill="#B9B1FF" />
+          <circle cx="248" cy="18" r="4" fill="#B9B1FF" />
+          <circle cx="132" cy="40" r="4.5" fill="#fff" />
+          <Ring cx={132} cy={40} r={6} color="#fff" />
+          <g transform={reduce ? "translate(132 40)" : undefined}>
+            <circle r="10" fill="rgba(157,144,255,0.25)" />
+            <circle r="5" fill="#B9B1FF" />
+            {!reduce && <animateMotion dur="6s" repeatCount="indefinite" path={MINI_ROUTE} />}
+          </g>
+        </svg>
+        <Row justify="space-between" sx={{ px: "12px", pb: "10px" }}>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 11.5, color: "rgba(255,255,255,0.7)" }}>
+            Pickup · 8:15 AM
+          </Typography>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 11.5, fontWeight: 700, color: "#B9B1FF" }}>
+            +3 min detour
+          </Typography>
+        </Row>
+      </Box>
+    </Box>
+  );
+};
+
+// Card 3: SOS button with radar waves and a status line that walks through an alert
+const SOS_STATES = ["Hold to send SOS", "Sharing live location…", "Help is on the way"];
+const SosVisual = () => {
+  const reduce = prefersReducedMotion();
+  const [i, setI] = useState(0);
+
+  useEffect(() => {
+    if (reduce) return undefined;
+    const id = setInterval(() => setI((n) => (n + 1) % SOS_STATES.length), 2400);
+    return () => clearInterval(id);
+  }, [reduce]);
+
+  return (
+    <Box sx={{ mt: "auto", pt: "18px" }}>
+      <Row spacing={2} sx={{ ...demoBox, p: "14px 16px", overflow: "visible" }}>
+        <Box sx={{ position: "relative", width: 48, height: 48, flexShrink: 0 }}>
+          {[0, 0.8, 1.6].map((d) => (
+            <Box
+              key={d}
+              sx={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "50%",
+                border: "2px solid rgba(255,100,120,0.6)",
+                animation: `${sosWave} 2.4s ease-out ${d}s infinite`,
+              }}
+            />
+          ))}
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "linear-gradient(145deg, #FF6B81, #E15366)",
+              color: "#fff",
+              fontFamily: pageFont,
+              fontWeight: 800,
+              fontSize: 12,
+              animation: `${sosPulse} 1.8s ease-out infinite`,
+            }}
+          >
+            SOS
+          </Box>
+        </Box>
+        <Box>
+          <Box
+            key={i}
+            component="span"
+            sx={{
+              display: "block",
+              fontFamily: pageFont,
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: "#fff",
+              animation: `${statusIn} 400ms ${EASE} backwards`,
+            }}
+          >
+            {SOS_STATES[i]}
+          </Box>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 11.5, color: "rgba(255,255,255,0.55)", mt: "2px" }}>
+            24/7 corridor assistance
+          </Typography>
+        </Box>
+      </Row>
+    </Box>
+  );
+};
 
 const SafetySection = () => (
   <Box
@@ -1808,115 +2124,210 @@ const SafetySection = () => (
       overflow: "hidden",
       isolation: "isolate",
       scrollMarginTop: "80px",
-      borderRadius: "24px",
-      background: "linear-gradient(135deg, #E4E7FB 0%, #ECEFFB 35%, #E1F3EC 70%, #E4E7FB 100%)",
+      borderRadius: "28px",
+      background: "linear-gradient(135deg, #06161C 0%, #0B2A3D 45%, #0A3B33 75%, #06161C 100%)",
       backgroundSize: "220% 220%",
-      animation: `${gradientShift} 18s ease infinite`,
-      p: { xs: 3, md: 5 },
+      animation: `${gradientShift} 20s ease infinite`,
+      p: { xs: 3, md: 6 },
       mt: { xs: 3, md: 4 },
     }}
   >
-    {/* decorative layers sit behind the content (z-index -1 inside this box) */}
+    {/* backdrop: dotted grid + two drifting aurora blobs (behind the content) */}
     <Box
       aria-hidden="true"
       sx={{
         position: "absolute",
-        top: -70,
-        right: -70,
+        inset: 0,
         zIndex: -1,
-        opacity: 0.1,
-        animation: `${spinSlow} 45s linear infinite`,
+        backgroundImage: "radial-gradient(rgba(255,255,255,0.10) 1px, transparent 1px)",
+        backgroundSize: "26px 26px",
+        WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 40%, #000 30%, transparent 100%)",
+        maskImage: "radial-gradient(ellipse 80% 80% at 50% 40%, #000 30%, transparent 100%)",
       }}
-    >
-      <IconShield size={320} color="#0B4B3D" />
-    </Box>
+    />
     <Box
       aria-hidden="true"
       sx={{
         position: "absolute",
-        bottom: -120,
+        top: -120,
         left: -80,
         zIndex: -1,
-        width: 360,
-        height: 360,
+        width: 420,
+        height: 420,
         borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(14,159,118,0.18), transparent 65%)",
+        background: "radial-gradient(circle, rgba(51,214,166,0.28), transparent 65%)",
         animation: `${blobA} 15s ease-in-out infinite`,
       }}
     />
-    <Pill sx={{ bgcolor: "#0B4B3D", color: "#fff", mb: "18px" }}>
-      <IconCompass size={13} color="#8CF0C9" /> FriendRide Safety Architecture
-    </Pill>
-    <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: { xs: 24, md: 30 }, color: "#12151A" }}>
-      Built Around Safer Commutes
-    </Typography>
-    <Typography sx={{ fontFamily: pageFont, fontSize: 14.5, color: "#5B6472", mt: "8px" }}>
-      Safety isn't an afterthought; it's our core operating framework designed from day one.
-    </Typography>
+    <Box
+      aria-hidden="true"
+      sx={{
+        position: "absolute",
+        bottom: -140,
+        right: -60,
+        zIndex: -1,
+        width: 460,
+        height: 460,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(124,108,240,0.28), transparent 65%)",
+        animation: `${blobB} 18s ease-in-out infinite`,
+      }}
+    />
 
-    <Stack direction={{ xs: "column", md: "row" }} spacing={2.5} sx={{ mt: 4, ...staggerRow }}>
-      <SafetyCard
-        accent="#0E9F76"
-        iconBg="#DCF3E9"
-        icon={<IconIdCard size={18} />}
-        title="Verified Profiles"
-        desc="Know who you're travelling with. Every rider and passenger completes multi-tier identity checks before taking a seat."
-      />
-      <SafetyCard
-        accent="#5B4CF0"
-        iconBg="#E4E1FA"
-        icon={<IconTarget size={18} />}
-        title="Route Visibility"
-        desc="Understand the shared commute before connecting. Precise pickup points, transparent detour times, and zero mystery."
-      />
-      <SafetyCard
-        accent="#E15366"
-        iconBg="#FBE2E4"
-        icon={
-          <Typography
+    <Row justify="space-between" align="center" sx={{ gap: 4 }}>
+      <Box sx={{ maxWidth: 620 }}>
+        <Pill
+          sx={{
+            bgcolor: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.18)",
+            color: "#fff",
+            mb: "18px",
+          }}
+        >
+          <IconCompass size={13} color="#8CF0C9" /> FriendRide Safety Architecture
+        </Pill>
+        <Typography
+          component="h2"
+          sx={{
+            fontFamily: pageFont,
+            fontWeight: 800,
+            fontSize: { xs: 28, md: 42 },
+            lineHeight: 1.15,
+            letterSpacing: "-0.5px",
+            color: "#fff",
+          }}
+        >
+          Built Around{" "}
+          <Box
+            component="span"
             sx={{
-              fontFamily: pageFont,
-              fontWeight: 800,
-              fontSize: 12,
-              color: "#E15366",
-              borderRadius: "50%",
-              animation: `${sosPulse} 1.8s ease-out infinite`,
+              background: "linear-gradient(90deg, #33D6A6, #8CF0C9, #B9B1FF, #33D6A6)",
+              backgroundSize: "200% 100%",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              animation: `${shimmer} 6s linear infinite`,
             }}
           >
-            SOS
-          </Typography>
+            Safer
+          </Box>{" "}
+          Commutes
+        </Typography>
+        <Typography
+          sx={{ fontFamily: pageFont, fontSize: 15, color: "rgba(255,255,255,0.7)", mt: "12px", lineHeight: 1.6 }}
+        >
+          Safety isn't an afterthought; it's our core operating framework designed from day one.
+        </Typography>
+      </Box>
+      <ShieldRadar />
+    </Row>
+
+    <Stack direction={{ xs: "column", md: "row" }} spacing={2.5} sx={{ mt: 5, ...staggerRow }}>
+      <SafetyCard
+        accent="#33D6A6"
+        icon={<IconIdCard size={20} color="#8CF0C9" />}
+        title="Verified Profiles"
+        desc="Know who you're travelling with. Every rider and passenger completes multi-tier identity checks before taking a seat."
+        visual={<IdScanVisual />}
+      />
+      <SafetyCard
+        accent="#9D90FF"
+        icon={<IconTarget size={20} color="#B9B1FF" />}
+        title="Route Visibility"
+        desc="Understand the shared commute before connecting. Precise pickup points, transparent detour times, and zero mystery."
+        visual={<RouteShareVisual />}
+      />
+      <SafetyCard
+        accent="#FF6B81"
+        icon={
+          <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 12, color: "#FF8A99" }}>SOS</Typography>
         }
         title="Emergency Support"
         desc="Access safety tools when you need them. 24/7 dedicated corridor assistance, live route sharing, and instant SOS dispatch."
+        visual={<SosVisual />}
       />
     </Stack>
 
     <Row
       justify="space-between"
       sx={{
-        bgcolor: "rgba(255,255,255,0.6)",
-        borderRadius: "14px",
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: "16px",
         p: "16px 20px",
         mt: 3,
         flexWrap: "wrap",
-        gap: 1,
+        gap: 1.5,
+        bgcolor: "rgba(255,255,255,0.07)",
+        border: "1px solid rgba(255,255,255,0.14)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+        "& > *": { position: "relative", zIndex: 1 },
+        // a light streak glides across the bar every few seconds
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          width: "30%",
+          zIndex: 0,
+          pointerEvents: "none",
+          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
+          transform: "translateX(-130%) skewX(-20deg)",
+          animation: `${sheen} 5s ease-in-out 1s infinite`,
+        },
       }}
     >
-      <Row spacing={1.2}>
-        <IconShield size={18} color="#0B4B3D" />
-        <Typography sx={{ fontFamily: pageFont, fontSize: 13.5, fontWeight: 600, color: "#242B36" }}>
-          Comprehensive ₹5,00,000 accidental cover included on all scheduled shared commutes.
+      <Row spacing={1.5}>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            flexShrink: 0,
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "rgba(51,214,166,0.18)",
+            animation: `${pulseDot} 2.4s ease-out infinite`,
+          }}
+        >
+          <IconShield size={18} color="#8CF0C9" />
+        </Box>
+        <Typography sx={{ fontFamily: pageFont, fontSize: 14, fontWeight: 500, color: "rgba(255,255,255,0.85)" }}>
+          Comprehensive{" "}
+          <Box
+            component="span"
+            sx={{
+              fontWeight: 800,
+              background: "linear-gradient(90deg, #33D6A6, #8CF0C9)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            ₹<CountOnView to={500000} duration={2200} />
+          </Box>{" "}
+          accidental cover included on all scheduled shared commutes.
         </Typography>
       </Row>
-      <Typography
+      <Box
         sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "6px",
+          px: "16px",
+          py: "8px",
+          borderRadius: "999px",
+          border: "1px solid rgba(140,240,201,0.5)",
+          color: "#8CF0C9",
           fontFamily: pageFont,
           fontSize: 13.5,
           fontWeight: 700,
-          color: "#0B6B4F",
-          display: "inline-flex",
-          gap: "6px",
           cursor: "pointer",
+          transition: "background-color 240ms ease",
+          "&:hover": { bgcolor: "rgba(51,214,166,0.16)" },
           "&:hover .fr-arrow-s": { transform: "translateX(6px)" },
         }}
       >
@@ -1928,7 +2339,7 @@ const SafetySection = () => (
         >
           &gt;
         </Box>
-      </Typography>
+      </Box>
     </Row>
   </Box>
 );
