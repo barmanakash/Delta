@@ -1502,237 +1502,732 @@ const FeatureRow = () => (
 /*  Process section                                                       */
 /* ---------------------------------------------------------------------- */
 
+/* ---- Process: one route that links the three steps ----------------------- */
+
+const SEG = 1400; // ms the route takes to travel from one step to the next
+const RAIL_INSET = "calc((100% - 40px) / 6)"; // centre of the first / last column
+
+const otpPop = keyframes`
+  0%, 6%   { opacity: 0; transform: scale(0.5); }
+  12%      { opacity: 1; transform: scale(1.25); }
+  18%, 80% { opacity: 1; transform: scale(1); }
+  92%, 100%{ opacity: 0; transform: scale(0.8); }
+`;
+const dayPop = keyframes`
+  0%   { transform: scale(0.6); }
+  60%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+`;
+const railDot = keyframes`
+  0%   { left: 0%; opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+`;
+const roadRun = keyframes`
+  0%   { left: 0; opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { left: calc(100% - 10px); opacity: 0; }
+`;
+
+const PROCESS_ACCENTS = ["#0E9F76", "#5B4CF0", "#0E9F76"];
+
+// A line under the title that draws itself, like a route being planned
+const TitleRoute = () => {
+  const [ref, shown] = useInView(0.6);
+  return (
+    <Box ref={ref} aria-hidden="true" sx={{ display: "flex", justifyContent: "center", mt: "10px", height: 14 }}>
+      <svg width="220" height="14" viewBox="0 0 220 14" fill="none" style={{ overflow: "visible" }}>
+        <defs>
+          <linearGradient id="frTitleRoute" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#0E9F76" />
+            <stop offset="1" stopColor="#5B4CF0" />
+          </linearGradient>
+        </defs>
+        <Box
+          component="path"
+          d="M4 9 C 40 2, 70 12, 110 7 S 180 2, 214 8"
+          pathLength="1"
+          stroke="url(#frTitleRoute)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeDasharray="1"
+          sx={{
+            strokeDashoffset: shown ? "0" : "1",
+            transition: `stroke-dashoffset 1400ms ${EASE} 300ms`,
+          }}
+        />
+        <Box
+          component="circle"
+          cx="214"
+          cy="8"
+          r="4"
+          fill="#5B4CF0"
+          sx={{
+            opacity: shown ? 1 : 0,
+            transition: "opacity 300ms ease 1500ms",
+          }}
+        />
+      </svg>
+    </Box>
+  );
+};
+
+// The track above the cards: a route fills left to right and each step "checks in"
+// as it arrives. Hovering a card enlarges its stop.
+const JourneyTrack = ({ shown, hovered }) => (
+  <Box
+    aria-hidden="true"
+    sx={{
+      display: { xs: "none", md: "grid" },
+      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+      columnGap: "20px",
+      position: "relative",
+      height: 40,
+      mt: 5,
+      mb: "14px",
+    }}
+  >
+    {/* dashed rail */}
+    <Box
+      sx={{
+        position: "absolute",
+        top: "50%",
+        left: RAIL_INSET,
+        right: RAIL_INSET,
+        borderTop: "2px dashed #CBD0DB",
+        transform: "translateY(-1px)",
+      }}
+    />
+    {/* progress line */}
+    <Box
+      sx={{
+        position: "absolute",
+        top: "50%",
+        left: RAIL_INSET,
+        right: RAIL_INSET,
+        height: 3,
+        mt: "-1.5px",
+        borderRadius: 2,
+        background: "linear-gradient(90deg, #0E9F76, #5B4CF0, #0E9F76)",
+        transformOrigin: "left",
+        transform: shown ? "scaleX(1)" : "scaleX(0)",
+        transition: `transform ${SEG * 2}ms linear`,
+      }}
+    />
+    {/* a glowing rider that keeps travelling the finished route */}
+    <Box sx={{ position: "absolute", top: "50%", left: RAIL_INSET, right: RAIL_INSET, height: 0 }}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: -6,
+          ml: "-6px",
+          width: 12,
+          height: 12,
+          borderRadius: "50%",
+          bgcolor: "#fff",
+          border: "3px solid #0E9F76",
+          boxShadow: "0 0 0 4px rgba(14,159,118,0.18), 0 4px 10px rgba(14,159,118,0.4)",
+          opacity: 0,
+          animation: shown ? `${railDot} 4.2s ease-in-out ${SEG * 2 + 400}ms infinite` : "none",
+        }}
+      />
+    </Box>
+
+    {PROCESS_ACCENTS.map((accent, i) => {
+      const delay = i * SEG;
+      return (
+        <Box
+          key={i}
+          sx={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <Box
+            sx={{
+              position: "relative",
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: shown ? accent : "#fff",
+              border: `2px solid ${accent}`,
+              boxShadow: shown ? `0 6px 14px ${accent}55` : "none",
+              transform: hovered === i ? "scale(1.25)" : "scale(1)",
+              transition: `background-color 350ms ease ${delay}ms, box-shadow 350ms ease ${delay}ms, transform 300ms ${EASE}`,
+            }}
+          >
+            <Box
+              sx={{
+                position: "absolute",
+                inset: "-2px",
+                borderRadius: "50%",
+                border: `2px solid ${accent}`,
+                opacity: 0,
+                animation: shown ? `${ringOut} 2.8s ease-out ${(delay + 500) / 1000}s infinite` : "none",
+              }}
+            />
+            <Box
+              sx={{
+                display: "inline-flex",
+                opacity: shown ? 1 : 0,
+                transform: shown ? "scale(1)" : "scale(0.4)",
+                transition: `opacity 250ms ease ${delay + 150}ms, transform 400ms ${EASE} ${delay + 150}ms`,
+              }}
+            >
+              <IconCheck size={14} color="#fff" />
+            </Box>
+          </Box>
+        </Box>
+      );
+    })}
+  </Box>
+);
+
+/* ---- Process: the three live mini-demos ---------------------------------- */
+
+const DemoPanel = ({ children, sx }) => (
+  <Box sx={{ bgcolor: "#F7F8FB", borderRadius: "10px", p: "12px 14px", mt: "4px", ...sx }}>{children}</Box>
+);
+
+// Text that types itself in, one character at a time
+const Wipe = ({ shown, delay, chars, children }) => (
+  <Box
+    component="span"
+    sx={{
+      display: "inline-block",
+      whiteSpace: "nowrap",
+      clipPath: shown ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
+      transition: `clip-path ${chars * 45}ms steps(${chars}, end) ${delay}ms`,
+    }}
+  >
+    {children}
+  </Box>
+);
+
+// Step 1: the two places type in, a dot travels between them, then the weekdays switch on
+const WEEKDAYS = ["M", "T", "W", "T", "F"];
+const RouteDemo = () => {
+  const [ref, shown] = useInView(0.4);
+  return (
+    <Box ref={ref}>
+      <DemoPanel>
+        <Row spacing={1}>
+          <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#0E9F76" }} />
+          <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, color: "#151A21", fontWeight: 600 }}>
+            <Wipe shown={shown} delay={300} chars={24}>South Extn. Metro, Gate 2</Wipe>
+          </Typography>
+        </Row>
+        {/* dashed link with a dot travelling from start to destination */}
+        <Box sx={{ position: "relative", height: 22, ml: "3px", borderLeft: "2px dashed #CBD0DB" }}>
+          <Box
+            sx={{
+              position: "absolute",
+              left: "-5px",
+              top: 0,
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              bgcolor: "#0E9F76",
+              opacity: 0,
+              animation: shown ? `${travelDot} 2.2s ease-in-out 1.4s infinite` : "none",
+            }}
+          />
+        </Box>
+        <Row spacing={1}>
+          <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#7C6CF0" }} />
+          <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, color: "#151A21", fontWeight: 600 }}>
+            <Wipe shown={shown} delay={1500} chars={18}>Cyber Park Tower B</Wipe>
+          </Typography>
+        </Row>
+      </DemoPanel>
+
+      <Row justify="space-between" sx={{ mt: "12px" }}>
+        <Box sx={{ display: "flex", gap: "6px" }}>
+          {WEEKDAYS.map((d, i) => {
+            const delay = 2600 + i * 140;
+            return (
+              <Box
+                key={i}
+                sx={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: pageFont,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  bgcolor: shown ? "#0E9F76" : "#EEF0F6",
+                  color: shown ? "#fff" : "#8A9099",
+                  transition: `background-color 300ms ease ${delay}ms, color 300ms ease ${delay}ms`,
+                  animation: shown ? `${dayPop} 500ms ${EASE} ${delay}ms backwards` : "none",
+                }}
+              >
+                {d}
+              </Box>
+            );
+          })}
+        </Box>
+        <Typography
+          sx={{
+            fontFamily: pageFont,
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#5B6472",
+            opacity: shown ? 1 : 0,
+            transition: "opacity 400ms ease 3400ms",
+          }}
+        >
+          8:15 AM
+        </Typography>
+      </Row>
+    </Box>
+  );
+};
+
+// Step 2: a "searching" skeleton resolves into the matched rider, and the shared corridor fills in
+const MatchDemo = () => {
+  const [ref, shown] = useInView(0.4);
+  return (
+    <Box ref={ref}>
+      <DemoPanel sx={{ position: "relative", overflow: "hidden" }}>
+        <Row justify="space-between">
+          <Row spacing={1}>
+            <Avatar sx={{ width: 26, height: 26, fontSize: 12, bgcolor: "#0E9F76" }}>AS</Avatar>
+            <Box>
+              <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, fontWeight: 700, color: "#151A21" }}>
+                Arjun S.
+              </Typography>
+              <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
+                TCS · 4.9 ★
+              </Typography>
+            </Box>
+          </Row>
+          <Pill sx={{ bgcolor: "#E4F6EE", color: "#0E9F76", fontSize: 12, py: "4px", px: "9px" }}>
+            <span>
+              <CountOnView to={92} duration={1400} delay={1200} />% match
+            </span>
+          </Pill>
+        </Row>
+
+        {/* two routes, and how much of them is shared */}
+        <Box sx={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", bgcolor: "#E2DEFB", mt: "12px" }}>
+          <Box sx={{ width: "8%" }} />
+          <Box
+            sx={{
+              flex: 1,
+              bgcolor: "#0E9F76",
+              transformOrigin: "left",
+              transform: shown ? "scaleX(1)" : "scaleX(0)",
+              transition: `transform 1400ms ${EASE} 1200ms`,
+            }}
+          />
+        </Box>
+
+        <Row justify="space-between" sx={{ mt: "8px" }}>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
+            Honda H'ness CB350
+          </Typography>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
+            +2 min detour
+          </Typography>
+        </Row>
+
+        {/* "searching" skeleton that fades away once the match is found */}
+        <Box
+          aria-hidden="true"
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 2,
+            overflow: "hidden",
+            bgcolor: "#F7F8FB",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            gap: "9px",
+            p: "14px",
+            pointerEvents: "none",
+            opacity: shown ? 0 : 1,
+            transition: "opacity 450ms ease 1000ms",
+          }}
+        >
+          <Box sx={{ height: 10, width: "55%", borderRadius: "5px", bgcolor: "#E6E8F0" }} />
+          <Box sx={{ height: 8, width: "35%", borderRadius: "4px", bgcolor: "#E6E8F0" }} />
+          <Typography sx={{ fontFamily: pageFont, fontSize: 11.5, color: "#8A9099", mt: "2px" }}>
+            Matching riders on your corridor…
+          </Typography>
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              left: 0,
+              width: "40%",
+              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent)",
+              animation: `${sheen} 1.4s ease-in-out infinite`,
+            }}
+          />
+        </Box>
+      </DemoPanel>
+    </Box>
+  );
+};
+
+// Step 3: the OTP is keyed in digit by digit while a rider heads for the drop-off
+const OTP_DIGITS = ["4", "2", "8", "1"];
+const TravelDemo = () => {
+  const [ref, shown] = useInView(0.4);
+  return (
+    <Box ref={ref}>
+      <DemoPanel>
+        <Row justify="space-between">
+          <Row spacing={1}>
+            <Box
+              sx={{
+                width: 22,
+                height: 22,
+                borderRadius: "50%",
+                bgcolor: "#0E9F76",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                animation: `${pulseDot} 2.2s ease-out infinite`,
+              }}
+            >
+              <IconCheck size={12} color="#fff" />
+            </Box>
+            <Box>
+              <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, fontWeight: 700, color: "#151A21" }}>
+                Ready to Roll
+              </Typography>
+              <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
+                OTP &amp; Helmet Verified
+              </Typography>
+            </Box>
+          </Row>
+          <Box sx={{ textAlign: "right" }}>
+            <Typography sx={{ fontFamily: pageFont, fontSize: 13, fontWeight: 800, color: "#151A21" }}>
+              ₹<CountOnView to={45} />
+            </Typography>
+            <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
+              Fuel share
+            </Typography>
+          </Box>
+        </Row>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: "6px", mt: "14px" }}>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099", mr: "4px" }}>OTP</Typography>
+          {OTP_DIGITS.map((d, i) => (
+            <Box
+              key={i}
+              sx={{
+                width: 24,
+                height: 28,
+                borderRadius: "7px",
+                border: "1px solid #D5D9E4",
+                bgcolor: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontFamily: pageFont,
+                fontWeight: 800,
+                fontSize: 13,
+                color: "#151A21",
+              }}
+            >
+              <Box
+                component="span"
+                sx={{
+                  opacity: 0,
+                  animation: shown ? `${otpPop} 7s ease-in-out ${0.4 + i * 0.45}s infinite` : "none",
+                }}
+              >
+                {d}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+
+        {/* the ride itself: a dot heading for the drop-off */}
+        <Box sx={{ position: "relative", height: 14, mt: "14px" }}>
+          <Box sx={{ position: "absolute", top: "50%", left: 0, right: 0, borderTop: "2px dashed #CBD0DB" }} />
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              mt: "-5px",
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              bgcolor: "#0E9F76",
+              boxShadow: "0 0 0 4px rgba(14,159,118,0.2)",
+              opacity: 0,
+              animation: shown ? `${roadRun} 3.6s ease-in-out infinite` : "none",
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              right: 0,
+              mt: "-5px",
+              width: 10,
+              height: 10,
+              borderRadius: "3px",
+              bgcolor: "#7C6CF0",
+            }}
+          />
+        </Box>
+      </DemoPanel>
+    </Box>
+  );
+};
+
+/* ---- Process: card shell (cursor glow + 3D tilt) and the section --------- */
+
 const ProcessCard = (props) => (
   <RevealItem>
     <ProcessCardBody {...props} />
   </RevealItem>
 );
 
-const ProcessCardBody = ({ number, iconBg, icon, title, desc, children, accent = "#0E9F76" }) => (
-  <Box
-    className="hover-lift"
-    sx={{
-      position: "relative",
-      overflow: "hidden",
-      flex: 1,
-      bgcolor: "#fff",
-      borderRadius: "18px",
-      border: "1px solid #ECEDF3",
-      p: "24px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "14px",
-      transition: CARD_TRANSITION,
-      // accent bar sweeps along the bottom on hover
-      "&::after": {
-        content: '""',
-        position: "absolute",
-        left: 0,
-        bottom: 0,
-        width: "100%",
-        height: 3,
-        background: accent,
-        transform: "scaleX(0)",
-        transformOrigin: "left",
-        transition: `transform 480ms ${EASE}`,
-      },
-      "&:hover": { borderColor: accent },
-      "&:hover::after": { transform: "scaleX(1)" },
-      "&:hover .fr-num": { color: accent, transform: "translateX(4px)" },
-      "&:hover .fr-icon": { transform: "scale(1.12) rotate(-8deg)" },
-    }}
-  >
-    <Row justify="space-between" align="flex-start">
-      <Typography
-        className="fr-num"
-        sx={{
-          fontFamily: pageFont,
-          fontWeight: 800,
-          fontSize: 30,
-          color: "#DDE0E8",
-          transition: `color 300ms ease, transform 300ms ${EASE}`,
-        }}
-      >
-        {number}
-      </Typography>
-      <Box
-        className="fr-icon"
-        sx={{
-          transition: `transform 300ms ${EASE}`,
-          width: 38,
-          height: 38,
-          borderRadius: "10px",
-          bgcolor: iconBg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {icon}
-      </Box>
-    </Row>
-    <Typography sx={{ fontFamily: pageFont, fontWeight: 700, fontSize: 17, color: "#151A21" }}>
-      {title}
-    </Typography>
-    <Typography sx={{ fontFamily: pageFont, fontSize: 13.5, lineHeight: 1.6, color: "#7A8090" }}>
-      {desc}
-    </Typography>
-    {children}
-  </Box>
-);
+const ProcessCardBody = ({ index, onHover, number, iconBg, icon, title, desc, children, accent = "#0E9F76" }) => {
+  // pointer position goes into CSS variables (no re-render): the glow follows the
+  // cursor and the card tilts towards it
+  const handleMove = (e) => {
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    el.style.setProperty("--sx", `${x}px`);
+    el.style.setProperty("--sy", `${y}px`);
+    el.style.setProperty("--tx", ((x / r.width) * 2 - 1).toFixed(3));
+    el.style.setProperty("--ty", ((y / r.height) * 2 - 1).toFixed(3));
+  };
+  const handleLeave = (e) => {
+    e.currentTarget.style.setProperty("--tx", "0");
+    e.currentTarget.style.setProperty("--ty", "0");
+    if (onHover) onHover(null);
+  };
 
-const ProcessSection = () => (
-  <Box id="how-it-works" sx={{ py: { xs: 7, md: 10 }, textAlign: "center", scrollMarginTop: "72px" }}>
-    <Reveal>
-      <Pill sx={{ bgcolor: "#EEF0F6", color: "#5B6472", mb: "18px" }}>PROCESS</Pill>
-      <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: { xs: 26, md: 34 }, color: "#12151A" }}>
-        Simple, Predictable Commuting
-      </Typography>
-      <Typography
-        sx={{
-          fontFamily: pageFont,
-          fontSize: 15,
-          color: "#7A8090",
-          maxWidth: 480,
-          mx: "auto",
-          mt: "12px",
-          lineHeight: 1.6,
-        }}
-      >
-        Three intuitive steps to transform your daily transit routine from congested to collaborative.
-      </Typography>
-    </Reveal>
-
-    <Stack
-      direction={{ xs: "column", md: "row" }}
-      spacing={2.5}
-      sx={{ mt: 5, textAlign: "left", ...staggerRow }}
+  return (
+    <Box
+      data-no-lift
+      onMouseMove={handleMove}
+      onMouseEnter={() => onHover && onHover(index)}
+      onMouseLeave={handleLeave}
+      sx={{
+        position: "relative",
+        overflow: "hidden",
+        flex: 1,
+        bgcolor: "#fff",
+        borderRadius: "18px",
+        border: "1px solid #ECEDF3",
+        p: "24px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "14px",
+        transform:
+          "perspective(900px) translateY(var(--lift, 0px)) rotateY(calc(var(--tx, 0) * 5deg)) rotateX(calc(var(--ty, 0) * -4deg))",
+        transition: "border-color 260ms ease, box-shadow 300ms ease, transform 220ms ease-out",
+        "& > *": { position: "relative", zIndex: 1 },
+        // soft glow that follows the mouse
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          opacity: 0,
+          transition: "opacity 300ms ease",
+          background: `radial-gradient(300px circle at var(--sx, 50%) var(--sy, 0%), ${accent}1F, transparent 70%)`,
+        },
+        // accent bar sweeps along the bottom on hover
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          left: 0,
+          bottom: 0,
+          width: "100%",
+          height: 3,
+          background: accent,
+          transform: "scaleX(0)",
+          transformOrigin: "left",
+          transition: `transform 480ms ${EASE}`,
+        },
+        "&:hover": {
+          "--lift": "-6px",
+          borderColor: accent,
+          boxShadow: `0 22px 40px ${accent}26`,
+        },
+        "&:hover::before": { opacity: 1 },
+        "&:hover::after": { transform: "scaleX(1)" },
+        "&:hover .fr-num": { color: accent, transform: "translateX(4px)" },
+        "&:hover .fr-icon": { transform: "scale(1.12) rotate(-8deg)" },
+      }}
     >
-      <ProcessCard
-        accent="#0E9F76"
-        number="01"
-        iconBg="#E4F6EE"
-        icon={<IconShieldPlus size={18} />}
-        title="Set Your Route"
-        desc="Tell FriendRide where you're starting and where you're going. Choose your regular morning or evening schedule."
-      >
-        <Box sx={{ bgcolor: "#F7F8FB", borderRadius: "10px", p: "12px 14px", mt: "4px" }}>
-          <Row spacing={1}>
-            <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#0E9F76" }} />
-            <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, color: "#151A21", fontWeight: 600 }}>
-              South Extn. Metro, Gate 2
-            </Typography>
-          </Row>
-          {/* dashed link with a dot travelling from start to destination */}
-          <Box sx={{ position: "relative", height: 22, ml: "3px", borderLeft: "2px dashed #CBD0DB" }}>
-            <Box
-              sx={{
-                position: "absolute",
-                left: "-5px",
-                top: 0,
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                bgcolor: "#0E9F76",
-                animation: `${travelDot} 2.2s ease-in-out infinite`,
-              }}
-            />
-          </Box>
-          <Row spacing={1}>
-            <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#7C6CF0" }} />
-            <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, color: "#151A21", fontWeight: 600 }}>
-              Cyber Park Tower B
-            </Typography>
-          </Row>
+      <Row justify="space-between" align="flex-start">
+        <Typography
+          className="fr-num"
+          sx={{
+            fontFamily: pageFont,
+            fontWeight: 800,
+            fontSize: 30,
+            color: "#DDE0E8",
+            transition: `color 300ms ease, transform 300ms ${EASE}`,
+          }}
+        >
+          {number}
+        </Typography>
+        <Box
+          className="fr-icon"
+          sx={{
+            transition: `transform 300ms ${EASE}`,
+            width: 38,
+            height: 38,
+            borderRadius: "10px",
+            bgcolor: iconBg,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {icon}
         </Box>
-      </ProcessCard>
+      </Row>
+      <Typography sx={{ fontFamily: pageFont, fontWeight: 700, fontSize: 17, color: "#151A21" }}>
+        {title}
+      </Typography>
+      <Typography sx={{ fontFamily: pageFont, fontSize: 13.5, lineHeight: 1.6, color: "#7A8090" }}>
+        {desc}
+      </Typography>
+      {children}
+    </Box>
+  );
+};
 
-      <ProcessCard
-        accent="#5B4CF0"
-        number="02"
-        iconBg="#EAE7FC"
-        icon={<IconNetwork size={18} />}
-        title="Find a Match"
-        desc="Discover compatible people travelling along the same corridor with transparent detour metrics and profile verification."
-      >
-        <Box sx={{ bgcolor: "#F7F8FB", borderRadius: "10px", p: "12px 14px", mt: "4px" }}>
-          <Row justify="space-between">
-            <Row spacing={1}>
-              <Avatar sx={{ width: 26, height: 26, fontSize: 12, bgcolor: "#0E9F76" }}>AS</Avatar>
-              <Box>
-                <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, fontWeight: 700, color: "#151A21" }}>
-                  Arjun S.
-                </Typography>
-                <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
-                  TCS · 4.9 ★
-                </Typography>
-              </Box>
-            </Row>
-            <Pill sx={{ bgcolor: "#E4F6EE", color: "#0E9F76", fontSize: 12, py: "4px", px: "9px" }}>
-              <span>
-                <CountOnView to={92} />% match
-              </span>
-            </Pill>
-          </Row>
-          <Row justify="space-between" sx={{ mt: "8px" }}>
-            <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
-              Honda H'ness CB350
-            </Typography>
-            <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
-              +2 min detour
-            </Typography>
-          </Row>
-        </Box>
-      </ProcessCard>
+const ProcessSection = () => {
+  const [ref, shown] = useInView(0.2);
+  const [hovered, setHovered] = useState(null);
 
-      <ProcessCard
-        accent="#0E9F76"
-        number="03"
-        iconBg="#E4F6EE"
-        icon={<IconLoop size={18} />}
-        title="Travel Together"
-        desc="Connect, coordinate pickup, and complete your shared commute with shared fuel contributions and peace of mind."
+  return (
+    <Box
+      id="how-it-works"
+      sx={{
+        position: "relative",
+        isolation: "isolate",
+        py: { xs: 7, md: 10 },
+        textAlign: "center",
+        scrollMarginTop: "72px",
+      }}
+    >
+      {/* two slow colour blobs drifting behind the section */}
+      <Box
+        aria-hidden="true"
+        sx={{ position: "absolute", inset: 0, zIndex: -1, overflow: "hidden", pointerEvents: "none" }}
       >
-        <Box sx={{ bgcolor: "#F7F8FB", borderRadius: "10px", p: "12px 14px", mt: "4px" }}>
-          <Row justify="space-between">
-            <Row spacing={1}>
-              <Box
-                sx={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: "50%",
-                  bgcolor: "#0E9F76",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  animation: `${pulseDot} 2.2s ease-out infinite`,
-                }}
-              >
-                <IconCheck size={12} color="#fff" />
-              </Box>
-              <Box>
-                <Typography sx={{ fontFamily: pageFont, fontSize: 12.5, fontWeight: 700, color: "#151A21" }}>
-                  Ready to Roll
-                </Typography>
-                <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
-                  OTP &amp; Helmet Verified
-                </Typography>
-              </Box>
-            </Row>
-            <Box sx={{ textAlign: "right" }}>
-              <Typography sx={{ fontFamily: pageFont, fontSize: 13, fontWeight: 800, color: "#151A21" }}>
-                ₹<CountOnView to={45} />
-              </Typography>
-              <Typography sx={{ fontFamily: pageFont, fontSize: 12, color: "#8A9099" }}>
-                Fuel share
-              </Typography>
-            </Box>
-          </Row>
-        </Box>
-      </ProcessCard>
-    </Stack>
-  </Box>
-);
+        <Box
+          sx={{
+            position: "absolute",
+            top: "28%",
+            left: "-6%",
+            width: 360,
+            height: 360,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(14,159,118,0.10), transparent 65%)",
+            animation: `${blobA} 16s ease-in-out infinite`,
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: "-4%",
+            right: "-6%",
+            width: 400,
+            height: 400,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(124,108,240,0.12), transparent 65%)",
+            animation: `${blobB} 19s ease-in-out infinite`,
+          }}
+        />
+      </Box>
+
+      <Reveal>
+        <Pill sx={{ bgcolor: "#EEF0F6", color: "#5B6472", mb: "18px" }}>PROCESS</Pill>
+        <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: { xs: 26, md: 34 }, color: "#12151A" }}>
+          Simple, Predictable Commuting
+        </Typography>
+        <TitleRoute />
+        <Typography
+          sx={{
+            fontFamily: pageFont,
+            fontSize: 15,
+            color: "#7A8090",
+            maxWidth: 480,
+            mx: "auto",
+            mt: "12px",
+            lineHeight: 1.6,
+          }}
+        >
+          Three intuitive steps to transform your daily transit routine from congested to collaborative.
+        </Typography>
+      </Reveal>
+
+      <Box ref={ref}>
+        <JourneyTrack shown={shown} hovered={hovered} />
+
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2.5}
+          sx={{ mt: { xs: 5, md: 0 }, textAlign: "left", ...staggerRow }}
+        >
+          <ProcessCard
+            index={0}
+            onHover={setHovered}
+            accent="#0E9F76"
+            number="01"
+            iconBg="#E4F6EE"
+            icon={<IconShieldPlus size={18} />}
+            title="Set Your Route"
+            desc="Tell FriendRide where you're starting and where you're going. Choose your regular morning or evening schedule."
+          >
+            <RouteDemo />
+          </ProcessCard>
+
+          <ProcessCard
+            index={1}
+            onHover={setHovered}
+            accent="#5B4CF0"
+            number="02"
+            iconBg="#EAE7FC"
+            icon={<IconNetwork size={18} />}
+            title="Find a Match"
+            desc="Discover compatible people travelling along the same corridor with transparent detour metrics and profile verification."
+          >
+            <MatchDemo />
+          </ProcessCard>
+
+          <ProcessCard
+            index={2}
+            onHover={setHovered}
+            accent="#0E9F76"
+            number="03"
+            iconBg="#E4F6EE"
+            icon={<IconLoop size={18} />}
+            title="Travel Together"
+            desc="Connect, coordinate pickup, and complete your shared commute with shared fuel contributions and peace of mind."
+          >
+            <TravelDemo />
+          </ProcessCard>
+        </Stack>
+      </Box>
+    </Box>
+  );
+};
 
 /* ---------------------------------------------------------------------- */
 /*  Safety section                                                        */
