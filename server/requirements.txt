@@ -9,3 +9,4 @@ pydantic[email-validator]>=2.9,<3
 python-dotenv==1.0.1
 python-multipart==0.0.9
 email-validator==2.2.0
+stripe>=10.12.0

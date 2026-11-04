@@ -34,5 +34,14 @@ class Settings:
     IDENTITY_DOC_SUBDIR: str = "identity_documents"
     MAX_ID_DOC_BYTES: int = 10 * 1024 * 1024  # 10 MB
 
+    # ---- Payments (TEST MODE ONLY, no real money) ---------------------------
+    # Where the React app lives: payment pages send people back here.
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
+    # Leave STRIPE_SECRET_KEY empty to use the built-in sandbox checkout (no
+    # account needed). Put a Stripe TEST key (sk_test_...) in server/.env to use
+    # Stripe's hosted test checkout instead. Live keys (sk_live_...) are refused.
+    STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "").strip()
+    PAYMENT_PROVIDER: str = "stripe" if os.getenv("STRIPE_SECRET_KEY", "").strip() else "sandbox"
+
 
 settings = Settings()

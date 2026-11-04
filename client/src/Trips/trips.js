@@ -16,6 +16,7 @@ import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlin
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
+import CreditCardOutlinedIcon from "@mui/icons-material/CreditCardOutlined";
 
 import { RiderHeader, RiderFooter } from "../riderlayout/riderlayout";
 import { LiftTakerHeader, LiftTakerFooter } from "../lifttakerlayout/lifttakerlayout";
@@ -140,6 +141,8 @@ export default function Trips() {
   const [tab, setTab] = useState("upcoming");
   const [selectedId, setSelectedId] = useState(null);
   const [mapRoute, setMapRoute] = useState(IDLE_MAP);
+  const [payBusy, setPayBusy] = useState(null); // id of the trip a payment/cancel call is running for
+  const [notice, setNotice] = useState(null); // { type: "error" | "success", text }
 
   const role = data?.role || user?.role || "rider";
   const copy = COPY[role === "lift" ? "lift" : "rider"];
@@ -183,6 +186,75 @@ export default function Trips() {
   useEffect(() => {
     load();
   }, [load]);
+
+  /* ---- quiet refresh: a payment or cancellation made by the other person shows up here without a reload ---- */
+  useEffect(() => {
+    const id = setInterval(async () => {
+      if (document.hidden || !localStorage.getItem("access_token")) return;
+      try {
+        const { ok, data: body } = await apiRequest("/api/trips");
+        if (ok && body) setData(body);
+      } catch {
+        // offline: keep what's on screen
+      }
+    }, 15000);
+    return () => clearInterval(id);
+  }, []);
+
+  /* ---- payments (TEST MODE: no real money) ------------------------- */
+  const startPayment = async (trip) => {
+    setNotice(null);
+    setPayBusy(trip.id);
+    try {
+      const { ok, status, data: body } = await apiRequest(`/api/payments/trips/${trip.id}/checkout`, {
+        method: "POST",
+      });
+      if (status === 401) {
+        clearSession();
+        navigate("/signin", { replace: true });
+        return;
+      }
+      if (!ok || !body?.checkout_url) {
+        setNotice({ type: "error", text: errorText(body, "Couldn't start the payment. Please try again.") });
+        setPayBusy(null);
+        return;
+      }
+      // Off to Stripe's test checkout (or FriendRide's practice page).
+      // They send us back to /payment/result, which verifies the payment.
+      window.location.assign(body.checkout_url);
+    } catch {
+      setNotice({ type: "error", text: "Unable to connect to server. Please make sure the backend is running." });
+      setPayBusy(null);
+    }
+  };
+
+  const cancelTrip = async (trip) => {
+    const question =
+      trip.payment_status === "paid"
+        ? `Cancel this trip? Your ₹${trip.fare} payment will be refunded.`
+        : "Cancel this trip?";
+    if (!window.confirm(question)) return;
+
+    setNotice(null);
+    setPayBusy(trip.id);
+    try {
+      const { ok, status, data: body } = await apiRequest(`/api/trips/${trip.id}/cancel`, { method: "POST" });
+      if (status === 401) {
+        clearSession();
+        navigate("/signin", { replace: true });
+        return;
+      }
+      if (!ok) {
+        setNotice({ type: "error", text: errorText(body, "Couldn't cancel this trip.") });
+      } else {
+        setNotice({ type: "success", text: body?.message || "Trip cancelled." });
+        await load();
+      }
+    } catch {
+      setNotice({ type: "error", text: "Unable to connect to server. Please make sure the backend is running." });
+    }
+    setPayBusy(null);
+  };
 
   /* ---- the real signed-in user (never fixed text) ------------------ */
   useEffect(() => {
@@ -229,7 +301,8 @@ export default function Trips() {
     () => trips.filter((t) => t.phase === "past").sort((a, b) => b.span.start - a.span.start),
     [trips]
   );
-  const fareTotal = past.reduce((sum, t) => sum + t.fare, 0);
+  // Only money that was really paid counts (not trips that are merely booked)
+  const fareTotal = trips.filter((t) => t.payment_status === "paid").reduce((sum, t) => sum + t.fare, 0);
 
   const list = tab === "upcoming" ? upcoming : past;
   const selected = list.find((t) => t.id === selectedId) || list[0] || null;
@@ -344,6 +417,12 @@ export default function Trips() {
               {copy.cta.label}
             </Button>
           </Box>
+
+          {notice && (
+            <Alert severity={notice.type} onClose={() => setNotice(null)} style={{ marginTop: 20, borderRadius: 12 }}>
+              {notice.text}
+            </Alert>
+          )}
 
           {loadState === "loading" && (
             <Box style={{ display: "flex", justifyContent: "center", padding: "90px 0" }}>
@@ -484,7 +563,17 @@ export default function Trips() {
                   {/* details */}
                   <Box id="trip-detail" style={{ minWidth: 0, position: "sticky", top: 84 }}>
                     {selected ? (
-                      <TripDetail trip={selected} copy={copy} now={now} todayIso={todayIso} mapRoute={mapRoute} />
+                      <TripDetail
+                        trip={selected}
+                        copy={copy}
+                        now={now}
+                        todayIso={todayIso}
+                        mapRoute={mapRoute}
+                        isLift={role === "lift"}
+                        busy={payBusy === selected.id}
+                        onPay={() => startPayment(selected)}
+                        onCancel={() => cancelTrip(selected)}
+                      />
                     ) : (
                       <Box style={{ ...cardStyle, padding: "32px 24px", textAlign: "center", color: muted, fontSize: 14 }}>
                         Select a trip to see its route and details.
@@ -631,6 +720,9 @@ function TripCard({ trip, copy, now, todayIso, active, onSelect }) {
         <Box style={{ textAlign: "right", flexShrink: 0 }}>
           <Typography style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.4px", lineHeight: 1.1 }}>₹{trip.fare}</Typography>
           <Typography style={{ fontSize: 12, color: muted, marginTop: 2 }}>Fuel-split</Typography>
+          <Box style={{ marginTop: 6 }}>
+            <PayPill state={trip.payment_status} rider={copy.other === "Lift taker"} />
+          </Box>
         </Box>
       </Box>
 
@@ -669,7 +761,7 @@ function Stop({ dot, time, title, sub }) {
   );
 }
 
-function TripDetail({ trip, copy, now, todayIso, mapRoute }) {
+function TripDetail({ trip, copy, now, todayIso, mapRoute, isLift, busy, onPay, onCancel }) {
   const chip = timingChip(trip, now);
   const ready = mapRoute.status === "ready";
 
@@ -786,6 +878,8 @@ function TripDetail({ trip, copy, now, todayIso, mapRoute }) {
           <Stop dot={indigo} time={trip.arrival_time} title={trip.destination} sub={`Drop-off · ${trip.arrival_point}`} />
         </Box>
 
+        <PaymentPanel trip={trip} isLift={isLift} now={now} busy={busy} onPay={onPay} onCancel={onCancel} />
+
         {/* facts */}
         <Box className="tp-info" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, marginTop: 20 }}>
           <Fact icon={<AccessTimeOutlinedIcon />} label="Est. ride time" value={`~${trip.duration_min} mins`} sub={trip.route_note} />
@@ -804,6 +898,136 @@ function TripDetail({ trip, copy, now, todayIso, mapRoute }) {
           {copy.privacy}
         </Box>
       </Box>
+    </Box>
+  );
+}
+
+const PAY_TONES = {
+  paid: { label: "Paid", bg: "#d6f3ef", fg: "#00695f" },
+  pending: { label: "Payment pending", bg: "#fff4dc", fg: "#7a5300" },
+  failed: { label: "Payment failed", bg: "#fde2e2", fg: "#a12626" },
+  refunded: { label: "Refunded", bg: "#eceefb", fg: "#4b5468" },
+  unpaid: { label: "Not paid yet", bg: "#ffe9d6", fg: "#9a4a00" },
+};
+
+const RIDER_PAY_LABELS = {
+  paid: "Payment received",
+  pending: "Payment in progress",
+  failed: "Awaiting payment",
+  unpaid: "Awaiting payment",
+};
+
+function PayPill({ state, rider }) {
+  const tone = PAY_TONES[state] || PAY_TONES.unpaid;
+  // riders read the same state from the receiving side
+  const label = (rider && RIDER_PAY_LABELS[state]) || tone.label;
+  return (
+    <Box
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        background: tone.bg,
+        color: tone.fg,
+        borderRadius: 8,
+        padding: "3px 10px",
+        fontSize: 12,
+        fontWeight: 800,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {label}
+    </Box>
+  );
+}
+
+// Payment status for one trip. The lift taker also gets the Pay / Cancel buttons.
+function PaymentPanel({ trip, isLift, now, busy, onPay, onCancel }) {
+  const state = trip.payment_status || "unpaid";
+  const canPay = isLift && ["unpaid", "pending", "failed"].includes(state);
+  const canCancel = isLift && trip.status === "matched" && trip.span.start > now;
+
+  let message;
+  if (state === "paid") {
+    const when = trip.paid_at
+      ? new Date(trip.paid_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+      : "";
+    message = isLift
+      ? `You paid ₹${trip.fare}${when ? ` on ${when}` : ""}.`
+      : `You received ₹${trip.fare} from ${trip.counterpart.name}${when ? ` on ${when}` : ""}.`;
+  } else if (state === "refunded") {
+    message = "This payment was refunded.";
+  } else if (!isLift) {
+    message = "The lift taker hasn't paid the fuel-split yet.";
+  } else if (state === "failed") {
+    message = "Your last payment didn't go through. You can try again.";
+  } else if (state === "pending") {
+    message = "You started a payment but it isn't finished yet.";
+  } else {
+    message = `Pay your ₹${trip.fare} fuel-split to confirm the trip.`;
+  }
+
+  const payLabel = state === "failed" ? "Try payment again" : state === "pending" ? "Continue to payment" : `Pay ₹${trip.fare}`;
+
+  return (
+    <Box style={{ border: "1px solid #e4e6f3", borderRadius: 14, padding: "16px", marginTop: 16 }}>
+      <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <Box style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, fontWeight: 800 }}>
+          <CreditCardOutlinedIcon style={{ fontSize: 20, color: teal }} />
+          Payment
+        </Box>
+        <PayPill state={state} rider={!isLift} />
+      </Box>
+      <Typography style={{ fontSize: 13, color: muted, marginTop: 8, lineHeight: 1.5 }}>{message}</Typography>
+
+      {(canPay || canCancel) && (
+        <Box style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+          {canPay && (
+            <Button
+              disableElevation
+              disabled={busy}
+              onClick={onPay}
+              startIcon={busy ? null : <CreditCardOutlinedIcon style={{ fontSize: 18 }} />}
+              style={{
+                background: teal,
+                color: "#fff",
+                borderRadius: 12,
+                padding: "9px 20px",
+                textTransform: "none",
+                fontWeight: 800,
+                fontSize: 14,
+                opacity: busy ? 0.7 : 1,
+              }}
+            >
+              {busy ? <CircularProgress size={18} style={{ color: "#fff" }} /> : payLabel}
+            </Button>
+          )}
+          {canCancel && (
+            <Button
+              disableElevation
+              disabled={busy}
+              onClick={onCancel}
+              style={{
+                background: "#fff",
+                color: "#a12626",
+                border: "1px solid #f0c4c4",
+                borderRadius: 12,
+                padding: "9px 20px",
+                textTransform: "none",
+                fontWeight: 700,
+                fontSize: 14,
+              }}
+            >
+              {state === "paid" ? "Cancel trip & refund" : "Cancel trip"}
+            </Button>
+          )}
+        </Box>
+      )}
+
+      {canPay && (
+        <Typography style={{ fontSize: 12, color: muted, marginTop: 10, lineHeight: 1.5 }}>
+          Test mode: no real money moves. On Stripe's page use card 4242 4242 4242 4242 with any future expiry and any CVC.
+        </Typography>
+      )}
     </Box>
   );
 }

@@ -6,15 +6,19 @@ every trip: a rider sees the lift taker they are carrying, a lift taker sees
 the rider and vehicle they will travel with.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from bson import ObjectId
+from bson.errors import InvalidId
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.config import settings
 from app.database import get_lift_requests_collection, get_users_collection
 from app.models.trip import Trip, TripPerson, TripsResponse
+from app.models.user import MessageResponse
 from app.routes.rides import _first_name, _verification_label
+from app.utils import payments as provider
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/api/trips", tags=["Trips"])
@@ -101,6 +105,8 @@ def _build_trip(
         board_index=board,
         alight_index=alight,
         matched_at=doc.get("matched_at"),
+        payment_status=(doc.get("payment") or {}).get("status", "unpaid"),
+        paid_at=(doc.get("payment") or {}).get("paid_at"),
     )
     return trip, start
 
@@ -150,4 +156,67 @@ async def list_trips(current_user: dict = Depends(get_current_user)):
         upcoming_count=len(upcoming),
         past_count=len(past),
         fare_total=sum(t.fare for _, t in past),
+    )
+
+
+@router.post(
+    "/{trip_id}/cancel",
+    response_model=MessageResponse,
+    summary="Cancel an upcoming trip (lift takers). A paid trip is refunded.",
+)
+async def cancel_trip(
+    trip_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    The lift taker gives up a trip that hasn't started. The rider's pillion seat
+    becomes free again, and if the trip was already paid the money is refunded
+    first (if the refund fails the trip stays booked, so nothing is lost).
+    """
+    if current_user.get("role") != "lift":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the lift taker can cancel a trip",
+        )
+    try:
+        oid = ObjectId(trip_id)
+    except (InvalidId, TypeError):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
+
+    lifts = get_lift_requests_collection()
+    doc = await lifts.find_one(
+        {"_id": oid, "user_id": current_user["_id"], "status": "matched"}
+    )
+    if not doc or not doc.get("accepted_match"):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
+
+    start, _ = _trip_span(doc, doc["accepted_match"])
+    if start <= datetime.now():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This trip has already started, so it can't be cancelled",
+        )
+
+    payment = doc.get("payment") or {}
+    refunded = payment.get("status") == "paid"
+    if refunded:
+        await provider.refund(payment)  # raises (and nothing changes) if it fails
+
+    now = datetime.now(timezone.utc)
+    changes = {
+        "status": "cancelled",
+        "cancelled_at": now,
+        "cancel_reason": "trip_cancelled",
+    }
+    if refunded:
+        changes.update({"payment.status": "refunded", "payment.refunded_at": now})
+    elif payment.get("status") == "pending":
+        changes["payment.status"] = "failed"  # an unfinished payment is dropped
+
+    await lifts.update_one({"_id": oid, "status": "matched"}, {"$set": changes})
+
+    return MessageResponse(
+        message="Trip cancelled. Your payment has been refunded."
+        if refunded
+        else "Trip cancelled."
     )

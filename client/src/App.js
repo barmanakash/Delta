@@ -20,6 +20,7 @@ import ConfirmRequest from './confimrequest/confirmrequest'
 import MatchRequest from './matchRequest/MatchConfirm'
 import Trips from './Trips/trips';
 import VerifyPassanger from './verifypassanger/VerifyPassenger'
+import { SandboxCheckout, PaymentResult } from './payment/payment'
 import { useCardHover } from "./motion";
 
 // Wraps every page in a fade-in (see .page-fade in index.css) and starts each
@@ -61,6 +62,9 @@ function AnimatedRoutes() {
         <Route path="/matchrequest" element={<Navigate to="/liftrequest" replace />} />
         <Route path="/trips" element={<Trips />} />
         <Route path="/verifypassanger" element={<VerifyPassanger />} />
+        {/* Payments (test mode): the practice checkout and the page Stripe returns to */}
+        <Route path="/pay/:sessionId" element={<SandboxCheckout />} />
+        <Route path="/payment/result" element={<PaymentResult />} />
       </Routes>
     </div>
   );

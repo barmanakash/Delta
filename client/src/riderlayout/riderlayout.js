@@ -10,6 +10,7 @@ import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 
 import ProfileMenu from "../profilemenu/profilemenu";
+import PaymentReceivedToast from "../payment/paymentreceived";
 
 /**
  * The rider's top navigation bar, the same one the rider home shows:
@@ -220,6 +221,7 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
           <ProfileMenu user={user} photoUrl={photoUrl} />
         </Box>
       </Box>
+    <PaymentReceivedToast enabled={user?.role === "rider"} />
     </>
   );
 }

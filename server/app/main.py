@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.routes.auth import router as auth_router
 from app.routes.lifts import router as lifts_router
+from app.routes.payments import router as payments_router
 from app.routes.rides import router as rides_router
 from app.routes.trips import router as trips_router
 
@@ -39,6 +40,7 @@ app.include_router(auth_router)
 app.include_router(lifts_router)
 app.include_router(rides_router)
 app.include_router(trips_router)
+app.include_router(payments_router)
 
 # ---------------------------------------------------------------------------
 #  Static files — uploaded profile photos are served from /uploads/...

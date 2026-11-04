@@ -59,6 +59,10 @@ class Trip(BaseModel):
 
     matched_at: Optional[datetime] = None
 
+    # Payment for this trip (test mode): unpaid | pending | paid | failed | refunded
+    payment_status: str = "unpaid"
+    paid_at: Optional[datetime] = None
+
 
 class TripsResponse(BaseModel):
     role: str
