@@ -54,9 +54,29 @@ const lightBg = "#f8f8ff";
 const lavender = "#f0f1fc";
 const API_BASE_URL = "http://localhost:8000";
 
+// "Good morning" / "Good afternoon" / "Good evening" from the visitor's own clock.
+function greetingFor(date) {
+  const hour = date.getHours();
+  if (hour >= 5 && hour < 12) return "Good morning";
+  if (hour >= 12 && hour < 17) return "Good afternoon";
+  if (hour >= 17 && hour < 21) return "Good evening";
+  return "Hello"; // late night / very early
+}
+
+// Re-checks every minute, so the greeting changes while the page stays open
+function useGreeting() {
+  const [greeting, setGreeting] = useState(() => greetingFor(new Date()));
+  useEffect(() => {
+    const id = setInterval(() => setGreeting(greetingFor(new Date())), 60000);
+    return () => clearInterval(id);
+  }, []);
+  return greeting;
+}
+
 export default function App() {
   const navigate = useNavigate();
 
+  const greeting = useGreeting();
   const [fullName, setFullName] = useState("");
   const [photoUrl, setPhotoUrl] = useState(null);
   const [role, setRole] = useState("rider");
@@ -455,7 +475,7 @@ export default function App() {
                   letterSpacing: "-0.7px",
                 }}
               >
-                Good morning, {firstName}
+                {greeting}, {firstName}
               </Typography>
 
               <Chip
