@@ -147,13 +147,6 @@ const IconCompass = ({ size = 18, color = "#0E9F76" }) => (
   </svg>
 );
 
-const IconUser = ({ size = 18, color = "#fff" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="8.5" r="3.4" stroke={color} strokeWidth="1.7" />
-    <path d="M5 19.5c1.2-3 4-4.5 7-4.5s5.8 1.5 7 4.5" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
-  </svg>
-);
-
 /* ---------------------------------------------------------------------- */
 /*  Reusable bits                                                         */
 /* ---------------------------------------------------------------------- */
@@ -334,122 +327,167 @@ const FeatureCardBody = ({ iconBg, icon, title, desc, accent = "#0E9F76", visual
 /*  Navbar                                                                 */
 /* ---------------------------------------------------------------------- */
 
-const NavLink = ({ children }) => (
-  <Typography
-    component="a"
-    href="#"
+const navDrop = keyframes`
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: none; }
+`;
+
+// Turns the navbar into a frosted bar once the page has been scrolled
+function useScrolled() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 8);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+
+  return scrolled;
+}
+
+const GetStartedButton = () => (
+  <Button
+    component={RouterLink}
+    to="/signin"
     sx={{
+      position: "relative",
+      overflow: "hidden",
+      bgcolor: "#0B6B4F",
+      color: "#fff",
+      textTransform: "none",
       fontFamily: pageFont,
-      fontSize: 14.5,
-      fontWeight: 500,
-      color: "#3C4250",
-      textDecoration: "none",
-      "&:hover": { color: "#12151A" },
+      fontWeight: 600,
+      fontSize: 14,
+      borderRadius: "999px",
+      px: "20px",
+      py: "8px",
+      gap: "8px",
+      boxShadow: "0 8px 18px rgba(11,107,79,0.25)",
+      "&:hover": { bgcolor: "#08543D", boxShadow: "0 12px 24px rgba(11,107,79,0.38)" },
+      // light sweep that glides across the button every few seconds
+      "&::after": {
+        content: '""',
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        width: "40%",
+        background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)",
+        transform: "translateX(-130%) skewX(-20deg)",
+        animation: `${sheen} 4.2s ease-in-out 2.5s infinite`,
+        pointerEvents: "none",
+      },
+      "&:hover .fr-arrow": { transform: "translateX(5px)" },
     }}
   >
-    {children}
-  </Typography>
+    Sign In
+    <Box component="span" className="fr-arrow" sx={{ display: "inline-flex", transition: `transform 240ms ${EASE}` }}>
+      <IconArrowRight size={15} />
+    </Box>
+  </Button>
 );
 
-const Navbar = () => (
-  <Box
-    sx={{
-      bgcolor: "#fff",
-      borderBottom: "1px solid #ECEDF3",
-      position: "sticky",
-      top: 0,
-      zIndex: 20,
-    }}
-  >
-    <ScrollProgress />
-    <Row
-      justify="space-between"
+const Navbar = () => {
+  const scrolled = useScrolled();
+
+  const toTop = (e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    <Box
+      component="header"
       sx={{
-        ...pageContainer,
-        height: 64,
+        position: "sticky",
+        top: 0,
+        zIndex: 20,
+        bgcolor: scrolled ? "rgba(255,255,255,0.82)" : "#fff",
+        backdropFilter: scrolled ? "saturate(180%) blur(14px)" : "none",
+        WebkitBackdropFilter: scrolled ? "saturate(180%) blur(14px)" : "none",
+        borderBottom: "1px solid #ECEDF3",
+        boxShadow: scrolled ? "0 8px 24px rgba(18,21,26,0.06)" : "0 0 0 rgba(18,21,26,0)",
+        transition: "background-color 300ms ease, box-shadow 300ms ease",
+        animation: `${navDrop} 600ms ${EASE} backwards`,
       }}
     >
-      {/* logo */}
-      <Row spacing={1.4}>
+      <ScrollProgress />
+      <Row
+        justify="space-between"
+        sx={{
+          ...pageContainer,
+          height: scrolled ? 56 : 64,
+          transition: `height 300ms ${EASE}`,
+        }}
+      >
+        {/* logo: scrolls back to the top */}
         <Box
+          component="a"
+          href="#top"
+          onClick={toTop}
+          aria-label="FriendRide, back to top"
+          style={{ transform: "none" }}
           sx={{
-            width: 30,
-            height: 30,
-            borderRadius: "9px",
-            bgcolor: "#0E9F76",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <IconShield size={16} color="#fff" />
-        </Box>
-        <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 17, color: "#12151A" }}>
-         Friend<Box component="span" sx={{ color: "#0E9F76" }}>Ride</Box>
-        </Typography>
-      </Row>
-
-      {/* center links */}
-      <Stack direction="row" spacing={4.5} sx={{ display: { xs: "none", md: "flex" } }}>
-        {/* <NavLink>How It Works</NavLink>
-        <NavLink>Safety</NavLink>
-        <NavLink>About</NavLink> */}
-      </Stack>
-
-      {/* right actions */}
-      <Row spacing={2.5}>
-        <Typography
-          // component="a"
-          // href="/login"
-          component={RouterLink}
-          to="/signin"
-          sx={{
-            fontFamily: pageFont,
-            fontSize: 14.5,
-            fontWeight: 500,
-            color: "#3C4250",
+            gap: "11px",
             textDecoration: "none",
-            display: { xs: "none", sm: "inline" },
-            "&:hover": { color: "#12151A" },
+            cursor: "pointer",
+            "&:hover .fr-logo": { transform: "rotate(-10deg) scale(1.1)" },
+            "&:hover .fr-logo-ride": { transform: "translateX(2px)" },
           }}
         >
-          Log In
-        </Typography>
-        <Button
-          sx={{
-            bgcolor: "#0B6B4F",
-            color: "#fff",
-            textTransform: "none",
-            fontFamily: pageFont,
-            fontWeight: 600,
-            fontSize: 14,
-            borderRadius: "999px",
-            px: "20px",
-            py: "8px",
-            "&:hover": { bgcolor: "#08543D" },
-          }}
-        >
-          Get Started
-        </Button>
-        <Box
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: "50%",
-            bgcolor: "#0B6B4F",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <IconUser size={17} />
+          <Box
+            className="fr-logo"
+            sx={{
+              position: "relative",
+              overflow: "hidden",
+              width: 30,
+              height: 30,
+              borderRadius: "9px",
+              bgcolor: "#0E9F76",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              transition: `transform 400ms ${EASE}`,
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: 0,
+                width: "45%",
+                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)",
+                transform: "translateX(-130%) skewX(-20deg)",
+                animation: `${sheen} 5s ease-in-out 1.5s infinite`,
+                pointerEvents: "none",
+              },
+            }}
+          >
+            <IconShield size={16} color="#fff" />
+          </Box>
+          <Typography sx={{ fontFamily: pageFont, fontWeight: 800, fontSize: 17, color: "#12151A" }}>
+            Friend
+            <Box
+              component="span"
+              className="fr-logo-ride"
+              sx={{ display: "inline-block", color: "#0E9F76", transition: `transform 300ms ${EASE}` }}
+            >
+              Ride
+            </Box>
+          </Typography>
         </Box>
+
+        {/* right actions */}
+        <Row>
+          <GetStartedButton />
+        </Row>
       </Row>
-    </Row>
-  </Box>
-);
+    </Box>
+  );
+};
 
 /* ---------------------------------------------------------------------- */
 /*  Hero                                                                  */
