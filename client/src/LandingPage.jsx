@@ -69,13 +69,6 @@ const IconShieldPlus = ({ size = 20, color = "#0E9F76" }) => (
   </svg>
 );
 
-const IconLock = ({ size = 20, color = "#D98A2B" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <rect x="5" y="10" width="14" height="10" rx="2" stroke={color} strokeWidth="1.8" />
-    <path d="M8 10V7a4 4 0 018 0v3" stroke={color} strokeWidth="1.8" />
-  </svg>
-);
-
 const IconNetwork = ({ size = 20, color = "#5B4CF0" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <circle cx="6" cy="6" r="2.2" stroke={color} strokeWidth="1.6" />
@@ -223,61 +216,119 @@ const FeatureCard = (props) => (
   </RevealItem>
 );
 
-const FeatureCardBody = ({ iconBg, icon, title, desc, accent = "#0E9F76" }) => (
-  <Box
-    className="hover-lift"
-    sx={{
-      position: "relative",
-      overflow: "hidden",
-      flex: 1,
-      bgcolor: "#fff",
-      borderRadius: "16px",
-      border: "1px solid #ECEDF3",
-      p: "22px 22px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "12px",
-      transition: CARD_TRANSITION,
-      "&::before": {
-        content: '""',
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 3,
-        background: accent,
-        transform: "scaleX(0)",
-        transformOrigin: "left",
-        transition: `transform 480ms ${EASE}`,
-      },
-      "&:hover": { borderColor: accent },
-      "&:hover::before": { transform: "scaleX(1)" },
-      "&:hover .fr-icon": { transform: "scale(1.12) rotate(-8deg)" },
-    }}
-  >
+const FeatureCardBody = ({ iconBg, icon, title, desc, accent = "#0E9F76", visual, pingDelay = 0 }) => {
+  // pointer position goes into CSS variables (no re-render): the glow follows the
+  // cursor and the card tilts towards it
+  const handleMove = (e) => {
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    el.style.setProperty("--sx", `${x}px`);
+    el.style.setProperty("--sy", `${y}px`);
+    el.style.setProperty("--tx", ((x / r.width) * 2 - 1).toFixed(3));
+    el.style.setProperty("--ty", ((y / r.height) * 2 - 1).toFixed(3));
+  };
+  const handleLeave = (e) => {
+    e.currentTarget.style.setProperty("--tx", "0");
+    e.currentTarget.style.setProperty("--ty", "0");
+  };
+
+  return (
     <Box
-      className="fr-icon"
+      data-no-lift
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
       sx={{
-        transition: `transform 300ms ${EASE}`,
-        width: 42,
-        height: 42,
-        borderRadius: "12px",
-        bgcolor: iconBg,
+        position: "relative",
+        overflow: "hidden",
+        flex: 1,
+        bgcolor: "#fff",
+        borderRadius: "16px",
+        border: "1px solid #ECEDF3",
+        p: "22px 22px",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        flexDirection: "column",
+        gap: "12px",
+        transform:
+          "perspective(900px) translateY(var(--lift, 0px)) rotateY(calc(var(--tx, 0) * 5deg)) rotateX(calc(var(--ty, 0) * -4deg))",
+        transition: "border-color 260ms ease, box-shadow 300ms ease, transform 220ms ease-out",
+        "& > *": { position: "relative", zIndex: 1 },
+        // accent bar grows across the top
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          zIndex: 2,
+          background: accent,
+          transform: "scaleX(0)",
+          transformOrigin: "left",
+          transition: `transform 480ms ${EASE}`,
+        },
+        // soft glow that follows the mouse
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          opacity: 0,
+          transition: "opacity 300ms ease",
+          background: `radial-gradient(300px circle at var(--sx, 50%) var(--sy, 0%), ${accent}1F, transparent 70%)`,
+        },
+        "&:hover": {
+          "--lift": "-6px",
+          borderColor: accent,
+          boxShadow: `0 20px 38px ${accent}26`,
+        },
+        "&:hover::before": { transform: "scaleX(1)" },
+        "&:hover::after": { opacity: 1 },
+        "&:hover .fr-icon": { transform: "scale(1.12) rotate(-8deg)" },
       }}
     >
-      {icon}
+      <Box sx={{ position: "relative", width: 42, height: 42, alignSelf: "flex-start" }}>
+        {/* a soft ping that leaves the icon tile every few seconds */}
+        <Box
+          aria-hidden="true"
+          sx={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "12px",
+            border: `2px solid ${accent}`,
+            opacity: 0,
+            animation: `${tilePing} 3.2s ease-out ${pingDelay}s infinite`,
+          }}
+        />
+        <Box
+          className="fr-icon"
+          sx={{
+            position: "relative",
+            transition: `transform 300ms ${EASE}`,
+            width: 42,
+            height: 42,
+            borderRadius: "12px",
+            bgcolor: iconBg,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {icon}
+        </Box>
+      </Box>
+      <Typography sx={{ fontFamily: pageFont, fontWeight: 700, fontSize: 16.5, color: "#151A21" }}>
+        {title}
+      </Typography>
+      <Typography sx={{ fontFamily: pageFont, fontSize: 14, lineHeight: 1.55, color: "#7A8090" }}>
+        {desc}
+      </Typography>
+      {visual}
     </Box>
-    <Typography sx={{ fontFamily: pageFont, fontWeight: 700, fontSize: 16.5, color: "#151A21" }}>
-      {title}
-    </Typography>
-    <Typography sx={{ fontFamily: pageFont, fontSize: 14, lineHeight: 1.55, color: "#7A8090" }}>
-      {desc}
-    </Typography>
-  </Box>
-);
+  );
+};
 
 /* ---------------------------------------------------------------------- */
 /*  Navbar                                                                 */
@@ -1468,6 +1519,240 @@ const ScrollProgress = () => {
 /*  Feature cards row                                                     */
 /* ---------------------------------------------------------------------- */
 
+const tilePing = keyframes`
+  0%       { transform: scale(1); opacity: 0.5; }
+  70%, 100%{ transform: scale(1.55); opacity: 0; }
+`;
+const checkDraw = keyframes`
+  0%, 10%  { stroke-dashoffset: 1; }
+  35%, 85% { stroke-dashoffset: 0; }
+  100%     { stroke-dashoffset: 1; }
+`;
+const shackleOpen = keyframes`
+  0%, 55%, 100% { transform: translateY(0) rotate(0deg); }
+  65%, 85%      { transform: translateY(-2.5px) rotate(-18deg); }
+`;
+const ecgScroll = keyframes`to { transform: translateX(-120px); }`;
+
+/* ---- animated icons: each one idles with a motion that explains it ---- */
+
+// shield whose check keeps drawing itself
+const AnimatedShield = ({ size = 20, color = "#0E9F76" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 2l8 3.5v6c0 5-3.4 8.7-8 10.5-4.6-1.8-8-5.5-8-10.5v-6L12 2z"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinejoin="round"
+    />
+    <Box
+      component="path"
+      d="M8.5 12.2l2.4 2.4 4.6-5"
+      pathLength="1"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeDasharray="1"
+      sx={{ animation: `${checkDraw} 4s ease-in-out infinite` }}
+    />
+  </svg>
+);
+
+// route triangle with a dot travelling around it
+const AnimatedRoute = ({ size = 20, color = "#5B4CF0" }) => {
+  const reduce = prefersReducedMotion();
+  const path = "M12 2l9 18H3L12 2z";
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d={path} stroke={color} strokeWidth="1.8" strokeLinejoin="round" />
+      <circle r="2.2" fill={color} cx={reduce ? 12 : undefined} cy={reduce ? 2 : undefined}>
+        {!reduce && <animateMotion dur="3.6s" repeatCount="indefinite" path={path} />}
+      </circle>
+    </svg>
+  );
+};
+
+// lock whose shackle pops open for a moment
+const AnimatedLock = ({ size = 20, color = "#D98A2B" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <rect x="5" y="10" width="14" height="10" rx="2" stroke={color} strokeWidth="1.8" />
+    <Box
+      component="path"
+      d="M8 10V7a4 4 0 018 0v3"
+      stroke={color}
+      strokeWidth="1.8"
+      sx={{
+        transformBox: "fill-box",
+        transformOrigin: "0% 100%",
+        animation: `${shackleOpen} 4s ease-in-out infinite`,
+      }}
+    />
+    <circle cx="12" cy="15" r="1.4" fill={color} />
+  </svg>
+);
+
+/* ---- one small live demo per card ---- */
+
+// 1) identity checks switch on one after another
+const VERIFY_ITEMS = ["Aadhaar", "Work email", "Selfie"];
+const VerifiedVisual = () => {
+  const [ref, shown] = useInView(0.4);
+  return (
+    <Box ref={ref} sx={{ mt: "auto", pt: "8px", display: "flex", flexWrap: "wrap", gap: "8px" }}>
+      {VERIFY_ITEMS.map((label, i) => {
+        const delay = 500 + i * 450;
+        return (
+          <Box
+            key={label}
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              px: "10px",
+              py: "5px",
+              borderRadius: "999px",
+              fontFamily: pageFont,
+              fontSize: 12,
+              fontWeight: 600,
+              bgcolor: shown ? "#E4F6EE" : "#F2F3F8",
+              color: shown ? "#0B7A5A" : "#8A9099",
+              border: `1px solid ${shown ? "#BFE8D8" : "#E6E8EF"}`,
+              transition: `background-color 300ms ease ${delay}ms, color 300ms ease ${delay}ms, border-color 300ms ease ${delay}ms`,
+              animation: shown ? `${dayPop} 500ms ${EASE} ${delay}ms backwards` : "none",
+            }}
+          >
+            <Box
+              component="span"
+              sx={{
+                display: "inline-flex",
+                overflow: "hidden",
+                width: shown ? 19 : 0,
+                opacity: shown ? 1 : 0,
+                transition: `width 300ms ease ${delay}ms, opacity 300ms ease ${delay}ms`,
+              }}
+            >
+              <Box component="span" sx={{ display: "inline-flex", pr: "6px" }}>
+                <IconCheck size={13} color="#0E9F76" />
+              </Box>
+            </Box>
+            {label}
+          </Box>
+        );
+      })}
+    </Box>
+  );
+};
+
+// 2) two riders' routes draw in, merge, and the shared stretch lights up
+const SHARED_ROUTE = "M100 26 C 150 20, 200 38, 254 10";
+const OverlapVisual = () => {
+  const [ref, shown] = useInView(0.4);
+  const draw = (delay, dur = 1100) => ({
+    strokeDasharray: "1",
+    strokeDashoffset: shown ? "0" : "1",
+    transition: `stroke-dashoffset ${dur}ms ${EASE} ${delay}ms`,
+  });
+  return (
+    <Box ref={ref} sx={{ mt: "auto", pt: "8px" }}>
+      <Box sx={{ bgcolor: "#F7F8FB", borderRadius: "10px", p: "8px 12px 8px" }}>
+        <svg viewBox="0 0 260 60" width="100%" style={{ display: "block", overflow: "visible" }} aria-hidden="true">
+          <Box component="path" d="M6 52 C 50 52, 70 30, 100 26" pathLength="1" fill="none" stroke="#9D90FF" strokeWidth="2.5" strokeLinecap="round" sx={draw(300)} />
+          <Box component="path" d="M6 8 C 50 8, 70 22, 100 26" pathLength="1" fill="none" stroke="#F2A65A" strokeWidth="2.5" strokeLinecap="round" sx={draw(600)} />
+          <Box component="path" d={SHARED_ROUTE} pathLength="1" fill="none" stroke="#33D6A6" strokeOpacity="0.3" strokeWidth="9" strokeLinecap="round" sx={draw(1500, 1200)} />
+          <Box component="path" d={SHARED_ROUTE} pathLength="1" fill="none" stroke="#0E9F76" strokeWidth="3" strokeLinecap="round" sx={draw(1500, 1200)} />
+          <circle cx="6" cy="52" r="4" fill="#9D90FF" />
+          <circle cx="6" cy="8" r="4" fill="#F2A65A" />
+          <Box
+            component="circle"
+            cx="100"
+            cy="26"
+            r="4"
+            fill="#fff"
+            stroke="#0E9F76"
+            strokeWidth="2"
+            sx={{ opacity: shown ? 1 : 0, transition: "opacity 300ms ease 1400ms" }}
+          />
+          <circle cx="254" cy="10" r="5" fill="#0E9F76" />
+          {shown && <Ring cx={254} cy={10} r={5} color="#0E9F76" delay={2.6} />}
+        </svg>
+        <Row justify="space-between" sx={{ mt: "4px" }}>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 11.5, color: "#8A9099" }}>Shared corridor</Typography>
+          <Typography sx={{ fontFamily: pageFont, fontSize: 12, fontWeight: 700, color: "#0E9F76" }}>
+            <CountOnView to={88} duration={1400} delay={1500} />% overlap
+          </Typography>
+        </Row>
+      </Box>
+    </Box>
+  );
+};
+
+// 3) a live heartbeat line for the trip, plus the dual-helmet check
+const ECG_PATH = Array.from({ length: 4 }, (_, i) => {
+  const o = i * 120;
+  return `${i ? "" : "M0 20 "}H${o + 34} L${o + 40} 20 L${o + 46} 6 L${o + 54} 34 L${o + 62} 14 L${o + 68} 20 H${o + 120}`;
+}).join(" ");
+
+const MonitorVisual = () => {
+  const [ref, shown] = useInView(0.4);
+  const fade = "linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent)";
+  return (
+    <Box ref={ref} sx={{ mt: "auto", pt: "8px" }}>
+      <Box sx={{ bgcolor: "#F7F8FB", borderRadius: "10px", p: "10px 12px 6px" }}>
+        <Row justify="space-between" wrap sx={{ gap: "6px" }}>
+          <Row spacing={0.8}>
+            <Box
+              sx={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                bgcolor: "#D98A2B",
+                animation: shown ? `${pulseDot} 1.6s ease-out infinite` : "none",
+              }}
+            />
+            <Typography sx={{ fontFamily: pageFont, fontSize: 12, fontWeight: 600, color: "#151A21" }}>
+              Live trip
+            </Typography>
+          </Row>
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
+              px: "9px",
+              py: "3px",
+              borderRadius: "999px",
+              fontFamily: pageFont,
+              fontSize: 11.5,
+              fontWeight: 700,
+              bgcolor: "#FBEAD6",
+              color: "#A8651A",
+              opacity: shown ? 1 : 0,
+              transition: "opacity 400ms ease 600ms",
+              animation: shown ? `${dayPop} 500ms ${EASE} 600ms backwards` : "none",
+            }}
+          >
+            <IconCheck size={11} color="#A8651A" /> Helmets 2/2
+          </Box>
+        </Row>
+        <Box
+          sx={{
+            overflow: "hidden",
+            mt: "4px",
+            WebkitMaskImage: fade,
+            maskImage: fade,
+          }}
+        >
+          <svg viewBox="0 0 240 40" width="100%" height="34" preserveAspectRatio="none" style={{ display: "block" }} aria-hidden="true">
+            <Box component="g" sx={{ animation: shown ? `${ecgScroll} 2.4s linear infinite` : "none" }}>
+              <path d={ECG_PATH} fill="none" stroke="#D98A2B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </Box>
+          </svg>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
 const FeatureRow = () => (
   <Stack
     direction={{ xs: "column", md: "row" }}
@@ -1477,23 +1762,29 @@ const FeatureRow = () => (
     <FeatureCard
       accent="#0E9F76"
       iconBg="#E4F6EE"
-      icon={<IconShield color="#0E9F76" />}
+      icon={<AnimatedShield color="#0E9F76" />}
       title="Verified Members"
       desc="Identity-focused verification. Aadhaar and work email verified commuters only."
+      visual={<VerifiedVisual />}
+      pingDelay={0}
     />
     <FeatureCard
       accent="#5B4CF0"
       iconBg="#EAE7FC"
-      icon={<IconRoute color="#5B4CF0" />}
+      icon={<AnimatedRoute color="#5B4CF0" />}
       title="Route-Based Matching"
       desc="Find people travelling your way. Instant corridor overlap calculation with minimal detours."
+      visual={<OverlapVisual />}
+      pingDelay={1.1}
     />
     <FeatureCard
       accent="#D98A2B"
       iconBg="#FBEAD6"
-      icon={<IconLock color="#D98A2B" />}
+      icon={<AnimatedLock color="#D98A2B" />}
       title="Safety First"
       desc="Designed around safer shared commutes. Live ride monitoring, emergency SOS, and dual helmet checks."
+      visual={<MonitorVisual />}
+      pingDelay={2.2}
     />
   </Stack>
 );
