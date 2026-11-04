@@ -54,12 +54,6 @@ const lightBg = "#f8f8ff";
 const lavender = "#f0f1fc";
 const API_BASE_URL = "http://localhost:8000";
 
-// "18:30" -> "6:30 PM"
-function formatClock(t) {
-  const [h, m] = t.split(":").map(Number);
-  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
-}
-
 export default function App() {
   const navigate = useNavigate();
 
@@ -907,10 +901,9 @@ export default function App() {
                           color: "#60666b",
                         }}
                       >
-                        {`• ${formatClock(commute.outbound_time)}${commute.return_enabled && commute.return_time
-                          ? `, return ${formatClock(commute.return_time)}`
-                          : ""
-                          }`}
+                        {commute.return_enabled
+                          ? "• Available on demand, both ways"
+                          : "• Available on demand"}
                       </Typography>
                     </Box>
                   </Box>
@@ -1194,7 +1187,7 @@ export default function App() {
                     }}
                   >
                     {commute
-                      ? `Morning Departure: ${formatClock(commute.outbound_time)} (Today)`
+                      ? "Availability: on demand, whenever a trip fits your route"
                       : "No commute scheduled yet"}
                   </Typography>
 
@@ -1206,9 +1199,9 @@ export default function App() {
                     }}
                   >
                     {commute
-                      ? commute.return_enabled && commute.return_time
-                        ? `Return Slot: ${formatClock(commute.return_time)} (Evening Commute)`
-                        : "No evening return offered"
+                      ? commute.return_enabled
+                        ? "Return trip: offered along the same route"
+                        : "No return trip offered"
                       : "Create a route to start sharing rides"}
                   </Typography>
 
@@ -1736,13 +1729,8 @@ export default function App() {
               {[
                 ["Distance", commute.distance_km ? `${commute.distance_km} km` : "—"],
                 ["Est. travel time", `~${commute.duration_min} mins`],
-                ["Departs", formatClock(commute.outbound_time)],
-                [
-                  "Return",
-                  commute.return_enabled && commute.return_time
-                    ? formatClock(commute.return_time)
-                    : "No return",
-                ],
+                ["Availability", "On demand"],
+                ["Return trip", commute.return_enabled ? "Offered" : "Not offered"],
                 ["Vehicle", `${commute.vehicle_model} · ${commute.vehicle_plate}`],
               ].map(([label, value]) => (
                 <Box key={label} style={{ background: "#f4f5fd", borderRadius: 12, padding: "12px 14px", minWidth: 0 }}>

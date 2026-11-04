@@ -399,7 +399,8 @@ export default function CreateCommute() {
           if (active.stop_lat != null && active.stop_lng != null)
             setStopPoint({ lat: active.stop_lat, lng: active.stop_lng });
         }
-        setOutboundTime(active.outbound_time);
+        // commutes have no fixed times any more: keep the form's defaults
+        if (active.outbound_time) setOutboundTime(active.outbound_time);
         setReturnOn(active.return_enabled);
         if (active.return_time) setReturnTime(active.return_time);
         setVehicleType(active.vehicle_type);

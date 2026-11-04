@@ -254,7 +254,7 @@ async def create_commute(
             **common,
             "direction": "outbound",
             "stops": outbound_stops,
-            "depart_time": payload.outbound_time,
+            "depart_time": None,  # no fixed times: a commute is available on demand
             # Kept so the form can be pre-filled when the rider edits it
             "commute_form": payload.model_dump(),
         }
@@ -265,7 +265,7 @@ async def create_commute(
                 **common,
                 "direction": "return",
                 "stops": return_stops,
-                "depart_time": payload.return_time,
+                "depart_time": None,
             }
         )
 
