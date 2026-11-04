@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { keyframes } from "@emotion/react";
 
 import {
   Box,
@@ -389,181 +390,7 @@ function App() {
             </Typography>
 
             {/* Route Card */}
-            <Box
-              style={{
-                backgroundColor: "rgba(255,255,255,0.75)",
-                borderRadius: "12px",
-                padding: "17px 16px 12px",
-                marginBottom: "27px",
-              }}
-            >
-              <Box
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "8px",
-                }}
-              >
-                <Typography
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 500,
-                    color: "#454b52",
-                    letterSpacing: "0.4px",
-                  }}
-                >
-                  SIMULATED CORRIDOR PATH
-                </Typography>
-
-                <Box
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <Box
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      backgroundColor: "#008b80",
-                    }}
-                  />
-
-                  <Typography
-                    style={{
-                      fontSize: "12px",
-                      color: "#00766e",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Active Mesh
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Box
-                style={{
-                  width: "100%",
-                  height: "105px",
-                  position: "relative",
-                }}
-              >
-                <svg
-                  width="100%"
-                  height="100%"
-                  viewBox="0 0 390 105"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M12 82 C90 77, 102 28, 185 35 C250 41, 275 78, 378 73"
-                    fill="none"
-                    stroke="#cbd1f2"
-                    strokeWidth="16"
-                    strokeLinecap="round"
-                  />
-
-                  <path
-                    d="M12 82 C90 77, 102 28, 185 35 C250 41, 275 78, 378 73"
-                    fill="none"
-                    stroke="#007c70"
-                    strokeWidth="3"
-                    strokeDasharray="7 4"
-                    strokeLinecap="round"
-                  />
-
-                  <circle
-                    cx="20"
-                    cy="81"
-                    r="6"
-                    fill="#007c70"
-                  />
-
-                  <circle
-                    cx="378"
-                    cy="73"
-                    r="6"
-                    fill="#4d4bd6"
-                  />
-
-                  <circle
-                    cx="185"
-                    cy="35"
-                    r="13"
-                    fill="#ffffff"
-                    stroke="#e3e5f5"
-                    strokeWidth="2"
-                  />
-
-                  <circle
-                    cx="185"
-                    cy="35"
-                    r="7"
-                    fill="#d5f4ef"
-                  />
-
-                  <path
-                    d="M181 35 L184 38 L189 32"
-                    fill="none"
-                    stroke="#008c80"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-
-                  <circle
-                    cx="280"
-                    cy="61"
-                    r="13"
-                    fill="#ffffff"
-                    stroke="#e3e5f5"
-                    strokeWidth="2"
-                  />
-
-                  <circle
-                    cx="280"
-                    cy="61"
-                    r="7"
-                    fill="#5a56dd"
-                  />
-
-                  <circle
-                    cx="280"
-                    cy="61"
-                    r="3"
-                    fill="#ffffff"
-                  />
-                </svg>
-
-                <Typography
-                  style={{
-                    position: "absolute",
-                    left: "4px",
-                    bottom: "0px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "#41484d",
-                  }}
-                >
-                  Origin A
-                </Typography>
-
-                <Typography
-                  style={{
-                    position: "absolute",
-                    right: "5px",
-                    bottom: "0px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "#41484d",
-                  }}
-                >
-                  Drop B
-                </Typography>
-              </Box>
-            </Box>
+            <RouteCard />
 
             {/* Features */}
             <Box
@@ -1155,6 +982,370 @@ function App() {
           {error}
         </Alert>
       </Snackbar>
+    </Box>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Corridor path card (left panel): animated + interactive             */
+/* ------------------------------------------------------------------ */
+
+const EASE = "cubic-bezier(0.22, 0.8, 0.24, 1)";
+const ROUTE_D = "M12 82 C90 77, 102 28, 185 35 C250 41, 275 78, 378 73";
+const VB_W = 390;
+const VB_H = 105;
+const TRIP_START = 2.2; // seconds before the first trip starts (after the route has drawn)
+const TRIP_TIME = 7; // seconds one trip takes
+
+const NODES = [
+  { id: "check", label: "Verified pickup point", enterDelay: 1.0 },
+  { id: "rider", label: "Rider nearby", enterDelay: 1.4 },
+];
+
+const cardIn = keyframes`
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+`;
+const fadeIn = keyframes`from { opacity: 0; } to { opacity: 1; }`;
+const drawIn = keyframes`from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; }`;
+const march = keyframes`to { stroke-dashoffset: -22; }`;
+const ringOut = keyframes`
+  0%   { transform: scale(0.5); opacity: 0.8; }
+  100% { transform: scale(2.8); opacity: 0; }
+`;
+const meshPing = keyframes`
+  0%   { box-shadow: 0 0 0 0 rgba(0, 139, 128, 0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(0, 139, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 139, 128, 0); }
+`;
+const nodeIn = keyframes`
+  from { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.25); opacity: 1; }
+  to   { transform: scale(1); opacity: 1; }
+`;
+// the two stops swell as the commuter dot passes them (about 49% and 74% along the route)
+const passA = keyframes`
+  0%, 44% { transform: scale(1); }
+  49%     { transform: scale(1.4); }
+  56%, 100% { transform: scale(1); }
+`;
+const passB = keyframes`
+  0%, 69% { transform: scale(1); }
+  74%     { transform: scale(1.4); }
+  81%, 100% { transform: scale(1); }
+`;
+const dotLoop = keyframes`
+  0%   { opacity: 0; }
+  5%   { opacity: 1; }
+  93%  { opacity: 1; }
+  100% { opacity: 0; }
+`;
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  !!window.matchMedia &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// expanding ring used on the start and end markers
+const Ring = ({ cx, cy, r, color, delay }) => (
+  <Box
+    component="circle"
+    cx={cx}
+    cy={cy}
+    r={r}
+    fill="none"
+    stroke={color}
+    strokeWidth="2"
+    sx={{
+      opacity: 0,
+      transformBox: "fill-box",
+      transformOrigin: "center",
+      animation: `${ringOut} 2.6s ease-out ${delay}s infinite`,
+    }}
+  />
+);
+
+function RouteCard() {
+  const reduce = prefersReducedMotion();
+  const [hovered, setHovered] = useState(null);
+
+  // the same swelling on hover, kept on an outer group so it never fights the keyframes
+  const nodeHover = (id) => ({
+    transformBox: "fill-box",
+    transformOrigin: "center",
+    transform: hovered === id ? "scale(1.25)" : "scale(1)",
+    transition: `transform 280ms ${EASE}`,
+  });
+  const nodeInner = (pass, enterDelay) => ({
+    transformBox: "fill-box",
+    transformOrigin: "center",
+    animation: `${nodeIn} 500ms ${EASE} ${enterDelay}s backwards, ${pass} ${TRIP_TIME}s ease-in-out ${TRIP_START}s infinite`,
+  });
+
+  const labelSx = {
+    position: "absolute",
+    bottom: 0,
+    fontSize: "12px",
+    fontWeight: 600,
+    color: "#41484d",
+    transition: "color 200ms ease, transform 250ms " + EASE,
+    animation: `${fadeIn} 600ms ease 0.6s backwards`,
+  };
+
+  return (
+    <Box
+      data-no-lift
+      sx={{
+        backgroundColor: "rgba(255,255,255,0.75)",
+        borderRadius: "12px",
+        padding: "17px 16px 12px",
+        marginBottom: "27px",
+        animation: `${cardIn} 700ms ${EASE} 250ms backwards`,
+        transition: `transform 300ms ${EASE}, box-shadow 300ms ease, background-color 300ms ease`,
+        "&:hover": {
+          transform: "translateY(-4px)",
+          backgroundColor: "rgba(255,255,255,0.92)",
+          boxShadow: "0 16px 30px rgba(35, 42, 70, 0.14)",
+        },
+        "&:hover .fr-band": { stroke: "#b6bdee" },
+        "&:hover .fr-route": { strokeWidth: 3.6 },
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "8px",
+        }}
+      >
+        <Typography
+          sx={{ fontSize: "12px", fontWeight: 500, color: "#454b52", letterSpacing: "0.4px" }}
+        >
+          SIMULATED CORRIDOR PATH
+        </Typography>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Box
+            sx={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              backgroundColor: "#008b80",
+              animation: `${meshPing} 2s ease-out infinite`,
+            }}
+          />
+          <Typography sx={{ fontSize: "12px", color: "#00766e", fontWeight: 600 }}>
+            Active Mesh
+          </Typography>
+        </Box>
+      </Box>
+
+      <Box sx={{ width: "100%", height: "105px", position: "relative" }}>
+        <svg
+          width="100%"
+          height="100%"
+          viewBox={`0 0 ${VB_W} ${VB_H}`}
+          preserveAspectRatio="none"
+          role="img"
+          aria-label="Animated route from Origin A to Drop B with two stops"
+        >
+          <defs>
+            {/* the route is revealed by a line that draws itself from A to B */}
+            <mask id="frRouteReveal" maskUnits="userSpaceOnUse" x="0" y="0" width={VB_W} height={VB_H}>
+              <Box
+                component="path"
+                d={ROUTE_D}
+                pathLength="1"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="26"
+                strokeLinecap="round"
+                strokeDasharray="1"
+                sx={{ animation: `${drawIn} 1.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards` }}
+              />
+            </mask>
+          </defs>
+
+          <g mask="url(#frRouteReveal)">
+            <Box
+              component="path"
+              className="fr-band"
+              d={ROUTE_D}
+              fill="none"
+              stroke="#cbd1f2"
+              strokeWidth="16"
+              strokeLinecap="round"
+              sx={{ transition: "stroke 300ms ease" }}
+            />
+            {/* dashes keep marching from A towards B */}
+            <Box
+              component="path"
+              className="fr-route"
+              d={ROUTE_D}
+              fill="none"
+              stroke="#007c70"
+              strokeWidth="3"
+              strokeDasharray="7 4"
+              strokeLinecap="round"
+              sx={{
+                transition: "stroke-width 300ms ease",
+                animation: `${march} 1.2s linear infinite`,
+              }}
+            />
+          </g>
+
+          {/* origin A and drop B */}
+          <Box
+            component="circle"
+            cx="20"
+            cy="81"
+            r="6"
+            fill="#007c70"
+            sx={{ animation: `${fadeIn} 400ms ease 0.2s backwards` }}
+          />
+          <Ring cx={20} cy={81} r={6} color="#007c70" delay={1.0} />
+
+          <Box
+            component="circle"
+            cx="378"
+            cy="73"
+            r="6"
+            fill="#4d4bd6"
+            sx={{ animation: `${fadeIn} 400ms ease 1.7s backwards` }}
+          />
+          <Ring cx={378} cy={73} r={6} color="#4d4bd6" delay={1.9} />
+
+          {/* stop 1: verified pickup */}
+          <Box component="g" sx={nodeHover("check")}>
+            <Box component="g" sx={nodeInner(passA, NODES[0].enterDelay)}>
+              <circle cx="185" cy="35" r="13" fill="#ffffff" stroke="#e3e5f5" strokeWidth="2" />
+              <circle cx="185" cy="35" r="7" fill="#d5f4ef" />
+              <path
+                d="M181 35 L184 38 L189 32"
+                fill="none"
+                stroke="#008c80"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Box>
+          </Box>
+
+          {/* stop 2: rider nearby */}
+          <Box component="g" sx={nodeHover("rider")}>
+            <Box component="g" sx={nodeInner(passB, NODES[1].enterDelay)}>
+              <circle cx="280" cy="61" r="13" fill="#ffffff" stroke="#e3e5f5" strokeWidth="2" />
+              <circle cx="280" cy="61" r="7" fill="#5a56dd" />
+              <circle cx="280" cy="61" r="3" fill="#ffffff" />
+            </Box>
+          </Box>
+
+          {/* the commuter, travelling A to B on a loop */}
+          {!reduce && (
+            <Box
+              component="g"
+              sx={{ opacity: 0, animation: `${dotLoop} ${TRIP_TIME}s linear ${TRIP_START}s infinite` }}
+            >
+              <circle r="11" fill="rgba(0,124,112,0.18)">
+                <animate attributeName="r" values="8;13;8" dur="1.6s" repeatCount="indefinite" />
+              </circle>
+              <circle r="5" fill="#007c70" stroke="#ffffff" strokeWidth="2" />
+              <animateMotion
+                dur={`${TRIP_TIME}s`}
+                begin={`${TRIP_START}s`}
+                repeatCount="indefinite"
+                path={ROUTE_D}
+                calcMode="linear"
+              />
+            </Box>
+          )}
+        </svg>
+
+        {/* hover / focus targets over the two stops, each with a small label */}
+        {NODES.map((n, i) => {
+          const x = i === 0 ? 185 : 280;
+          const y = i === 0 ? 35 : 61;
+          const on = hovered === n.id;
+          return (
+            <Box
+              key={n.id}
+              tabIndex={0}
+              aria-label={n.label}
+              onMouseEnter={() => setHovered(n.id)}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={() => setHovered(n.id)}
+              onBlur={() => setHovered(null)}
+              sx={{
+                position: "absolute",
+                left: `${(x / VB_W) * 100}%`,
+                top: `${(y / VB_H) * 100}%`,
+                width: 30,
+                height: 30,
+                ml: "-15px",
+                mt: "-15px",
+                borderRadius: "50%",
+                cursor: "pointer",
+                outline: "none",
+                zIndex: 2,
+                "&:focus-visible": { boxShadow: "0 0 0 2px #007c70" },
+              }}
+            >
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: "100%",
+                  left: "50%",
+                  transform: on ? "translate(-50%, -2px)" : "translate(-50%, 5px)",
+                  opacity: on ? 1 : 0,
+                  pointerEvents: "none",
+                  whiteSpace: "nowrap",
+                  backgroundColor: "#182033",
+                  color: "#ffffff",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  padding: "4px 9px",
+                  borderRadius: "7px",
+                  transition: `opacity 200ms ease, transform 250ms ${EASE}`,
+                  "&::after": {
+                    content: '""',
+                    position: "absolute",
+                    top: "100%",
+                    left: "50%",
+                    marginLeft: "-4px",
+                    borderLeft: "4px solid transparent",
+                    borderRight: "4px solid transparent",
+                    borderTop: "4px solid #182033",
+                  },
+                }}
+              >
+                {n.label}
+              </Box>
+            </Box>
+          );
+        })}
+
+        <Typography
+          sx={{
+            ...labelSx,
+            left: "4px",
+            "&:hover": { color: "#007c70", transform: "translateX(2px)" },
+          }}
+        >
+          Origin A
+        </Typography>
+
+        <Typography
+          sx={{
+            ...labelSx,
+            right: "5px",
+            animationDelay: "1.8s",
+            "&:hover": { color: "#4d4bd6", transform: "translateX(-2px)" },
+          }}
+        >
+          Drop B
+        </Typography>
+      </Box>
     </Box>
   );
 }
