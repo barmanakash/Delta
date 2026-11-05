@@ -30,8 +30,12 @@ import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 
 import ProfileMenu from "../profilemenu/profilemenu";
+import MobileTabBar from "../mobiletabbar/mobiletabbar";
 // Same place lookup the rider's "Create Your Commute" screen uses, so a place
 // typed by hand still gets a map point and can be matched against riders' routes
 import { geocode, CITY_CENTER } from "../createcommute/createcommute";
@@ -79,6 +83,13 @@ const bareInput = {
 
 const WINDOW_MINUTES = 15;
 const MAX_DAYS_AHEAD = 30;
+
+// What the bottom tab bar shows on phones (the top nav is hidden there)
+const MOBILE_TABS = [
+  { key: "home", label: "Home", path: "/lifttakerhome", icon: HomeOutlinedIcon },
+  { key: "find", label: "Find a Lift", path: "/findlift", icon: SearchOutlinedIcon },
+  { key: "trips", label: "My Trips", path: "/trips", icon: DirectionsCarOutlinedIcon },
+];
 
 const STATUS_STYLES = {
   searching: { label: "Searching", background: "#e8eafd", color: "#3c40c8" },
@@ -1027,6 +1038,9 @@ export default function LiftTakerHome() {
           </Box>
         </Box>
       </Box>
+
+      {/* phones: the bottom tab bar replaces the top navigation */}
+      <MobileTabBar items={MOBILE_TABS} active="home" />
 
       {/* ============================= MAIN ============================= */}
       <Box component="main" style={{ flex: 1 }}>

@@ -227,6 +227,7 @@ export default function Identity() {
 
   return (
     <Box
+      className="id-root"
       style={{
         width: "100%",
         minHeight: "100vh",
@@ -238,8 +239,45 @@ export default function Identity() {
         overflow: "hidden",
       }}
     >
+      <style>{`
+        .id-root { overflow-x: hidden; }
+
+        @media (max-width: 960px) {
+          .id-nav { gap: 14px !important; }
+          .id-nav > p { display: none !important; }
+        }
+
+        @media (max-width: 700px) {
+          .id-footer { height: auto !important; padding: 14px 16px !important; flex-direction: column !important; gap: 8px !important; text-align: center; }
+        }
+
+        @media (max-width: 680px) {
+          .id-header { padding: 0 14px !important; }
+          .id-brand2 { display: none !important; }
+          /* keep only the avatar (last child) in the header */
+          .id-nav > div:not(:last-child) { display: none !important; }
+          .id-stepper { width: calc(100% - 24px) !important; }
+          .id-fill { width: calc((100% - 72px) / 2) !important; }
+          .id-title { font-size: 24px !important; }
+          .id-sub { width: auto !important; padding: 0 20px; }
+          .id-sub br { display: none; }
+          .id-card { width: calc(100% - 24px) !important; min-height: 0 !important; padding: 22px 16px !important; }
+          .id-stats { width: calc(100% - 24px) !important; }
+        }
+
+        @media (max-width: 560px) {
+          .id-cardhead { flex-wrap: wrap; gap: 10px; }
+          .id-labelrow { flex-wrap: wrap; gap: 2px 10px; }
+          .id-chips { flex-wrap: wrap; }
+          .id-meta { flex-wrap: wrap; justify-content: center; }
+          .id-meta > div:nth-child(2) { display: none; }
+          .id-req { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+
       {/* HEADER */}
       <Box
+        className="id-header"
         style={{
           height: 64,
           background: "#ffffff",
@@ -289,6 +327,7 @@ export default function Identity() {
           </Typography>
 
           <Typography
+            className="id-brand2"
             style={{
               fontSize: 17,
               fontWeight: 600,
@@ -301,6 +340,7 @@ export default function Identity() {
         </Box>
 
         <Box
+          className="id-nav"
           style={{
             display: "flex",
             alignItems: "center",
@@ -544,6 +584,7 @@ export default function Identity() {
 
         {/* STEPPER */}
         <Box
+          className="id-stepper"
           style={{
             position: "relative",
             zIndex: 2,
@@ -566,6 +607,7 @@ export default function Identity() {
           />
 
           <Box
+            className="id-fill"
             style={{
               position: "absolute",
               left: 36,
@@ -747,6 +789,7 @@ export default function Identity() {
           }}
         >
           <Typography
+            className="id-title"
             style={{
               fontSize: 29,
               fontWeight: 700,
@@ -759,6 +802,7 @@ export default function Identity() {
           </Typography>
 
           <Typography
+            className="id-sub"
             style={{
               width: 500,
               margin: "8px auto 0",
@@ -776,6 +820,7 @@ export default function Identity() {
 
         {/* MAIN VERIFICATION CARD */}
         <Box
+          className="id-card"
           style={{
             position: "relative",
             zIndex: 2,
@@ -791,6 +836,7 @@ export default function Identity() {
         >
           {/* CARD HEADER */}
           <Box
+            className="id-cardhead"
             style={{
               display: "flex",
               alignItems: "center",
@@ -882,6 +928,7 @@ export default function Identity() {
           {/* ID TYPE */}
           <Box style={{ marginTop: 19 }}>
             <Box
+              className="id-labelrow"
               style={{
                 display: "flex",
                 justifyContent: "space-between",
@@ -984,6 +1031,7 @@ export default function Identity() {
 
             {/* ACCEPTED */}
             <Box
+              className="id-chips"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -1225,6 +1273,7 @@ export default function Identity() {
             )}
 
             <Box
+              className="id-meta"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -1390,6 +1439,7 @@ export default function Identity() {
             </Typography>
 
             <Box
+              className="id-req"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr 1fr",
@@ -1489,6 +1539,7 @@ export default function Identity() {
 
         {/* STATISTICS */}
         <Box
+          className="id-stats"
           style={{
             position: "relative",
             zIndex: 2,
@@ -1569,6 +1620,7 @@ export default function Identity() {
 
       {/* FOOTER */}
       <Box
+        className="id-footer"
         style={{
           height: 54,
           background: "#ffffff",

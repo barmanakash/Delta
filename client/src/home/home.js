@@ -221,6 +221,7 @@ export default function App() {
 
   return (
     <Box
+      className="hm-root"
       style={{
         minHeight: "100vh",
         background: lightBg,
@@ -231,6 +232,45 @@ export default function App() {
       }}
     >
       <RiderHeader active="home" user={user} photoUrl={photoUrl} pendingCount={incoming.pendingCount} />
+
+      <style>{`
+        /* clip (not hidden) so the sticky header keeps working */
+        .hm-root { overflow-x: clip; }
+
+        @media (max-width: 1000px) {
+          .hm-grid { grid-template-columns: minmax(0, 1fr) !important; }
+        }
+
+        @media (max-width: 900px) {
+          .hm-welcome { height: auto !important; flex-direction: column !important; align-items: flex-start !important; gap: 16px; padding: 18px !important; }
+          .hm-route { height: auto !important; flex-wrap: wrap !important; padding: 14px !important; gap: 14px 24px; }
+          .hm-route-left { width: 100% !important; }
+          .hm-divider { display: none !important; }
+          .hm-metric { margin-left: 0 !important; }
+        }
+
+        @media (max-width: 760px) {
+          .hm-main { padding: 16px 14px 20px !important; }
+          .hm-sched { height: auto !important; flex-direction: column !important; align-items: flex-start !important; gap: 14px; }
+          .hm-footer { flex-direction: column !important; align-items: flex-start !important; gap: 12px; padding: 16px 14px !important; }
+          .hm-footer-links { flex-wrap: wrap; gap: 8px 18px !important; }
+        }
+
+        @media (max-width: 560px) {
+          .hm-greet { font-size: 24px !important; line-height: 1.15 !important; }
+          .hm-greet-row { flex-wrap: wrap; gap: 8px !important; }
+          .hm-actions { flex-wrap: wrap; width: 100%; }
+          .hm-commute-head { flex-wrap: wrap; gap: 10px; }
+          .hm-via { height: auto !important; min-height: 40px; padding: 9px 13px !important; }
+          .hm-via > div { flex-wrap: wrap; }
+          .hm-btnrow { flex-direction: column !important; align-items: flex-start !important; gap: 14px; }
+          .hm-lr-head { flex-wrap: wrap; gap: 6px; }
+          .hm-req-route { flex-direction: column !important; align-items: flex-start !important; gap: 8px; }
+          .hm-req-route > div:last-child { text-align: left !important; }
+          .hm-req-actions { flex-wrap: wrap; row-gap: 6px; }
+          .hm-req2 { height: auto !important; flex-wrap: wrap; padding: 12px 14px !important; gap: 10px; }
+        }
+      `}</style>
 
       {/* HEADER */}
 
@@ -438,6 +478,7 @@ export default function App() {
 
       {/* MAIN CONTENT */}
       <Box
+        className="hm-main"
         style={{
           padding: "22px 30px 28px",
           boxSizing: "border-box",
@@ -446,6 +487,7 @@ export default function App() {
       >
         {/* WELCOME */}
         <Box
+          className="hm-welcome"
           style={{
             height: 107,
             background: "#fff",
@@ -461,6 +503,7 @@ export default function App() {
         >
           <Box>
             <Box
+              className="hm-greet-row"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -468,6 +511,7 @@ export default function App() {
               }}
             >
               <Typography
+                className="hm-greet"
                 style={{
                   fontSize: 30,
                   lineHeight: 1,
@@ -502,6 +546,7 @@ export default function App() {
           </Box>
 
           <Box
+            className="hm-actions"
             style={{
               display: "flex",
               alignItems: "center",
@@ -586,6 +631,7 @@ export default function App() {
 
         {/* TWO COLUMN LAYOUT */}
         <Box
+          className="hm-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "2fr 1fr",
@@ -649,6 +695,7 @@ export default function App() {
               ) : (
                 <>
                   <Box
+                    className="hm-commute-head"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -732,6 +779,7 @@ export default function App() {
                   </Box>
 
                   <Box
+                    className="hm-route"
                     style={{
                       marginTop: 25,
                       height: 98,
@@ -744,6 +792,7 @@ export default function App() {
                     }}
                   >
                     <Box
+                      className="hm-route-left"
                       style={{
                         width: 405,
                         position: "relative",
@@ -836,6 +885,7 @@ export default function App() {
                     </Box>
 
                     <Box
+                      className="hm-divider"
                       style={{
                         borderLeft: "1px solid #dce1f2",
                         height: 43,
@@ -848,7 +898,7 @@ export default function App() {
                       value={commute.distance_km ? `${commute.distance_km} km` : "—"}
                     />
                     <Metric title="Travel Time" value={`~${commute.duration_min} mins`} teal />
-                    <Box style={{ marginLeft: 19 }}>
+                    <Box className="hm-metric" style={{ marginLeft: 19 }}>
                       <Typography
                         style={{
                           fontSize: 12,
@@ -880,6 +930,7 @@ export default function App() {
                   </Box>
 
                   <Box
+                    className="hm-via"
                     style={{
                       marginTop: 18,
                       height: 40,
@@ -929,6 +980,7 @@ export default function App() {
                   </Box>
 
                   <Box
+                    className="hm-btnrow"
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
@@ -1011,6 +1063,7 @@ export default function App() {
               }}
             >
               <Box
+                className="hm-lr-head"
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -1133,6 +1186,7 @@ export default function App() {
 
             {/* TODAY'S SCHEDULE */}
             <Box
+              className="hm-sched"
               style={{
                 height: 131,
                 background: "#fff",
@@ -1589,6 +1643,7 @@ export default function App() {
 
       {/* FOOTER */}
       <Box
+        className="hm-footer"
         style={{
           minHeight: 72,
           background: "#fff",
@@ -1639,6 +1694,7 @@ export default function App() {
         </Box>
 
         <Box
+          className="hm-footer-links"
           style={{
             display: "flex",
             gap: 24,
@@ -1788,7 +1844,7 @@ export default function App() {
 
 function Metric({ title, value, teal: isTeal }) {
   return (
-    <Box style={{ marginLeft: 17 }}>
+    <Box style={{ marginLeft: 17 }} className="hm-metric">
       <Typography
         style={{
           fontSize: 12,
@@ -1835,7 +1891,7 @@ function RequestCard({
   if (second) {
     return (
       <Box
-        className="hover-lift"
+        className="hover-lift hm-req2"
         style={{
           height: 69,
           borderRadius: 9,
@@ -2056,6 +2112,7 @@ function RequestCard({
       </Box>
 
       <Box
+        className="hm-req-route"
         style={{
           marginTop: 11,
           background: "#fff",
@@ -2112,6 +2169,7 @@ function RequestCard({
       </Box>
 
       <Box
+        className="hm-req-actions"
         style={{
           display: "flex",
           alignItems: "center",

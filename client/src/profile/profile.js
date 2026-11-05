@@ -294,6 +294,7 @@ export default function Profile() {
 
   return (
     <Box
+      className="pf-root"
       style={{
         width: "100%",
         minHeight: "100vh",
@@ -305,8 +306,46 @@ export default function Profile() {
         flexDirection: "column",
       }}
     >
+      <style>{`
+        .pf-root { overflow-x: hidden; }
+        .pf-root input { min-width: 0; }
+
+        /* tablets and below: stack the photo panel above the form */
+        @media (max-width: 960px) {
+          .pf-bg { min-height: 0 !important; padding-bottom: 28px; }
+          .pf-stepper { width: calc(100% - 32px) !important; max-width: 680px; }
+          .pf-card {
+            width: calc(100% - 32px) !important;
+            max-width: 897px;
+            min-height: 0 !important;
+            flex-direction: column !important;
+            padding: 24px !important;
+            gap: 24px !important;
+          }
+          .pf-left { width: 100% !important; height: auto !important; }
+          .pf-w { width: auto !important; max-width: 100% !important; }
+          .pf-secbox { position: static !important; margin-top: 22px; height: auto !important; min-height: 49px; padding: 10px !important; }
+        }
+
+        @media (max-width: 760px) {
+          .pf-nav { gap: 12px !important; }
+          .pf-nav > p { display: none !important; }
+          /* 16px stops phones from zooming in when a field is tapped */
+          .pf-root .MuiInputBase-input { font-size: 16px !important; }
+          .pf-footer { height: auto !important; padding: 14px 16px !important; flex-direction: column !important; gap: 8px !important; text-align: center; }
+        }
+
+        @media (max-width: 560px) {
+          .pf-header { padding: 0 14px !important; }
+          .pf-brand2 { display: none !important; }
+          .pf-stepper { width: calc(100% - 24px) !important; }
+          .pf-card { width: calc(100% - 24px) !important; padding: 18px !important; }
+        }
+      `}</style>
+
       {/* HEADER */}
       <Box
+        className="pf-header"
         style={{
           height: 71,
           background: "#ffffff",
@@ -356,6 +395,7 @@ export default function Profile() {
           </Typography>
 
           <Typography
+            className="pf-brand2"
             style={{
               fontSize: 17,
               fontWeight: 600,
@@ -368,6 +408,7 @@ export default function Profile() {
         </Box>
 
         <Box
+          className="pf-nav"
           style={{
             display: "flex",
             alignItems: "center",
@@ -462,6 +503,7 @@ export default function Profile() {
 
       {/* MAIN BACKGROUND */}
       <Box
+        className="pf-bg"
         style={{
           position: "relative",
           flex: 1,
@@ -503,6 +545,7 @@ export default function Profile() {
 
         {/* STEPPER */}
         <Box
+          className="pf-stepper"
           style={{
             position: "relative",
             zIndex: 2,
@@ -698,6 +741,7 @@ export default function Profile() {
 
         {/* MAIN CARD */}
         <Box
+          className="pf-card"
           style={{
             position: "relative",
             zIndex: 2,
@@ -715,6 +759,7 @@ export default function Profile() {
         >
           {/* LEFT PANEL */}
           <Box
+            className="pf-left"
             style={{
               width: 329,
               height: 572,
@@ -771,6 +816,7 @@ export default function Profile() {
             </Typography>
 
             <Typography
+              className="pf-w"
               style={{
                 fontSize: 13.5,
                 lineHeight: 1.4,
@@ -890,6 +936,7 @@ export default function Profile() {
             </Typography>
 
             <Typography
+              className="pf-w"
               align="center"
               style={{
                 fontSize: 12,
@@ -943,6 +990,7 @@ export default function Profile() {
 
             {/* SECURITY BOX */}
             <Box
+              className="pf-secbox"
               style={{
                 position: "absolute",
                 left: 20,
@@ -1352,6 +1400,7 @@ export default function Profile() {
 
       {/* FOOTER */}
       <Box
+        className="pf-footer"
         style={{
           height: 62,
           background: "#ffffff",

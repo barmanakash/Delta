@@ -83,6 +83,7 @@ export default function RolAndMode() {
             <style>{`
                 @media (max-width: 1000px) {
                     .rm-nav { display: none !important; }
+                    .rm-cards { width: calc(100% - 48px) !important; max-width: 960px; }
                 }
                 @media (max-width: 860px) {
                     .rm-cards { width: auto !important; margin: 24px 16px 0 !important; grid-template-columns: minmax(0, 1fr) !important; gap: 16px !important; }

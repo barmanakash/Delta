@@ -166,6 +166,7 @@ function App() {
 
   return (
     <Box
+      className="auth-root"
       style={{
         minHeight: "100vh",
         backgroundColor: "#f7f7ff",
@@ -176,6 +177,11 @@ function App() {
       }}
     >
       <style>{`
+        .auth-root { overflow-x: hidden; }
+        .auth-card input { min-width: 0; }
+        /* use the visible viewport height on phones (address bar) where supported */
+        @supports (min-height: 100dvh) { .auth-root { min-height: 100dvh !important; } }
+
         @media (max-width: 880px) {
           .auth-main { padding: 20px 14px 28px !important; }
           .auth-card { grid-template-columns: minmax(0, 1fr) !important; min-height: 0 !important; border-radius: 16px !important; }
@@ -186,6 +192,14 @@ function App() {
           .auth-right { padding: 30px 24px 26px !important; }
           /* 16px stops phones from zooming in when a field is tapped */
           .auth-card input { font-size: 16px !important; }
+          /* bigger tap target for the show / hide password button */
+          .auth-card .MuiIconButton-root { padding: 10px !important; }
+        }
+        /* small laptops and tablets in landscape: tighter padding so both columns breathe */
+        @media (min-width: 881px) and (max-width: 1100px) {
+          .auth-main { padding: 36px 24px !important; }
+          .auth-left { padding: 36px 30px !important; }
+          .auth-right { padding: 40px 38px 30px !important; }
         }
         @media (max-width: 700px) {
           .auth-header { padding: 0 16px !important; }

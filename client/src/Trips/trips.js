@@ -376,6 +376,7 @@ export default function Trips() {
         @media (max-width: 1000px) {
           .tp-grid { grid-template-columns: minmax(0, 1fr) !important; }
           .tp-stats { grid-template-columns: minmax(0, 1fr) !important; }
+          #trip-detail { position: static !important; }
         }
         @media (max-width: 640px) {
           .tp-pad { padding-left: 16px !important; padding-right: 16px !important; }
