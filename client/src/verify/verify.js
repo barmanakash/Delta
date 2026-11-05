@@ -39,8 +39,29 @@ export default function App() {
         flexDirection: "column",
       }}
     >
+      <style>{`
+        @media (max-width: 700px) {
+          .vf-header { padding: 0 16px !important; height: 64px !important; }
+          .vf-tagline { display: none !important; }
+          .vf-footer { height: auto !important; padding: 14px 16px !important; flex-direction: column !important; gap: 8px !important; text-align: center !important; }
+          .vf-footer-links { flex-wrap: wrap !important; justify-content: center !important; gap: 8px 18px !important; }
+        }
+        @media (max-width: 640px) {
+          .vf-main { padding: 20px 12px 28px !important; }
+          .vf-card { width: 100% !important; max-width: 540px !important; min-height: 0 !important; padding: 26px 18px 24px !important; }
+          .vf-note { width: auto !important; }
+        }
+        @media (max-width: 560px) {
+          .vf-otp { gap: 6px !important; }
+          .vf-otp > .MuiTextField-root { width: auto !important; flex: 1 1 0 !important; min-width: 0 !important; height: 54px !important; }
+          .vf-otp .MuiOutlinedInput-root { height: 54px !important; }
+          .vf-timer { flex-wrap: wrap !important; gap: 8px 14px !important; }
+        }
+      `}</style>
+
       {/* HEADER */}
       <Box
+        className="vf-header"
         style={{
           height: 80,
           background: "rgba(255,255,255,0.96)",
@@ -79,6 +100,7 @@ export default function App() {
         </Box>
 
         <Box
+          className="vf-tagline"
           style={{
             display: "flex",
             alignItems: "center",
@@ -168,6 +190,7 @@ export default function App() {
 
       {/* MAIN */}
       <Box
+        className="vf-main"
         style={{
           flex: 1,
           position: "relative",
@@ -181,6 +204,7 @@ export default function App() {
       >
         {/* CARD */}
         <Box
+          className="vf-card"
           style={{
             width: 540,
             minHeight: 656,
@@ -362,6 +386,7 @@ export default function App() {
 
           {/* OTP INPUTS */}
           <Box
+            className="vf-otp"
             style={{
               display: "flex",
               justifyContent: "space-between",
@@ -428,6 +453,7 @@ export default function App() {
 
           {/* TIMER ROW */}
           <Box
+            className="vf-timer"
             style={{
               display: "flex",
               justifyContent: "space-between",
@@ -591,6 +617,7 @@ export default function App() {
               </Typography>
 
               <Typography
+                className="vf-note"
                 style={{
                   width: 300,
                   fontSize: 12,
@@ -609,6 +636,7 @@ export default function App() {
 
       {/* FOOTER */}
       <Box
+        className="vf-footer"
         style={{
           height: 43,
           padding: "0 32px",
@@ -632,6 +660,7 @@ export default function App() {
         </Typography>
 
         <Box
+          className="vf-footer-links"
           style={{
             display: "flex",
             gap: 22,

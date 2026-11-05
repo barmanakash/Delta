@@ -80,8 +80,33 @@ export default function RolAndMode() {
                 overflow: "hidden",
             }}
         >
+            <style>{`
+                @media (max-width: 1000px) {
+                    .rm-nav { display: none !important; }
+                }
+                @media (max-width: 860px) {
+                    .rm-cards { width: auto !important; margin: 24px 16px 0 !important; grid-template-columns: minmax(0, 1fr) !important; gap: 16px !important; }
+                    .rm-card { height: auto !important; min-height: 332px !important; padding: 26px 22px 84px !important; }
+                    .rm-card-foot { left: 22px !important; right: 22px !important; bottom: 22px !important; }
+                }
+                @media (max-width: 700px) {
+                    .rm-header { padding: 0 16px !important; height: 64px !important; }
+                    .rm-brand2 { display: none !important; }
+                    .rm-title { font-size: 24px !important; padding: 0 16px !important; letter-spacing: -0.5px !important; }
+                    .rm-sub { font-size: 14px !important; padding: 0 16px !important; }
+                    .rm-stepper { width: auto !important; margin: 20px 12px 0 !important; }
+                    .rm-info { width: auto !important; height: auto !important; margin: 19px 16px 0 !important; padding: 14px 16px !important; }
+                    .rm-continue { width: calc(100% - 32px) !important; max-width: 448px !important; }
+                    .rm-footer { height: auto !important; padding: 14px 16px !important; flex-direction: column !important; gap: 8px !important; text-align: center !important; }
+                }
+                @media (max-width: 480px) {
+                    .rm-radio { right: 14px !important; top: 14px !important; }
+                }
+            `}</style>
+
             {/* HEADER */}
             <Box
+                className="rm-header"
                 style={{
                     height: 87,
                     background: "#fff",
@@ -131,6 +156,7 @@ export default function RolAndMode() {
                     </Typography>
 
                     <Box
+                        className="rm-brand2"
                         style={{
                             marginLeft: 13,
                             display: "flex",
@@ -192,6 +218,7 @@ export default function RolAndMode() {
                 </Box>
 
                 <Box
+                    className="rm-nav"
                     style={{
                         display: "flex",
                         alignItems: "center",
@@ -366,6 +393,7 @@ export default function RolAndMode() {
 
                 {/* STEPPER */}
                 <Box
+                    className="rm-stepper"
                     style={{
                         position: "relative",
                         width: 560,
@@ -452,6 +480,7 @@ export default function RolAndMode() {
                     </Box>
 
                     <Typography
+                        className="rm-title"
                         style={{
                             fontSize: 31,
                             lineHeight: 1.15,
@@ -465,6 +494,7 @@ export default function RolAndMode() {
                     </Typography>
 
                     <Typography
+                        className="rm-sub"
                         style={{
                             fontSize: 16,
                             color: "#4c5558",
@@ -477,6 +507,7 @@ export default function RolAndMode() {
 
                 {/* ROLE CARDS */}
                 <Box
+                    className="rm-cards"
                     style={{
                         position: "relative",
                         width: 960,
@@ -587,6 +618,7 @@ export default function RolAndMode() {
 
                 {/* INFO */}
                 <Box
+                    className="rm-info"
                     style={{
                         position: "relative",
                         width: 674,
@@ -634,6 +666,7 @@ export default function RolAndMode() {
 
                 {/* CONTINUE */}
                 <Button
+                    className="rm-continue"
                     disabled={!selectedRole || saving}
                     onClick={handleContinue}
                     style={{
@@ -681,6 +714,7 @@ export default function RolAndMode() {
 
             {/* FOOTER */}
             <Box
+                className="rm-footer"
                 style={{
                     height: 60,
                     background: "#fff",
@@ -845,6 +879,7 @@ function RoleCard({
     return (
         <Box
             onClick={onClick}
+            className="rm-card"
             style={{
                 height: 332,
                 background: "#fff",
@@ -863,6 +898,7 @@ function RoleCard({
         >
             {/* RADIO */}
             <Box
+                className="rm-radio"
                 style={{
                     position: "absolute",
                     right: 23,
@@ -1005,6 +1041,7 @@ function RoleCard({
 
             {/* FOOTER */}
             <Box
+                className="rm-card-foot"
                 style={{
                     position: "absolute",
                     left: 32,

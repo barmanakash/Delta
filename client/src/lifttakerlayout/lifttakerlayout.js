@@ -7,8 +7,12 @@ import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNone
 import SwapVertOutlinedIcon from "@mui/icons-material/SwapVertOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 
 import ProfileMenu from "../profilemenu/profilemenu";
+import MobileTabBar from "../mobiletabbar/mobiletabbar";
 
 /**
  * Header + footer shared by the lift taker screens (lift taker only,
@@ -36,6 +40,13 @@ const activateOnKey = (fn) => (e) => {
   }
 };
 
+// What the bottom tab bar shows on phones (the top nav is hidden there)
+const MOBILE_TABS = [
+  { key: "home", label: "Home", path: "/lifttakerhome", icon: HomeOutlinedIcon },
+  { key: "find", label: "Find a Lift", path: "/findlift", icon: SearchOutlinedIcon },
+  { key: "trips", label: "My Trips", path: "/trips", icon: DirectionsCarOutlinedIcon },
+];
+
 /* ------------------------------------------------------------------ */
 /*  Header                                                             */
 /* ------------------------------------------------------------------ */
@@ -54,6 +65,13 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
         }
         @media (max-width: 600px) {
           .ltl-pad { padding-left: 16px !important; padding-right: 16px !important; }
+        }
+        @media (max-width: 520px) {
+          .ltl-chip, .ltl-divider { display: none !important; }
+          .ltl-actions { gap: 12px !important; }
+        }
+        @media (max-width: 380px) {
+          .ltl-bell { display: none !important; }
         }
       `}</style>
 
@@ -110,6 +128,7 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
             </Box>
 
             <Box
+              className="ltl-chip"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -152,7 +171,7 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
           </Box>
 
           {/* actions */}
-          <Box style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <Box className="ltl-actions" style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <Box
               className="ltl-btn"
               role="button"
@@ -179,7 +198,7 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
               <span className="ltl-sos-text">POLICE SOS</span>
             </Box>
 
-            <Box style={{ position: "relative", display: "flex" }}>
+            <Box className="ltl-bell" style={{ position: "relative", display: "flex" }}>
               <NotificationsNoneOutlinedIcon style={{ fontSize: 25, color: "#343b43" }} />
               <Box
                 style={{
@@ -195,12 +214,15 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
               />
             </Box>
 
-            <Box style={{ width: 1, height: 34, background: "#e4e6f0" }} />
+            <Box className="ltl-divider" style={{ width: 1, height: 34, background: "#e4e6f0" }} />
 
             <ProfileMenu user={user} photoUrl={photoUrl} variant="stacked" />
           </Box>
         </Box>
       </Box>
+
+      {/* phones: the bottom tab bar replaces the top navigation */}
+      <MobileTabBar items={MOBILE_TABS} active={active} />
 
       {/* Police SOS dialog */}
       <Dialog

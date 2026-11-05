@@ -158,8 +158,17 @@ export default function ProfileMenu({ user, photoUrl, variant = "default" }) {
 
   return (
     <>
+      <style>{`
+        /* phones: just the avatar, so the header has room for everything else */
+        @media (max-width: 640px) {
+          .pm-name, .pm-extra { display: none !important; }
+          .pm-trigger { padding: 2px !important; gap: 0 !important; }
+        }
+      `}</style>
+
       {/* TRIGGER */}
       <Box
+        className="pm-trigger"
         role="button"
         tabIndex={0}
         aria-haspopup="true"
@@ -198,7 +207,7 @@ export default function ProfileMenu({ user, photoUrl, variant = "default" }) {
           {!photoUrl && initials}
         </Avatar>
 
-        <Box style={{ minWidth: 0, textAlign: stacked ? "right" : "left" }}>
+        <Box className="pm-name" style={{ minWidth: 0, textAlign: stacked ? "right" : "left" }}>
         <Typography
           style={{
             fontSize: 14,
@@ -232,9 +241,10 @@ export default function ProfileMenu({ user, photoUrl, variant = "default" }) {
 
         {!stacked && (
           <>
-            <ShieldOutlinedIcon style={{ fontSize: 17, color: teal }} />
+            <ShieldOutlinedIcon className="pm-extra" style={{ fontSize: 17, color: teal }} />
 
             <KeyboardArrowDownIcon
+              className="pm-extra"
               style={{
                 fontSize: 19,
                 color: "#596066",

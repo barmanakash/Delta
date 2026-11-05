@@ -175,8 +175,35 @@ function App() {
         flexDirection: "column",
       }}
     >
+      <style>{`
+        @media (max-width: 880px) {
+          .auth-main { padding: 20px 14px 28px !important; }
+          .auth-card { grid-template-columns: minmax(0, 1fr) !important; min-height: 0 !important; border-radius: 16px !important; }
+          .auth-left { padding: 26px 22px !important; }
+          .auth-hide-sm { display: none !important; }
+          .auth-left-title { font-size: 25px !important; letter-spacing: -0.6px !important; max-width: none !important; }
+          .auth-left-text { max-width: none !important; margin-bottom: 0 !important; }
+          .auth-right { padding: 30px 24px 26px !important; }
+          /* 16px stops phones from zooming in when a field is tapped */
+          .auth-card input { font-size: 16px !important; }
+        }
+        @media (max-width: 700px) {
+          .auth-header { padding: 0 16px !important; }
+          .auth-tagline { display: none !important; }
+          .auth-footer { height: auto !important; padding: 14px 16px !important; flex-direction: column !important; gap: 8px !important; text-align: center !important; }
+          .auth-footer-links { flex-wrap: wrap !important; justify-content: center !important; gap: 8px 18px !important; }
+        }
+        @media (max-width: 640px) {
+          .auth-title { font-size: 26px !important; }
+        }
+        @media (max-width: 420px) {
+          .auth-right { padding: 24px 16px 22px !important; }
+        }
+      `}</style>
+
       {/* Header */}
       <Box
+        className="auth-header"
         style={{
           height: "70px",
           backgroundColor: "#ffffff",
@@ -240,6 +267,7 @@ function App() {
         </Box>
 
         <Box
+          className="auth-tagline"
           style={{
             display: "flex",
             alignItems: "center",
@@ -267,6 +295,7 @@ function App() {
 
       {/* Main */}
       <Box
+        className="auth-main"
         style={{
           flex: 1,
           padding: "56px 40px 48px",
@@ -277,6 +306,7 @@ function App() {
         }}
       >
         <Box
+          className="auth-card"
           style={{
             width: "100%",
             maxWidth: "1216px",
@@ -291,6 +321,7 @@ function App() {
         >
           {/* Left Section */}
           <Box
+            className="auth-left"
             style={{
               background:
                 "linear-gradient(135deg, #d8f7f4 0%, #e7eaff 38%, #dcdfff 100%)",
@@ -302,6 +333,7 @@ function App() {
           >
             {/* Left Logo */}
             <Box
+              className="auth-hide-sm"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -372,6 +404,7 @@ function App() {
 
             {/* Heading */}
             <Typography
+              className="auth-left-title"
               style={{
                 fontSize: "31px",
                 lineHeight: 1.18,
@@ -386,6 +419,7 @@ function App() {
             </Typography>
 
             <Typography
+              className="auth-left-text"
               style={{
                 fontSize: "14px",
                 lineHeight: 1.5,
@@ -400,6 +434,7 @@ function App() {
 
             {/* Features */}
             <Box
+              className="auth-hide-sm"
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -424,6 +459,7 @@ function App() {
 
             {/* Bottom Statistic */}
             <Box
+              className="auth-hide-sm"
               style={{
                 marginTop: "auto",
                 backgroundColor: "rgba(255,255,255,0.78)",
@@ -455,6 +491,7 @@ function App() {
 
           {/* Right Section */}
           <Box
+            className="auth-right"
             style={{
               padding: "62px 66px 40px",
               boxSizing: "border-box",
@@ -464,6 +501,7 @@ function App() {
             }}
           >
             <Typography
+              className="auth-title"
               style={{
                 fontSize: "32px",
                 fontWeight: 750,
@@ -712,6 +750,7 @@ function App() {
 
       {/* Footer */}
       <Box
+        className="auth-footer"
         style={{
           height: "48px",
           padding: "0 32px",
@@ -732,6 +771,7 @@ function App() {
         </Typography>
 
         <Box
+          className="auth-footer-links"
           style={{
             display: "flex",
             alignItems: "center",

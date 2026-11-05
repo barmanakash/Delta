@@ -11,6 +11,7 @@ import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNone
 
 import ProfileMenu from "../profilemenu/profilemenu";
 import PaymentReceivedToast from "../payment/paymentreceived";
+import MobileTabBar from "../mobiletabbar/mobiletabbar";
 
 /**
  * The rider's top navigation bar, the same one the rider home shows:
@@ -39,6 +40,10 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
         @media (max-width: 860px) {
           .rh-nav-label { display: none; }
           .rh-nav-item { min-width: 44px !important; padding: 0 12px !important; }
+        }
+        @media (max-width: 760px) {
+          /* phones: the bottom tab bar replaces this navigation */
+          .rh-nav { display: none !important; }
         }
         @media (max-width: 560px) {
           .rh-pad { padding: 0 14px !important; }
@@ -121,6 +126,7 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
         {/* Navigation */}
         <Box
           component="nav"
+          className="rh-nav"
           style={{
             display: "flex",
             alignItems: "center",
@@ -221,6 +227,13 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
           <ProfileMenu user={user} photoUrl={photoUrl} />
         </Box>
       </Box>
+      <MobileTabBar
+        active={active}
+        items={NAV.map((n) => ({
+          ...n,
+          badge: n.key === "requests" && pendingCount > 0 ? String(pendingCount) : null,
+        }))}
+      />
     <PaymentReceivedToast enabled={user?.role === "rider"} />
     </>
   );

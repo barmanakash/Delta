@@ -83,8 +83,30 @@ export default function Gender() {
         overflow: "hidden",
       }}
     >
+      <style>{`
+        @media (max-width: 900px) {
+          .gd-nav { display: none !important; }
+        }
+        @media (max-width: 720px) {
+          .gd-header { padding: 0 16px !important; height: 64px !important; }
+          .gd-brand2 { display: none !important; }
+          .gd-card { width: calc(100% - 24px) !important; min-height: 0 !important; padding: 24px 16px 24px !important; }
+          .gd-title { font-size: 24px !important; text-align: center !important; padding: 0 16px !important; letter-spacing: -0.5px !important; }
+          .gd-sub { font-size: 14px !important; text-align: center !important; padding: 0 16px !important; }
+          .gd-badge { height: auto !important; flex-wrap: wrap !important; justify-content: center !important; padding: 5px 12px !important; max-width: calc(100% - 24px) !important; box-sizing: border-box !important; }
+          .gd-secure { padding: 0 16px !important; text-align: center !important; justify-content: center !important; }
+          .gd-footer { height: auto !important; padding: 14px 16px !important; flex-direction: column !important; gap: 8px !important; text-align: center !important; }
+        }
+        @media (max-width: 560px) {
+          .gd-rule-head { flex-wrap: wrap !important; gap: 8px !important; }
+          .gd-actions { flex-direction: column-reverse !important; gap: 12px !important; align-items: stretch !important; }
+          .gd-actions > * { width: 100% !important; }
+        }
+      `}</style>
+
       {/* HEADER */}
       <Box
+        className="gd-header"
         style={{
           height: 88,
           background: "#ffffff",
@@ -134,6 +156,7 @@ export default function Gender() {
           </Typography>
 
           <Box
+            className="gd-brand2"
             style={{
               marginLeft: 13,
               display: "flex",
@@ -176,6 +199,7 @@ export default function Gender() {
         </Box>
 
         <Box
+          className="gd-nav"
           style={{
             display: "flex",
             alignItems: "center",
@@ -375,6 +399,7 @@ export default function Gender() {
 
         {/* TOP BADGE */}
         <Box
+          className="gd-badge"
           style={{
             position: "relative",
             height: 24,
@@ -427,6 +452,7 @@ export default function Gender() {
 
         {/* TITLE */}
         <Typography
+          className="gd-title"
           style={{
             position: "relative",
             fontSize: 31,
@@ -441,6 +467,7 @@ export default function Gender() {
         </Typography>
 
         <Typography
+          className="gd-sub"
           style={{
             position: "relative",
             fontSize: 15,
@@ -453,6 +480,7 @@ export default function Gender() {
 
         {/* MAIN CARD */}
         <Box
+          className="gd-card"
           style={{
             position: "relative",
             width: 680,
@@ -570,6 +598,7 @@ export default function Gender() {
               }}
             >
               <Box
+                className="gd-rule-head"
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -708,6 +737,7 @@ export default function Gender() {
 
           {/* BUTTONS */}
           <Box
+            className="gd-actions"
             style={{
               display: "flex",
               alignItems: "center",
@@ -767,6 +797,7 @@ export default function Gender() {
 
         {/* SECURITY MESSAGE */}
         <Box
+          className="gd-secure"
           style={{
             position: "relative",
             display: "flex",
@@ -796,6 +827,7 @@ export default function Gender() {
 
       {/* FOOTER */}
       <Box
+        className="gd-footer"
         style={{
           height: 58,
           background: "#f2f3fc",

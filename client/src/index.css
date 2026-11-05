@@ -94,11 +94,13 @@ html {
     opacity var(--motion-base) ease;
 }
 
-:is(button, [role="button"], a[href], .MuiButtonBase-root, .MuiChip-clickable):not(:disabled):not([aria-disabled="true"]):not([style*="transform"]):not(.leaflet-container *):hover {
-  transform: translateY(-1px);
-  /* filter (not box-shadow) so it still shows on buttons whose own
-     box-shadow is set to "none" in their inline styles */
-  filter: brightness(0.96) drop-shadow(0 4px 8px rgba(24, 34, 70, 0.16));
+@media (hover: hover) {
+  :is(button, [role="button"], a[href], .MuiButtonBase-root, .MuiChip-clickable):not(:disabled):not([aria-disabled="true"]):not([style*="transform"]):not(.leaflet-container *):hover {
+    transform: translateY(-1px);
+    /* filter (not box-shadow) so it still shows on buttons whose own
+       box-shadow is set to "none" in their inline styles */
+    filter: brightness(0.96) drop-shadow(0 4px 8px rgba(24, 34, 70, 0.16));
+  }
 }
 
 :is(button, [role="button"], a[href], .MuiButtonBase-root, .MuiChip-clickable):not(:disabled):not([aria-disabled="true"]):not([style*="transform"]):not(.leaflet-container *):active {
@@ -121,10 +123,32 @@ html {
     filter var(--motion-base) var(--motion-ease);
 }
 
-.hover-lift:hover,
-.MuiCard-root:hover {
-  transform: translateY(-3px);
-  filter: drop-shadow(0 12px 18px rgba(24, 34, 70, 0.14));
+/* Hover only exists with a mouse. On a touch screen "hover" sticks after a
+   tap, which would leave cards stuck in their lifted state. */
+@media (hover: hover) {
+  .hover-lift:hover,
+  .MuiCard-root:hover {
+    transform: translateY(-3px);
+    filter: drop-shadow(0 12px 18px rgba(24, 34, 70, 0.14));
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Small screens                                                      */
+/* ------------------------------------------------------------------ */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (max-width: 760px) {
+  /* Safety net: nothing should ever make the whole page scroll sideways.
+     (On body, this does not create a scroll container, so sticky headers
+     keep working.) */
+  body {
+    overflow-x: hidden;
+  }
 }
 
 /* ---- reduced motion ----------------------------------------------- */
