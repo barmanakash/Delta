@@ -61,10 +61,12 @@ const cardStyle = {
   boxShadow: "0 4px 20px rgba(30,35,90,0.06)",
 };
 
-// Fuel-split a lift taker pays: rupees per minute of ride. Keep in step with
-// the default rate_per_min on the server (RideOfferCreate).
-const RATE_PER_MIN = 1.65;
+// Fuel-split a lift taker pays: ₹5 for every km of the ride. Keep in step with
+// RATE_PER_KM in the server's utils/matching.py.
+const RATE_PER_KM = 5;
 const MIN_FARE = 10;
+// Used only until the map has measured the road (the server assumes the same speed)
+const KM_PER_MIN_FALLBACK = 0.4;
 
 // Average CO2 offset per pooled journey, and a typical month of commuting
 // (used only for the "~kg/mo" estimate on this screen)
@@ -107,7 +109,7 @@ const formatTime = (t) => {
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
 };
 
-const estimateFare = (minutes) => Math.max(MIN_FARE, Math.round(minutes * RATE_PER_MIN));
+const estimateFare = (km) => Math.max(MIN_FARE, Math.round(km * RATE_PER_KM));
 
 const errorMessage = (data, fallback) => {
   if (!data) return fallback;
@@ -1425,9 +1427,9 @@ function StepTwo({
         </SummaryRow>
         <SummaryRow label="Trip">
           {routeReady
-            ? `${route.distanceKm.toFixed(1)} km · about ${route.durationMin} min · ≈ ₹${estimateFare(route.durationMin)} per lift`
+            ? `${route.distanceKm.toFixed(1)} km · about ${route.durationMin} min · ≈ ₹${estimateFare(route.distanceKm)} for the full ride`
             : durationMin >= 2
-            ? `About ${durationMin} min · ≈ ₹${estimateFare(durationMin)} per lift`
+            ? `About ${durationMin} min · ≈ ₹${estimateFare(durationMin * KM_PER_MIN_FALLBACK)} for the full ride`
             : "Travel time not set"}
         </SummaryRow>
         <SummaryRow label="Morning outbound">{formatTime(outboundTime)}</SummaryRow>
@@ -2028,7 +2030,7 @@ function RouteInfoCard({ route }) {
           <Box style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 12.5 }}>
             <span style={{ color: muted }}>Fuel Recovery</span>
             <span style={{ fontWeight: 700, color: "#9a6700" }}>
-              ≈ ₹{estimateFare(route.durationMin)} / lift
+              ≈ ₹{estimateFare(route.distanceKm)} full ride
             </span>
           </Box>
         </>

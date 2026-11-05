@@ -61,7 +61,13 @@ MIN_PROGRESS = 0.05
 MAX_PICKUP_PENALTY = 14
 MAX_DROP_PENALTY = 14
 MAX_TIME_PENALTY = 10
-MIN_FARE = 10
+MIN_FARE = 10  # rupees: the least a ride can cost
+
+# Fuel-split: rupees for every km the lift taker rides
+RATE_PER_KM = 5
+# Used only when the rider's route has no measured road distance
+ROAD_FACTOR = 1.3  # straight-line km -> approximate road km
+FALLBACK_KM_PER_MIN = 0.4  # ~24 km/h, when there are no map points either
 
 
 def _words(text: str) -> set[str]:
@@ -322,6 +328,36 @@ def _fit_by_radius(stops: list[dict], request: dict) -> Optional[dict]:
 #  Putting it together
 # ---------------------------------------------------------------------------
 
+def _route_km(offer: dict, stops: list[dict]) -> float:
+    """Road distance of the rider's whole route, in km."""
+    # The commute form saves the distance the map measured along the road
+    stored = offer.get("distance_km") or (offer.get("commute_form") or {}).get("distance_km")
+    if stored:
+        return float(stored)
+
+    # Older routes: stop-to-stop straight lines, stretched to approximate the road
+    if all(_is_located(s) for s in stops):
+        straight = sum(
+            _distance_km(a["lat"], a["lng"], b["lat"], b["lng"])
+            for a, b in zip(stops, stops[1:])
+        )
+        return straight * ROAD_FACTOR
+
+    # No map points at all: estimate from the travel time
+    total_min = stops[-1]["offset_min"] - stops[0]["offset_min"]
+    return max(total_min, 1) * FALLBACK_KM_PER_MIN
+
+
+def ride_km(offer: dict, stops: list[dict], ride_min: float) -> float:
+    """
+    How far the lift taker rides: the route's distance, shared out by minutes
+    (a ride for half the route's minutes is charged for half its km).
+    """
+    total_min = max(1, stops[-1]["offset_min"] - stops[0]["offset_min"])
+    share = max(0.0, min(1.0, ride_min / total_min))
+    return _route_km(offer, stops) * share
+
+
 def _evaluate(
     offer: dict, request: dict, now: Optional[datetime] = None
 ) -> tuple[Optional[dict], str]:
@@ -393,7 +429,8 @@ def _evaluate(
 
     # Rounded half-up, like the rider's screen (Python's round() would turn 16.5
     # into 16 while the rider's "about ₹17" rounds up, so the two would disagree)
-    fare = max(MIN_FARE, math.floor(duration * float(offer.get("rate_per_min", 1.65)) + 0.5))
+    km = ride_km(offer, stops, fit["drop_off"] - fit["pick_off"])
+    fare = max(MIN_FARE, math.floor(km * RATE_PER_KM + 0.5))
 
     # The rider's route on the map, when every stop was located
     route = (
@@ -418,6 +455,7 @@ def _evaluate(
         "arrival_point": fit["arrival_point"],
         "duration_min": duration,
         "fare": fare,
+        "distance_km": round(km, 1),
         "helmet_note": offer.get("helmet_note", "Dual Helmets Provided"),
         "walk_note": fit["walk_note"] or offer.get("walk_note", "Zero Detour (<200m walk)"),
         "route_note": offer.get("route_note", "Direct Safe Corridor"),

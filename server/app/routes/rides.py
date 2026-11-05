@@ -246,6 +246,8 @@ async def create_commute(
         **_OFFER_DEFAULTS,
         "status": "active",
         "commute_id": commute_id,
+        # Road distance measured on the map; the fare is worked out from it
+        "distance_km": payload.distance_km,
         "created_at": now,
     }
 
