@@ -35,13 +35,14 @@ class Settings:
     MAX_ID_DOC_BYTES: int = 10 * 1024 * 1024  # 10 MB
 
     # ---- Payments (TEST MODE ONLY, no real money) ---------------------------
-    # Where the React app lives: payment pages send people back here.
+    # Where the React app lives: Stripe sends people back here after paying.
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
-    # Leave STRIPE_SECRET_KEY empty to use the built-in sandbox checkout (no
-    # account needed). Put a Stripe TEST key (sk_test_...) in server/.env to use
-    # Stripe's hosted test checkout instead. Live keys (sk_live_...) are refused.
+    # Stripe TEST secret key (sk_test_...) from the Stripe dashboard. Live keys
+    # (sk_live_...) are refused.
     STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "").strip()
-    PAYMENT_PROVIDER: str = "stripe" if os.getenv("STRIPE_SECRET_KEY", "").strip() else "sandbox"
+    # Signing secret (whsec_...) of the webhook, so Stripe can tell this server a
+    # payment succeeded even if the customer closes the tab. Optional.
+    STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "").strip()
 
 
 settings = Settings()

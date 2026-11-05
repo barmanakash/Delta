@@ -418,7 +418,7 @@ export default function Trips() {
             </Button>
           </Box>
 
-          {notice && (
+          {notice && (notice.type === "success" || !selected) && (
             <Alert severity={notice.type} onClose={() => setNotice(null)} style={{ marginTop: 20, borderRadius: 12 }}>
               {notice.text}
             </Alert>
@@ -573,6 +573,7 @@ export default function Trips() {
                         busy={payBusy === selected.id}
                         onPay={() => startPayment(selected)}
                         onCancel={() => cancelTrip(selected)}
+                        payNotice={notice && notice.type === "error" ? notice : null}
                       />
                     ) : (
                       <Box style={{ ...cardStyle, padding: "32px 24px", textAlign: "center", color: muted, fontSize: 14 }}>
@@ -761,7 +762,7 @@ function Stop({ dot, time, title, sub }) {
   );
 }
 
-function TripDetail({ trip, copy, now, todayIso, mapRoute, isLift, busy, onPay, onCancel }) {
+function TripDetail({ trip, copy, now, todayIso, mapRoute, isLift, busy, onPay, onCancel, payNotice }) {
   const chip = timingChip(trip, now);
   const ready = mapRoute.status === "ready";
 
@@ -878,7 +879,7 @@ function TripDetail({ trip, copy, now, todayIso, mapRoute, isLift, busy, onPay, 
           <Stop dot={indigo} time={trip.arrival_time} title={trip.destination} sub={`Drop-off · ${trip.arrival_point}`} />
         </Box>
 
-        <PaymentPanel trip={trip} isLift={isLift} now={now} busy={busy} onPay={onPay} onCancel={onCancel} />
+        <PaymentPanel trip={trip} isLift={isLift} now={now} busy={busy} onPay={onPay} onCancel={onCancel} notice={payNotice} />
 
         {/* facts */}
         <Box className="tp-info" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, marginTop: 20 }}>
@@ -941,7 +942,7 @@ function PayPill({ state, rider }) {
 }
 
 // Payment status for one trip. The lift taker also gets the Pay / Cancel buttons.
-function PaymentPanel({ trip, isLift, now, busy, onPay, onCancel }) {
+function PaymentPanel({ trip, isLift, now, busy, onPay, onCancel, notice }) {
   const state = trip.payment_status || "unpaid";
   const canPay = isLift && ["unpaid", "pending", "failed"].includes(state);
   const canCancel = isLift && trip.status === "matched" && trip.span.start > now;
@@ -963,10 +964,10 @@ function PaymentPanel({ trip, isLift, now, busy, onPay, onCancel }) {
   } else if (state === "pending") {
     message = "You started a payment but it isn't finished yet.";
   } else {
-    message = `Pay your ₹${trip.fare} fuel-split to confirm the trip.`;
+    message = `Pay your ₹${trip.fare} fuel-split securely with Stripe to confirm the trip.`;
   }
 
-  const payLabel = state === "failed" ? "Try payment again" : state === "pending" ? "Continue to payment" : `Pay ₹${trip.fare}`;
+  const payLabel = state === "failed" ? "Try payment again" : state === "pending" ? "Continue to payment" : `Pay ₹${trip.fare} with Stripe`;
 
   return (
     <Box style={{ border: "1px solid #e4e6f3", borderRadius: 14, padding: "16px", marginTop: 16 }}>
@@ -978,6 +979,13 @@ function PaymentPanel({ trip, isLift, now, busy, onPay, onCancel }) {
         <PayPill state={state} rider={!isLift} />
       </Box>
       <Typography style={{ fontSize: 13, color: muted, marginTop: 8, lineHeight: 1.5 }}>{message}</Typography>
+
+      {/* a payment error shows right here, where the Pay button is */}
+      {notice && (
+        <Alert severity="error" style={{ marginTop: 12, borderRadius: 10 }}>
+          {notice.text}
+        </Alert>
+      )}
 
       {(canPay || canCancel) && (
         <Box style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
@@ -1025,7 +1033,7 @@ function PaymentPanel({ trip, isLift, now, busy, onPay, onCancel }) {
 
       {canPay && (
         <Typography style={{ fontSize: 12, color: muted, marginTop: 10, lineHeight: 1.5 }}>
-          Test mode: no real money moves. On Stripe's page use card 4242 4242 4242 4242 with any future expiry and any CVC.
+          Secure checkout by Stripe (test mode): no real money moves. On Stripe's page use card 4242 4242 4242 4242 with any future expiry and any CVC.
         </Typography>
       )}
     </Box>

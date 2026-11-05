@@ -64,7 +64,7 @@ const cardStyle = {
 // Fuel-split a lift taker pays: ₹5 for every km of the ride. Keep in step with
 // RATE_PER_KM in the server's utils/matching.py.
 const RATE_PER_KM = 5;
-const MIN_FARE = 10;
+const MIN_FARE = 60; // keep in step with MIN_FARE on the server (Stripe's minimum charge)
 // Used only until the map has measured the road (the server assumes the same speed)
 const KM_PER_MIN_FALLBACK = 0.4;
 

@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pymongo import ReturnDocument
 
 from app.database import get_lift_requests_collection, get_users_collection
@@ -32,6 +32,7 @@ from app.models.payment import (
 from app.models.user import MessageResponse
 from app.routes.rides import _first_name
 from app.utils import payments as provider
+from app.utils.matching import MIN_FARE
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/api/payments", tags=["Payments"])
@@ -114,9 +115,16 @@ async def start_checkout(
         )
 
     amount = int(doc["accepted_match"]["fare"])
+    if amount < MIN_FARE:
+        # Matched before the minimum fare existed. Stripe can't charge amounts this
+        # small, so bring the trip up to the minimum: the price shown is the price paid.
+        amount = MIN_FARE
+        await get_lift_requests_collection().update_one(
+            {"_id": doc["_id"]}, {"$set": {"accepted_match.fare": MIN_FARE}}
+        )
     title = f"FriendRide lift: {doc['pickup']} to {doc['destination']}"
     session_id, checkout_url = await provider.create_checkout(
-        str(doc["_id"]), amount, title
+        str(doc["_id"]), amount, title, customer_email=current_user.get("email")
     )
 
     # Only record the attempt if the trip didn't get paid in the meantime
@@ -189,6 +197,53 @@ async def confirm_payment(
             doc = await lifts.find_one({"_id": doc["_id"]})
 
     return _status_of(doc)
+
+
+# ---------------------------------------------------------------------------
+#  POST /api/payments/webhook  (called by Stripe, not by the app)
+# ---------------------------------------------------------------------------
+
+@router.post("/webhook", include_in_schema=False)
+async def stripe_webhook(request: Request):
+    """
+    Stripe tells us directly when a Checkout payment succeeds or expires, so
+    a trip is marked paid even if the customer closes the tab before coming
+    back to the app. The signature proves the call really came from Stripe.
+    """
+    event = provider.parse_webhook(
+        await request.body(), request.headers.get("stripe-signature", "")
+    )
+    kind = event.get("type")
+    session = (event.get("data") or {}).get("object") or {}
+    session_id = session.get("id")
+    now = datetime.now(timezone.utc)
+    lifts = get_lift_requests_collection()
+
+    if session_id and kind in (
+        "checkout.session.completed",
+        "checkout.session.async_payment_succeeded",
+    ):
+        if session.get("payment_status") == "paid":
+            await lifts.update_one(
+                {"payment.session_id": session_id, "payment.status": "pending"},
+                {
+                    "$set": {
+                        "payment.status": "paid",
+                        "payment.paid_at": now,
+                        "payment.payment_intent": session.get("payment_intent"),
+                    }
+                },
+            )
+    elif session_id and kind in (
+        "checkout.session.expired",
+        "checkout.session.async_payment_failed",
+    ):
+        await lifts.update_one(
+            {"payment.session_id": session_id, "payment.status": "pending"},
+            {"$set": {"payment.status": "failed", "payment.failed_at": now}},
+        )
+
+    return {"received": True}
 
 
 # ---------------------------------------------------------------------------

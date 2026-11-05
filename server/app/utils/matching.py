@@ -61,7 +61,9 @@ MIN_PROGRESS = 0.05
 MAX_PICKUP_PENALTY = 14
 MAX_DROP_PENALTY = 14
 MAX_TIME_PENALTY = 10
-MIN_FARE = 10  # rupees: the least a ride can cost
+# Stripe refuses to charge less than 50 US cents (about ₹47). Keep this above that,
+# so every fare can actually be paid. Short rides below it cost this minimum.
+MIN_FARE = 60  # rupees: the least a ride can cost
 
 # Fuel-split: rupees for every km the lift taker rides
 RATE_PER_KM = 5
