@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
 from bson import ObjectId
@@ -293,6 +293,7 @@ async def create_commute(
     summary="The signed-in rider's active commute (null if none)",
 )
 async def get_active_commute(current_user: dict = Depends(get_current_user)):
+    await _retire_finished_commutes(current_user["_id"])
     doc = await get_ride_offers_collection().find_one(
         {
             "user_id": current_user["_id"],
@@ -344,6 +345,51 @@ def _first_name(full_name: Optional[str]) -> str:
     """Lift takers are only ever shown to riders by first name."""
     parts = (full_name or "").split()
     return parts[0] if parts else "Commuter"
+
+
+async def _retire_finished_commutes(rider_id) -> None:
+    """
+    A commute is done once a trip on it has finished. It then stops showing as
+    the rider's active commute and stops matching new lift requests, so the
+    rider starts fresh with a new one. A commute nobody has ridden on yet
+    simply stays until the rider replaces it.
+    """
+    offers = get_ride_offers_collection()
+    active = await offers.find(
+        {"user_id": rider_id, "commute_id": {"$exists": True}, "status": "active"},
+        {"commute_id": 1},
+    ).to_list(length=20)
+    if not active:
+        return
+    commute_of = {o["_id"]: o["commute_id"] for o in active}
+
+    trips = await get_lift_requests_collection().find(
+        {
+            "accepted_offer_id": {"$in": list(commute_of)},
+            "status": {"$in": ["matched", "completed"]},
+        }
+    ).to_list(length=300)
+
+    now = datetime.now()  # the same clock the Trips page uses
+    finished = set()
+    for trip in trips:
+        match = trip.get("accepted_match") or {}
+        try:
+            day = trip["travel_date"]
+            start = datetime.strptime(f"{day} {match['pickup_time']}", "%Y-%m-%d %H:%M")
+            end = datetime.strptime(f"{day} {match['arrival_time']}", "%Y-%m-%d %H:%M")
+        except (KeyError, ValueError):
+            continue
+        if end < start:  # the trip crossed midnight
+            end += timedelta(days=1)
+        if end < now:
+            finished.add(commute_of[trip["accepted_offer_id"]])
+
+    if finished:
+        await offers.update_many(
+            {"user_id": rider_id, "commute_id": {"$in": list(finished)}, "status": "active"},
+            {"$set": {"status": "completed", "completed_at": datetime.now(timezone.utc)}},
+        )
 
 
 def _minutes_until(day: str, clock: str) -> int:
@@ -417,6 +463,8 @@ async def _collect_incoming(
     offers_col = get_ride_offers_collection()
     lifts = get_lift_requests_collection()
     now = datetime.now()
+
+    await _retire_finished_commutes(rider["_id"])
 
     offers = await offers_col.find(
         {"user_id": rider["_id"], "status": "active", "seats_available": {"$gte": 1}}
