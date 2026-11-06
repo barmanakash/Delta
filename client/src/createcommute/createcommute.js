@@ -722,24 +722,6 @@ export default function CreateCommute() {
               </Box>
               <Typography style={{ fontSize: 18, fontWeight: 800 }}>FriendRide</Typography>
             </Box>
-
-            {/* <Box
-              className="cc-btn cc-label"
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate("/home")}
-              onKeyDown={activateOnKey(() => navigate("/home"))}
-              style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, fontWeight: 600, cursor: "pointer", backgroundColor:"red" }}
-            >
-              <ArrowBackIcon style={{ fontSize: 15 }} />
-              Dashboard
-            </Box> */}
-            {/* <Typography
-              className="cc-label"
-              style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: "0.8px", color: muted }}
-            >
-              CREATE YOUR COMMUTE
-            </Typography> */}
           </Box>
 
           <Box
@@ -822,7 +804,7 @@ export default function CreateCommute() {
               Home
             </Box>
             <span style={{ color: "#c3c8da" }} aria-hidden="true">/</span>
-            <Typography component="h1" style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.3px" }}>
+            <Typography component="h1" style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.3px" }}>
               Create Your Commute
             </Typography>
             <Chip
