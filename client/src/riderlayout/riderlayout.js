@@ -7,9 +7,9 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import RouteOutlinedIcon from "@mui/icons-material/RouteOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
-import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 
 import ProfileMenu from "../profilemenu/profilemenu";
+import NotificationBell from "../notificationbell/notificationbell";
 import PaymentReceivedToast from "../payment/paymentreceived";
 import MobileTabBar from "../mobiletabbar/mobiletabbar";
 
@@ -207,22 +207,8 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
 
         {/* Notifications + profile */}
         <Box style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 18, flexShrink: 1, minWidth: 0 }}>
-          <Box style={{ position: "relative", display: "flex", alignItems: "center" }}>
-            <NotificationsNoneOutlinedIcon style={{ fontSize: 24, color: "#343b43" }} />
-            {pendingCount > 0 && (
-              <Box
-                style={{
-                  position: "absolute",
-                  top: 1,
-                  right: 0,
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  background: "#dc2929",
-                }}
-              />
-            )}
-          </Box>
+          {/* lift requests on the rider's route show up here */}
+          <NotificationBell user={user} enabled={user?.role === "rider"} />
 
           <ProfileMenu user={user} photoUrl={photoUrl} />
         </Box>
