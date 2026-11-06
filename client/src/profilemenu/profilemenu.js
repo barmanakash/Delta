@@ -159,6 +159,12 @@ export default function ProfileMenu({ user, photoUrl, variant = "default" }) {
   return (
     <>
       <style>{`
+        /* tablets: the rider header is crowded, so the shield / arrow step aside
+           and a long name is shortened instead of being pushed off the screen */
+        @media (max-width: 1000px) {
+          .pm-default .pm-extra { display: none !important; }
+          .pm-default .pm-name > p { max-width: 120px !important; }
+        }
         /* phones: just the avatar, so the header has room for everything else */
         @media (max-width: 640px) {
           .pm-name, .pm-extra { display: none !important; }
@@ -168,7 +174,7 @@ export default function ProfileMenu({ user, photoUrl, variant = "default" }) {
 
       {/* TRIGGER */}
       <Box
-        className="pm-trigger"
+        className={stacked ? "pm-trigger" : "pm-trigger pm-default"}
         role="button"
         tabIndex={0}
         aria-haspopup="true"
@@ -186,6 +192,7 @@ export default function ProfileMenu({ user, photoUrl, variant = "default" }) {
           alignItems: "center",
           gap: 9,
           cursor: "pointer",
+          minWidth: 0,
           padding: "4px 8px",
           borderRadius: 10,
           background: open ? "#f0f1fc" : "transparent",

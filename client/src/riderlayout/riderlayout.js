@@ -206,7 +206,7 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
         </Box>
 
         {/* Notifications + profile */}
-        <Box style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 18, flexShrink: 0 }}>
+        <Box style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 18, flexShrink: 1, minWidth: 0 }}>
           <Box style={{ position: "relative", display: "flex", alignItems: "center" }}>
             <NotificationsNoneOutlinedIcon style={{ fontSize: 24, color: "#343b43" }} />
             {pendingCount > 0 && (
