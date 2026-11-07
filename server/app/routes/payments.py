@@ -33,9 +33,27 @@ from app.models.user import MessageResponse
 from app.routes.rides import _first_name
 from app.utils import payments as provider
 from app.utils.matching import MIN_FARE
+from app.utils.notifications import notify
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/api/payments", tags=["Payments"])
+
+
+async def _announce_payment(doc: dict) -> None:
+    """Tell the rider they've been paid (it shows up in the bell of their header)."""
+    rider_id = doc.get("accepted_rider_id")
+    if not rider_id or not doc.get("accepted_match"):
+        return
+    payer = await get_users_collection().find_one({"_id": doc["user_id"]})
+    amount = int((doc.get("payment") or {}).get("amount") or doc["accepted_match"]["fare"])
+    await notify(
+        rider_id,
+        "payment_received",
+        "Payment received",
+        f"₹{amount} from {_first_name((payer or {}).get('full_name'))} "
+        f"for {doc['pickup']} → {doc['destination']}.",
+        "/trips",
+    )
 
 # A trip can be paid for once a rider has accepted it
 PAYABLE_STATES = ("matched", "completed")
@@ -184,7 +202,7 @@ async def confirm_payment(
         paid, intent = await provider.fetch_paid_state(payment["session_id"])
         if paid:
             lifts = get_lift_requests_collection()
-            await lifts.update_one(
+            result = await lifts.update_one(
                 {"_id": doc["_id"], "payment.status": "pending"},
                 {
                     "$set": {
@@ -195,6 +213,8 @@ async def confirm_payment(
                 },
             )
             doc = await lifts.find_one({"_id": doc["_id"]})
+            if result.modified_count:  # only the call that marks it paid announces it
+                await _announce_payment(doc)
 
     return _status_of(doc)
 
@@ -224,7 +244,7 @@ async def stripe_webhook(request: Request):
         "checkout.session.async_payment_succeeded",
     ):
         if session.get("payment_status") == "paid":
-            await lifts.update_one(
+            result = await lifts.update_one(
                 {"payment.session_id": session_id, "payment.status": "pending"},
                 {
                     "$set": {
@@ -234,6 +254,10 @@ async def stripe_webhook(request: Request):
                     }
                 },
             )
+            if result.modified_count:
+                paid_doc = await lifts.find_one({"payment.session_id": session_id})
+                if paid_doc:
+                    await _announce_payment(paid_doc)
     elif session_id and kind in (
         "checkout.session.expired",
         "checkout.session.async_payment_failed",

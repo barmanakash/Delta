@@ -24,9 +24,13 @@ from app.models.ride import (
 )
 from app.models.user import MessageResponse
 from app.utils.matching import build_match
+from app.utils.notifications import clock12, notify
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/api/rides", tags=["Ride offers"])
+
+# A commute nobody has booked expires after this long, so it can't linger forever
+COMMUTE_LIFETIME_HOURS = 24
 
 
 def _to_response(doc: dict) -> RideOfferResponse:
@@ -313,6 +317,56 @@ async def get_active_commute(current_user: dict = Depends(get_current_user)):
     )
 
 
+@router.post(
+    "/commutes/active/end",
+    response_model=MessageResponse,
+    summary="End the signed-in rider's active commute",
+)
+async def end_active_commute(current_user: dict = Depends(get_current_user)):
+    _require_rider(current_user)
+    await _retire_finished_commutes(current_user["_id"])
+
+    offers = get_ride_offers_collection()
+    active = await offers.find(
+        {"user_id": current_user["_id"], "commute_id": {"$exists": True}, "status": "active"},
+        {"_id": 1},
+    ).to_list(length=20)
+    if not active:
+        return MessageResponse(message="You have no active commute.")
+    ids = [o["_id"] for o in active]
+
+    # A trip that is booked but hasn't happened yet blocks this, otherwise a
+    # lift taker would be left waiting for a rider who ended the commute
+    now = datetime.now()
+    booked = await get_lift_requests_collection().find(
+        {"accepted_offer_id": {"$in": ids}, "status": "matched"}
+    ).to_list(length=300)
+    for trip in booked:
+        match = trip.get("accepted_match") or {}
+        try:
+            end = datetime.strptime(
+                f"{trip['travel_date']} {match['arrival_time']}", "%Y-%m-%d %H:%M"
+            )
+        except (KeyError, ValueError):
+            continue
+        if end >= now:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    "A lift taker has booked an upcoming trip on this commute, so it "
+                    "can't be ended until that trip is done."
+                ),
+            )
+
+    await offers.update_many(
+        {"_id": {"$in": ids}},
+        {"$set": {"status": "ended", "ended_at": datetime.now(timezone.utc)}},
+    )
+    return MessageResponse(
+        message="Commute ended. Create a new one whenever you're ready."
+    )
+
+
 # ---------------------------------------------------------------------------
 #  Incoming lift requests: the rider's "Lift Requests" screens
 # ---------------------------------------------------------------------------
@@ -347,18 +401,20 @@ def _first_name(full_name: Optional[str]) -> str:
     return parts[0] if parts else "Commuter"
 
 
-async def _retire_finished_commutes(rider_id) -> None:
+async def _retire_finished_commutes(rider_id=None) -> None:
     """
     A commute is done once a trip on it has finished. It then stops showing as
     the rider's active commute and stops matching new lift requests, so the
-    rider starts fresh with a new one. A commute nobody has ridden on yet
-    simply stays until the rider replaces it.
+    rider starts fresh with a new one. A commute nobody has booked a trip on
+    expires after COMMUTE_LIFETIME_HOURS. With no rider given, it covers
+    everyone's commutes (used before a lift taker's search).
     """
     offers = get_ride_offers_collection()
+    scope = {"user_id": rider_id} if rider_id else {}  # no rider = everyone's commutes
     active = await offers.find(
-        {"user_id": rider_id, "commute_id": {"$exists": True}, "status": "active"},
+        {**scope, "commute_id": {"$exists": True}, "status": "active"},
         {"commute_id": 1},
-    ).to_list(length=20)
+    ).to_list(length=500)
     if not active:
         return
     commute_of = {o["_id"]: o["commute_id"] for o in active}
@@ -372,6 +428,7 @@ async def _retire_finished_commutes(rider_id) -> None:
 
     now = datetime.now()  # the same clock the Trips page uses
     finished = set()
+    pending = set()  # commutes with a trip still to come
     for trip in trips:
         match = trip.get("accepted_match") or {}
         try:
@@ -384,12 +441,26 @@ async def _retire_finished_commutes(rider_id) -> None:
             end += timedelta(days=1)
         if end < now:
             finished.add(commute_of[trip["accepted_offer_id"]])
+        else:
+            pending.add(commute_of[trip["accepted_offer_id"]])
 
     if finished:
         await offers.update_many(
-            {"user_id": rider_id, "commute_id": {"$in": list(finished)}, "status": "active"},
+            {"commute_id": {"$in": list(finished)}, "status": "active"},
             {"$set": {"status": "completed", "completed_at": datetime.now(timezone.utc)}},
         )
+
+    # A commute with no trip booked expires after a day
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=COMMUTE_LIFETIME_HOURS)
+    await offers.update_many(
+        {
+            **scope,
+            "commute_id": {"$exists": True, "$nin": list(pending | finished)},
+            "status": "active",
+            "created_at": {"$lt": cutoff},
+        },
+        {"$set": {"status": "expired", "expired_at": datetime.now(timezone.utc)}},
+    )
 
 
 def _minutes_until(day: str, clock: str) -> int:
@@ -641,6 +712,15 @@ async def accept_incoming_request(
             status_code=status.HTTP_409_CONFLICT,
             detail="This request was cancelled or already taken by another rider",
         )
+
+    await notify(
+        updated["user_id"],
+        "request_accepted",
+        "Lift request accepted",
+        f"{match['rider_name']} accepted your lift request for {updated['travel_date']}. "
+        f"Pickup is at {clock12(match['pickup_time'])}.",
+        "/trips",
+    )
 
     incoming.status = "accepted"
     incoming.expires_in_min = 0

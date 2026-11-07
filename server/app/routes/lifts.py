@@ -18,6 +18,8 @@ from app.models.lift import (
 )
 from app.models.ride import RideMatch
 from app.utils.matching import build_match, explain_no_match
+from app.routes.rides import _first_name, _retire_finished_commutes
+from app.utils.notifications import notify
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/api/lifts", tags=["Lift requests"])
@@ -420,6 +422,16 @@ async def send_lift_request(
             status_code=status.HTTP_409_CONFLICT,
             detail="This search is no longer active",
         )
+    # Tell the rider, but only the first time this request is sent to them
+    if offer_id not in (doc.get("requested_offer_ids") or []):
+        await notify(
+            offer["user_id"],
+            "request_received",
+            "New lift request",
+            f"{_first_name(current_user.get('full_name'))} wants a lift from "
+            f"{doc['pickup']} to {doc['destination']} on {doc['travel_date']}.",
+            "/liftrequest",
+        )
     return _to_response(updated)
 
 
@@ -460,6 +472,7 @@ async def get_request_matches(
         accepted_match = RideMatch(**doc["accepted_match"])
 
     if response.status == "searching":
+        await _retire_finished_commutes()  # finished or expired commutes shouldn't match
         cursor = get_ride_offers_collection().find(
             {
                 "status": "active",

@@ -90,6 +90,7 @@ export default function App() {
   const pendingRequests = incoming.requests.filter((r) => r.status === "pending");
   const [busyId, setBusyId] = useState(null);
   const [routeOpen, setRouteOpen] = useState(false); // the "View Route" map dialog
+  const [ending, setEnding] = useState(false); // ending the commute is in progress
   const [toast, setToast] = useState({ open: false, message: "", severity: "info" });
 
   const handleDecline = async (requestId) => {
@@ -103,6 +104,47 @@ export default function App() {
       severity: result.ok ? "info" : "error",
     });
     incoming.reload();
+  };
+
+  const handleEndCommute = async () => {
+    if (ending) return;
+    if (
+      !window.confirm(
+        "End this commute? Lift takers won't find you on this route until you create a new one."
+      )
+    ) {
+      return;
+    }
+    setEnding(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/rides/commutes/active/end`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
+      });
+      const body = await response.json().catch(() => ({}));
+      if (response.ok) {
+        setCommute(null);
+        incoming.reload();
+        setToast({
+          open: true,
+          message: body.message || "Commute ended.",
+          severity: "success",
+        });
+      } else {
+        setToast({
+          open: true,
+          message: typeof body.detail === "string" ? body.detail : "Couldn't end the commute.",
+          severity: "error",
+        });
+      }
+    } catch {
+      setToast({
+        open: true,
+        message: "Unable to connect to server. Please make sure the backend is running.",
+        severity: "error",
+      });
+    }
+    setEnding(false);
   };
 
   const firstName = fullName.trim().split(/\s+/)[0] || "there";
@@ -1026,6 +1068,25 @@ export default function App() {
                         }}
                       >
                         Edit Route
+                      </Button>
+
+                      <Button
+                        onClick={handleEndCommute}
+                        disabled={ending}
+                        startIcon={<CloseIcon />}
+                        style={{
+                          height: 36,
+                          background: "#fff",
+                          color: "#a12626",
+                          border: "1px solid #f0c4c4",
+                          borderRadius: 7,
+                          textTransform: "none",
+                          fontWeight: 700,
+                          fontSize: 13,
+                          padding: "0 16px",
+                        }}
+                      >
+                        {ending ? "Ending…" : "End commute"}
                       </Button>
                     </Box>
 

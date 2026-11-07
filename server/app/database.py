@@ -24,3 +24,8 @@ def get_lift_requests_collection():
 def get_ride_offers_collection():
     """Return the 'ride_offers' collection (routes published by riders)."""
     return database["ride_offers"]
+
+
+def get_notifications_collection():
+    """Return the 'notifications' collection (the bell in every header)."""
+    return database["notifications"]

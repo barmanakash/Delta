@@ -19,6 +19,7 @@ from app.models.trip import Trip, TripPerson, TripsResponse
 from app.models.user import MessageResponse
 from app.routes.rides import _first_name, _verification_label
 from app.utils import payments as provider
+from app.utils.notifications import notify
 from app.utils.security import get_current_user
 
 router = APIRouter(prefix="/api/trips", tags=["Trips"])
@@ -214,6 +215,15 @@ async def cancel_trip(
         changes["payment.status"] = "failed"  # an unfinished payment is dropped
 
     await lifts.update_one({"_id": oid, "status": "matched"}, {"$set": changes})
+
+    await notify(
+        doc["accepted_rider_id"],
+        "trip_cancelled",
+        "Trip cancelled",
+        f"{_first_name(current_user.get('full_name'))} cancelled the trip on "
+        f"{doc['travel_date']}. Your pillion seat is free again.",
+        "/trips",
+    )
 
     return MessageResponse(
         message="Trip cancelled. Your payment has been refunded."
