@@ -14,6 +14,7 @@ import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutl
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import VerifiedIcon from "@mui/icons-material/Verified";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
@@ -257,7 +258,6 @@ export default function Identity() {
           /* keep only the avatar (last child) in the header */
           .id-nav > div:not(:last-child) { display: none !important; }
           .id-stepper { width: calc(100% - 24px) !important; }
-          .id-fill { width: calc(50% - 17px) !important; }
           .id-title { font-size: 24px !important; }
           .id-sub { width: auto !important; padding: 0 20px; }
           .id-sub br { display: none; }
@@ -371,7 +371,7 @@ export default function Identity() {
                 fontWeight: 600,
               }}
             >
-              Step 2 of 3
+              Step 2 of 4
             </Typography>
           </Box>
 
@@ -565,8 +565,8 @@ export default function Identity() {
           <Box
             style={{
               position: "absolute",
-              left: 17,
-              right: 17,
+              left: "12.5%",
+              right: "12.5%",
               top: 15.5,
               height: 3,
               background: "#dfe3f8",
@@ -578,8 +578,8 @@ export default function Identity() {
             className="id-fill"
             style={{
               position: "absolute",
-              left: 17,
-              width: "calc(50% - 17px)",
+              left: "12.5%",
+              width: "25%",
               top: 15.5,
               height: 3,
               background: "#007b73",
@@ -590,7 +590,7 @@ export default function Identity() {
           <Box
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
+              gridTemplateColumns: "repeat(4, 1fr)",
               position: "relative",
               height: "100%",
             }}
@@ -600,7 +600,7 @@ export default function Identity() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "flex-start",
+                alignItems: "center",
               }}
             >
               <Box
@@ -615,12 +615,7 @@ export default function Identity() {
                   boxShadow: "0 0 0 5px #f8f8ff",
                 }}
               >
-                <CheckCircleOutlineOutlinedIcon
-                  style={{
-                    color: "#fff",
-                    fontSize: 18,
-                  }}
-                />
+                <VerifiedIcon style={{ color: "#fff", fontSize: 21 }} />
               </Box>
 
               <Typography
@@ -665,10 +660,12 @@ export default function Identity() {
                     "0 0 0 5px #dcf8f5, 0 0 0 7px #f8f8ff",
                 }}
               >
-                <ShieldOutlinedIcon
+                <Box
                   style={{
-                    color: "#fff",
-                    fontSize: 19,
+                    width: 11,
+                    height: 11,
+                    borderRadius: "50%",
+                    background: "#fff",
                   }}
                 />
               </Box>
@@ -700,7 +697,7 @@ export default function Identity() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "flex-end",
+                alignItems: "center",
               }}
             >
               <Box
@@ -732,7 +729,7 @@ export default function Identity() {
                   marginTop: 6,
                 }}
               >
-                3. Preferences
+                3. Role & Mode
               </Typography>
 
               <Typography
@@ -741,7 +738,59 @@ export default function Identity() {
                   color: "#999fa1",
                 }}
               >
-                Commute Rules
+                Ride options
+              </Typography>
+            </Box>
+
+            {/* GENDER */}
+            <Box
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <Box
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "50%",
+                  background: "#e9ebf9",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 0 0 5px #f8f8ff",
+                }}
+              >
+                <Box
+                  style={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: "50%",
+                    background: "#c2ccc9",
+                  }}
+                />
+              </Box>
+
+              <Typography
+                style={{
+                  fontSize: 12,
+                  color: "#737a7d",
+                  marginTop: 6,
+                  textAlign: "center",
+                }}
+              >
+                4. Gender
+              </Typography>
+
+              <Typography
+                style={{
+                  fontSize: 12,
+                  color: "#999fa1",
+                  textAlign: "center",
+                }}
+              >
+                Preferences
               </Typography>
             </Box>
           </Box>

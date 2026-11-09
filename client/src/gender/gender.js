@@ -19,6 +19,7 @@ import HelpOutlinedIcon from "@mui/icons-material/HelpOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 
+const API_BASE_URL = "http://localhost:8000";
 
 export default function Gender() {
   const navigate = useNavigate();
@@ -26,6 +27,16 @@ export default function Gender() {
   const [agreed, setAgreed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return user.profile_photo_url
+        ? new URL(user.profile_photo_url, API_BASE_URL).toString()
+        : "";
+    } catch {
+      return "";
+    }
+  });
 
   const handleContinue = async () => {
     if (!gender || !agreed || saving) return;
@@ -90,6 +101,7 @@ export default function Gender() {
         @media (max-width: 720px) {
           .gd-header { padding: 0 16px !important; height: 64px !important; }
           .gd-brand2 { display: none !important; }
+          .gd-stepper { width: calc(100% - 24px) !important; }
           .gd-card { width: calc(100% - 24px) !important; min-height: 0 !important; padding: 24px 16px 24px !important; }
           .gd-title { font-size: 24px !important; text-align: center !important; padding: 0 16px !important; letter-spacing: -0.5px !important; }
           .gd-sub { font-size: 14px !important; text-align: center !important; padding: 0 16px !important; }
@@ -216,14 +228,29 @@ export default function Gender() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              overflow: "hidden",
             }}
           >
-            <AccountCircleOutlinedIcon
-              style={{
-                color: "#fff",
-                fontSize: 22,
-              }}
-            />
+            {profilePhotoUrl ? (
+              <Box
+                component="img"
+                src={profilePhotoUrl}
+                alt="Profile"
+                onError={() => setProfilePhotoUrl("")}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <AccountCircleOutlinedIcon
+                style={{
+                  color: "#fff",
+                  fontSize: 22,
+                }}
+              />
+            )}
           </Box>
         </Box>
       </Box>
@@ -239,7 +266,7 @@ export default function Gender() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          paddingTop: 31,
+          paddingTop: 20,
           boxSizing: "border-box",
         }}
       >
@@ -293,6 +320,121 @@ export default function Gender() {
             opacity="0.35"
           />
         </svg>
+
+        {/* ONBOARDING STEPPER */}
+        <Box
+          className="gd-stepper"
+          style={{
+            position: "relative",
+            width: 680,
+            height: 58,
+            margin: "0 auto 12px",
+          }}
+        >
+          <Box
+            style={{
+              position: "absolute",
+              left: "12.5%",
+              right: "12.5%",
+              top: 17,
+              height: 3,
+              borderRadius: 4,
+              background: "#007b73",
+            }}
+          />
+          <Box
+            style={{
+              position: "relative",
+              height: "100%",
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+            }}
+          >
+            {["1. Profile", "2. Verification", "3. Role & Mode"].map((label) => (
+              <Box
+                key={label}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Box
+                  style={{
+                    width: 37,
+                    height: 37,
+                    borderRadius: "50%",
+                    background: "#007d74",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 0 0 5px #f8f8ff",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                >
+                  <VerifiedIcon style={{ color: "#fff", fontSize: 21 }} />
+                </Box>
+                <Typography
+                  style={{
+                    marginTop: 5,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "#00776f",
+                    textAlign: "center",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {label}
+                </Typography>
+              </Box>
+            ))}
+
+            <Box
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <Box
+                style={{
+                  width: 37,
+                  height: 37,
+                  borderRadius: "50%",
+                  background: "#007d74",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 0 0 5px #c9f2ee",
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                <Box
+                  style={{
+                    width: 11,
+                    height: 11,
+                    borderRadius: "50%",
+                    background: "#fff",
+                  }}
+                />
+              </Box>
+              <Typography
+                style={{
+                  marginTop: 5,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#172033",
+                  textAlign: "center",
+                  lineHeight: 1.2,
+                }}
+              >
+                4. Gender
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
 
         {/* TOP BADGE */}
         <Box

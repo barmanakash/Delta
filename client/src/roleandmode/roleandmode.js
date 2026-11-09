@@ -11,6 +11,7 @@ import {
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import PersonPinIcon from "@mui/icons-material/PersonPin";
 import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
+import VerifiedIcon from "@mui/icons-material/Verified";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
@@ -225,7 +226,7 @@ export default function RolAndMode() {
                                 fontWeight: 600,
                             }}
                         >
-                            Step 3 of 3
+                            Step 3 of 4
                         </Typography>
                     </Box>
 
@@ -360,8 +361,20 @@ export default function RolAndMode() {
                     <Box
                         style={{
                             position: "absolute",
-                            left: "16.6667%",
-                            right: "16.6667%",
+                            left: "12.5%",
+                            right: "12.5%",
+                            top: 18,
+                            height: 4,
+                            borderRadius: 4,
+                            background: "#d9dfff",
+                        }}
+                    />
+
+                    <Box
+                        style={{
+                            position: "absolute",
+                            left: "12.5%",
+                            width: "50%",
                             top: 18,
                             height: 4,
                             borderRadius: 4,
@@ -374,7 +387,7 @@ export default function RolAndMode() {
                             position: "relative",
                             height: "100%",
                             display: "grid",
-                            gridTemplateColumns: "1fr 1fr 1fr",
+                            gridTemplateColumns: "repeat(4, 1fr)",
                         }}
                     >
                         <Step
@@ -393,6 +406,10 @@ export default function RolAndMode() {
                             number="3. Role & Mode"
                             active
                             current
+                        />
+
+                        <Step
+                            number="4. Gender"
                         />
                     </Box>
                 </Box>
@@ -431,7 +448,7 @@ export default function RolAndMode() {
                                 letterSpacing: "0.2px",
                             }}
                         >
-                            FINAL ONBOARDING STEP
+                            STEP 3 OF 4
                         </Typography>
                     </Box>
 
@@ -756,7 +773,7 @@ export default function RolAndMode() {
 
 /* STEP */
 
-function Step({ number, completed, current }) {
+function Step({ number, active, completed, current }) {
     return (
         <Box
             style={{
@@ -770,7 +787,7 @@ function Step({ number, completed, current }) {
                     width: current ? 40 : 40,
                     height: current ? 40 : 40,
                     borderRadius: "50%",
-                    background: "#007d74",
+                    background: active ? "#007d74" : "#e9ebf9",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -782,19 +799,14 @@ function Step({ number, completed, current }) {
                 }}
             >
                 {completed ? (
-                    <CheckCircleIcon
-                        style={{
-                            color: "#fff",
-                            fontSize: 21,
-                        }}
-                    />
+                    <VerifiedIcon style={{ color: "#fff", fontSize: 21 }} />
                 ) : (
                     <Box
                         style={{
                             width: 12,
                             height: 12,
                             borderRadius: "50%",
-                            background: "#fff",
+                            background: active ? "#fff" : "#c2ccc9",
                         }}
                     />
                 )}
@@ -805,7 +817,7 @@ function Step({ number, completed, current }) {
                     marginTop: 8,
                     fontSize: 12,
                     fontWeight: 700,
-                    color: "#172033",
+                    color: active ? "#172033" : "#7c8488",
                 }}
             >
                 {number}

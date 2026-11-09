@@ -476,7 +476,7 @@ export default function Profile() {
                 fontWeight: 700,
               }}
             >
-              STEP 1 OF 3
+              STEP 1 OF 4
             </Typography>
           </Box>
 
@@ -571,8 +571,8 @@ export default function Profile() {
           <Box
             style={{
               position: "absolute",
-              left: 18.5,
-              right: 18.5,
+              left: "12.5%",
+              right: "12.5%",
               top: 17.5,
               height: 2,
               background: "#d9dfff",
@@ -582,7 +582,7 @@ export default function Profile() {
           <Box
             style={{
               position: "absolute",
-              left: 18.5,
+              left: "12.5%",
               width: 0,
               top: 17.5,
               height: 2,
@@ -593,7 +593,7 @@ export default function Profile() {
           <Box
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
+              gridTemplateColumns: "repeat(4, 1fr)",
               position: "relative",
             }}
           >
@@ -602,7 +602,7 @@ export default function Profile() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "flex-start",
+                alignItems: "center",
               }}
             >
               <Box
@@ -705,7 +705,7 @@ export default function Profile() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "flex-end",
+                alignItems: "center",
               }}
             >
               <Box
@@ -737,7 +737,7 @@ export default function Profile() {
                   color: "#303a3e",
                 }}
               >
-                3. Preferences
+                3. Role & Mode
               </Typography>
 
               <Typography
@@ -747,7 +747,60 @@ export default function Profile() {
                   marginTop: 1,
                 }}
               >
-                Commute Rules
+                Ride options
+              </Typography>
+            </Box>
+
+            {/* STEP 4 */}
+            <Box
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <Box
+                style={{
+                  width: 37,
+                  height: 37,
+                  borderRadius: "50%",
+                  background: "#ffffff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 0 0 6px #f9f8ff",
+                }}
+              >
+                <Box
+                  style={{
+                    width: 10,
+                    height: 10,
+                    background: "#bcc9c8",
+                    borderRadius: "50%",
+                  }}
+                />
+              </Box>
+
+              <Typography
+                style={{
+                  marginTop: 7,
+                  fontSize: 12,
+                  color: "#303a3e",
+                  textAlign: "center",
+                }}
+              >
+                4. Gender
+              </Typography>
+
+              <Typography
+                style={{
+                  fontSize: 12,
+                  color: "#656d70",
+                  marginTop: 1,
+                  textAlign: "center",
+                }}
+              >
+                Preferences
               </Typography>
             </Box>
           </Box>
