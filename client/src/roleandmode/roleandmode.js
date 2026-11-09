@@ -192,22 +192,10 @@ export default function RolAndMode() {
                         style={{
                             fontSize: 12,
                             fontWeight: 600,
-                            color: "#454d50",
+                            color: "#00766e",
                         }}
                     >
-                        Verification Protocol
-                    </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 12,
-                            color: "#202938",
-                            background: "#e7e8f8",
-                            borderRadius: 4,
-                            padding: "3px 4px",
-                        }}
-                    >
-                        Role Selection
+                       Role Selection
                     </Typography>
                     <Box
                         style={{

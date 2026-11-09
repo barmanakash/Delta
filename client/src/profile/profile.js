@@ -1392,19 +1392,6 @@ export default function Profile() {
               Continue to Verification
             </Button>
 
-            {/* SKIP */}
-            <Typography
-              align="center"
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: "#4c5558",
-                marginTop: 15,
-              }}
-            >
-              Skip for now
-            </Typography>
-
             {/* ENCRYPTION */}
             <Box
               style={{

@@ -358,13 +358,6 @@ export default function Identity() {
               marginLeft: 5,
             }}
           >
-            <ShieldOutlinedIcon
-              style={{
-                color: "#007b73",
-                fontSize: 14.5,
-              }}
-            />
-
             <Typography
               style={{
                 color: "#40494e",
