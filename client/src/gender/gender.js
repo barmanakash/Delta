@@ -154,48 +154,6 @@ export default function Gender() {
           >
             FriendRide
           </Typography>
-
-          <Box
-            className="gd-brand2"
-            style={{
-              marginLeft: 13,
-              display: "flex",
-              alignItems: "center",
-              gap: 9,
-            }}
-          >
-            <Typography
-              style={{
-                fontSize: 17,
-                fontWeight: 700,
-                color: "#172033",
-              }}
-            >
-              FriendRide
-            </Typography>
-
-            <Box
-              style={{
-                height: 20,
-                padding: "0 9px",
-                borderRadius: 11,
-                background: "#e4e7f8",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <Typography
-                style={{
-                  fontSize: 12,
-                  color: "#41495b",
-                  letterSpacing: "0.3px",
-                  fontWeight: 600,
-                }}
-              >
-                INSTITUTIONAL SAFETY
-              </Typography>
-            </Box>
-          </Box>
         </Box>
 
         <Box
@@ -209,43 +167,12 @@ export default function Gender() {
           <Typography
             style={{
               fontSize: 13,
-              fontWeight: 700,
-              color: "#007a72",
-            }}
-          >
-            Overview
-          </Typography>
-
-          <Typography
-            style={{
-              fontSize: 13,
               fontWeight: 600,
               color: "#4b5357",
             }}
           >
-            Safety Charter
+            Gender Verification
           </Typography>
-
-          <Typography
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: "#4b5357",
-            }}
-          >
-            Verification Hub
-          </Typography>
-
-          <Typography
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: "#4b5357",
-            }}
-          >
-            Compliance &amp; Help
-          </Typography>
-
           <Box
             style={{
               minWidth: 151,
@@ -271,43 +198,13 @@ export default function Gender() {
               <Typography
                 style={{
                   fontSize: 12,
-                  fontWeight: 700,
-                  lineHeight: 1.05,
-                  color: "#333b43",
+                  color: "#00766e",
+                  fontWeight: 600,
                 }}
               >
-                Safety First
-              </Typography>
-
-              <Typography
-                style={{
-                  fontSize: 12,
-                  lineHeight: 1.05,
-                  color: "#4d5559",
-                }}
-              >
-                256-Bit Encrypted
+                256-bit Encrypted
               </Typography>
             </Box>
-          </Box>
-
-          <Box
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: "50%",
-              background: "#f0f2fa",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <HelpOutlinedIcon
-              style={{
-                color: "#33404a",
-                fontSize: 19,
-              }}
-            />
           </Box>
 
           <Box
@@ -446,7 +343,7 @@ export default function Gender() {
               letterSpacing: "0.3px",
             }}
           >
-            STEP 3 OF 4
+            STEP 4 OF 4
           </Typography>
         </Box>
 
@@ -475,7 +372,7 @@ export default function Gender() {
             marginTop: 6,
           }}
         >
-          These preferences help SafeRoute connect you with compatible people.
+          These preferences help FriendRide connect you with compatible people.
         </Typography>
 
         {/* MAIN CARD */}
@@ -731,7 +628,7 @@ export default function Gender() {
                 color: "#293443",
               }}
             >
-              I understand and agree to SafeRoute's safety-based matching rule.
+              I understand and agree to FriendRide safety-based matching rule.
             </Typography>
           </Box>
 
@@ -746,8 +643,8 @@ export default function Gender() {
             }}
           >
             <Button
-             component={RouterLink}
-             to ='/roleandmode'
+              component={RouterLink}
+              to='/roleandmode'
               style={{
                 minWidth: 102,
                 height: 52,
@@ -784,7 +681,7 @@ export default function Gender() {
                 fontWeight: 700,
               }}
             >
-              {saving ? "Saving..." : "Continue to SafeRoute"}
+              {saving ? "Saving..." : "Continue to FriendRide"}
               <ArrowForwardIcon
                 style={{
                   fontSize: 18,
