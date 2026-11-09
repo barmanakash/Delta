@@ -5,6 +5,7 @@ import {
   Button,
   TextField,
   InputAdornment,
+  IconButton,
   CircularProgress,
   Snackbar,
   Alert,
@@ -44,6 +45,7 @@ export default function Profile() {
   const [savedPhotoUrl, setSavedPhotoUrl] = useState(null); // photo already stored on the server
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef(null);
+  const dobPickerRef = useRef(null);
 
   // Photo shown in the avatar circles: a freshly picked one wins over the saved one.
   const displayPhoto = photoPreview || savedPhotoUrl;
@@ -63,6 +65,18 @@ export default function Profile() {
     const d = value.replace(/\D/g, "").slice(0, 8);
     const parts = [d.slice(0, 2), d.slice(2, 4), d.slice(4, 8)].filter(Boolean);
     return parts.join(" / ");
+  };
+
+  const openDobPicker = () => {
+    const picker = dobPickerRef.current;
+    if (!picker) return;
+
+    if (typeof picker.showPicker === "function") {
+      picker.showPicker();
+    } else {
+      picker.focus();
+      picker.click();
+    }
   };
 
   // Format a raw 10-digit mobile string as "+91 98765 43210" for display.
@@ -1259,30 +1273,25 @@ export default function Profile() {
                 }}
                 error={!!fieldErrors.dob}
                 helperText={fieldErrors.dob || ""}
-                inputProps={{ inputMode: "numeric", maxLength: 14 }}
                 variant="outlined"
                 size="small"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CalendarMonthOutlinedIcon
-                        style={{
-                          fontSize: 20,
-                          color: "#49545a",
-                        }}
-                      />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <CalendarMonthOutlinedIcon
-                        style={{
-                          fontSize: 20,
-                          color: "#49545a",
-                        }}
-                      />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  htmlInput: { inputMode: "numeric", maxLength: 14 },
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="Choose date of birth"
+                          onClick={openDobPicker}
+                          edge="end"
+                          size="small"
+                          sx={{ color: "#49545a" }}
+                        >
+                          <CalendarMonthOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
                 }}
                 sx={{
                   ...fieldStyle,
@@ -1290,6 +1299,24 @@ export default function Profile() {
                     color: "#737d80",
                     opacity: 1,
                   },
+                }}
+              />
+              <input
+                ref={dobPickerRef}
+                type="date"
+                aria-hidden="true"
+                tabIndex={-1}
+                value={displayDobToIso(dob)}
+                onChange={(e) => {
+                  setDob(isoToDisplayDob(e.target.value));
+                  setFieldErrors((prev) => ({ ...prev, dob: "" }));
+                }}
+                style={{
+                  position: "fixed",
+                  width: 1,
+                  height: 1,
+                  opacity: 0,
+                  pointerEvents: "none",
                 }}
               />
             </Box>

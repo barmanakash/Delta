@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
-import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
+import ActivityBell from "../notifications/activitybell";
 import TwoWheelerOutlinedIcon from "@mui/icons-material/TwoWheelerOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import MyLocationOutlinedIcon from "@mui/icons-material/MyLocationOutlined";
@@ -1017,19 +1017,7 @@ export default function LiftTakerHome() {
             </Box>
 
             <Box style={{ position: "relative", display: "flex" }}>
-              <NotificationsNoneOutlinedIcon style={{ fontSize: 25, color: "#343b43" }} />
-              <Box
-                style={{
-                  position: "absolute",
-                  top: 1,
-                  right: 1,
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: "#dc2929",
-                  border: "1.5px solid #fff",
-                }}
-              />
+              <ActivityBell iconSize={25} />
             </Box>
 
             <Box style={{ width: 1, height: 34, background: "#e4e6f0" }} />

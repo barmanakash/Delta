@@ -70,7 +70,7 @@ function timeAgo(iso) {
   return days === 1 ? "Yesterday" : `${days} days ago`;
 }
 
-export default function NotificationBell({ iconSize = 24 }) {
+export default function ActivityBell({ iconSize = 24 }) {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [unread, setUnread] = useState(0);

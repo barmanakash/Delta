@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Box, Button, Dialog, Typography } from "@mui/material";
 
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
-import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
+import ActivityBell from "../notifications/activitybell";
 import SwapVertOutlinedIcon from "@mui/icons-material/SwapVertOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
@@ -199,19 +199,7 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
             </Box>
 
             <Box className="ltl-bell" style={{ position: "relative", display: "flex" }}>
-              <NotificationsNoneOutlinedIcon style={{ fontSize: 25, color: "#343b43" }} />
-              <Box
-                style={{
-                  position: "absolute",
-                  top: 1,
-                  right: 1,
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: "#dc2929",
-                  border: "1.5px solid #fff",
-                }}
-              />
+              <ActivityBell iconSize={25} />
             </Box>
 
             <Box className="ltl-divider" style={{ width: 1, height: 34, background: "#e4e6f0" }} />
