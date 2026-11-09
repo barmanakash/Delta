@@ -181,10 +181,10 @@ export default function Gender() {
             style={{
               fontSize: 13,
               fontWeight: 600,
-              color: "#4b5357",
+              color: "#00766e",
             }}
           >
-            Gender Verification
+            Gender Selection
           </Typography>
           <Typography
             style={{
@@ -197,36 +197,31 @@ export default function Gender() {
           </Typography>
           <Box
             style={{
-              minWidth: 151,
-              height: 42,
-              borderRadius: 22,
-              background: "#f3f4fb",
+              height: 30,
+              padding: "0 12px",
+              borderRadius: 16,
+              background: "#dff8f5",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              gap: 7,
-              padding: "0 12px",
-              boxSizing: "border-box",
+              gap: 5,
             }}
           >
-            <ShieldOutlinedIcon
+            <LockOutlinedIcon
               style={{
-                color: "#007970",
-                fontSize: 16,
+                fontSize: 14,
+                color: "#007c73",
               }}
             />
 
-            <Box>
-              <Typography
-                style={{
-                  fontSize: 12,
-                  color: "#00766e",
-                  fontWeight: 600,
-                }}
-              >
-                256-bit Encrypted
-              </Typography>
-            </Box>
+            <Typography
+              style={{
+                fontSize: 12,
+                color: "#00766e",
+                fontWeight: 600,
+              }}
+            >
+              256-bit Encrypted
+            </Typography>
           </Box>
 
           <Box

@@ -573,7 +573,7 @@ export default function RolAndMode() {
                             color: "#50595c",
                         }}
                     >
-                        You can switch between Rider and Lift Taker modes whenever you need.
+                        You can not switch between Rider and Lift Taker modes whenever you need.
                     </Typography>
                 </Box>
 
@@ -652,25 +652,6 @@ export default function RolAndMode() {
                     />
                     {saving ? "Saving..." : "Continue to FriendRide"}
                 </Button>
-
-                {/* BACK */}
-                <Typography
-                    component={RouterLink}
-                    to="/identity"
-                    align="center"
-                    style={{
-                        display: "block", // Crucial: makes the anchor tag behave like a block element so it centers properly
-                        width: "100%",    // Ensures it takes full width of the parent container
-                        position: "relative",
-                        marginTop: 17,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#485154",
-                        textDecoration: "none", // Optional: removes the default underline from the link
-                    }}
-                >
-                    ← Back to Verification
-                </Typography>
             </Box>
 
             {/* FOOTER */}
