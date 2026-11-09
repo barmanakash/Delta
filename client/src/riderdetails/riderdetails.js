@@ -475,7 +475,9 @@ export default function RiderDetails() {
           .rd-tiles { grid-template-columns: minmax(0, 1fr) !important; }
           .rd-head-row { flex-direction: column !important; align-items: flex-start !important; }
           .rd-actions { flex-direction: column !important; align-items: stretch !important; }
-          .rd-actions-right { justify-content: flex-start !important; }
+          .rd-actions-right { justify-content: flex-start !important; flex-direction: column-reverse !important; align-items: stretch !important; gap: 12px !important; }
+          .rd-actions .MuiButton-root { width: 100% !important; justify-content: center !important; }
+          .rd-card { padding: 18px 16px !important; }
         }
         @media (max-width: 480px) {
           .rd-matrix { grid-template-columns: minmax(0, 1fr) !important; }
@@ -673,6 +675,20 @@ function RiderDetailsBody({
   onSend,
   onTrips,
 }) {
+  // A shorter map on phones, so the two map labels don't crowd it
+  const [compact, setCompact] = useState(
+    () => typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(max-width: 600px)").matches
+  );
+  useEffect(() => {
+    if (!window.matchMedia) return undefined;
+    const mq = window.matchMedia("(max-width: 600px)");
+    const onChange = (e) => setCompact(e.matches);
+    setCompact(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  const mapHeight = compact ? 340 : 420;
+
   const verified = /verified/i.test(match.rider_verification || "");
   const stops = match.route || [];
   const hasRoute = stops.length >= 2;
@@ -704,7 +720,7 @@ function RiderDetailsBody({
       >
         {/* ---------------- LEFT: the rider ---------------- */}
         <Box style={{ display: "flex", flexDirection: "column", gap: 24, minWidth: 0 }}>
-          <Box style={{ ...cardStyle, padding: 24 }}>
+          <Box className="rd-card" style={{ ...cardStyle, padding: 24 }}>
             <Box style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <RiderAvatar match={match} size={72} />
               <Box style={{ minWidth: 0 }}>
@@ -822,7 +838,7 @@ function RiderDetailsBody({
           </Box>
 
           {/* safety match */}
-          <Box style={{ ...cardStyle, padding: 24 }}>
+          <Box className="rd-card" style={{ ...cardStyle, padding: 24 }}>
             <Box style={{ display: "flex", gap: 14, alignItems: "center" }}>
               <Box
                 style={{
@@ -869,13 +885,13 @@ function RiderDetailsBody({
         <Box style={{ display: "flex", flexDirection: "column", gap: 24, minWidth: 0 }}>
           {/* map */}
           <Box style={{ ...cardStyle, overflow: "hidden" }}>
-            <Box style={{ position: "relative", height: 420, background: "#eef0fb" }}>
+            <Box style={{ position: "relative", height: mapHeight, background: "#eef0fb" }}>
               {map.status === "ready" ? (
                 <RouteMap
                   start={map.pickup}
                   end={map.drop}
                   extraLines={extraLines}
-                  minHeight={420}
+                  minHeight={mapHeight}
                   padTop={70}
                   padBottom={60}
                   startName={`${shortName(match.pickup_point, "Pickup")} · ${formatTime(match.pickup_time)}`}
@@ -953,7 +969,7 @@ function RiderDetailsBody({
           </Box>
 
           {/* trip + schedule */}
-          <Box style={{ ...cardStyle, padding: 24 }}>
+          <Box className="rd-card" style={{ ...cardStyle, padding: 24 }}>
             <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <Typography component="h2" style={{ fontSize: 20, fontWeight: 800 }}>
                 Trip &amp; Schedule Alignment
@@ -1009,7 +1025,7 @@ function RiderDetailsBody({
           </Box>
 
           {/* matrix */}
-          <Box style={{ ...cardStyle, padding: 24 }}>
+          <Box className="rd-card" style={{ ...cardStyle, padding: 24 }}>
             <Typography style={capsLabel}>Commuter compatibility matrix</Typography>
             <Box className="rd-matrix" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12, marginTop: 14 }}>
               <MatrixCell label="Route Overlap" value={`${match.overlap_pct}% Match`} ok icon={<TrendingUpIcon />} />

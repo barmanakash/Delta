@@ -382,6 +382,10 @@ export default function Trips() {
           .tp-pad { padding-left: 16px !important; padding-right: 16px !important; }
           .tp-title-row { flex-direction: column !important; align-items: flex-start !important; }
           .tp-info { grid-template-columns: minmax(0, 1fr) !important; }
+          .tp-card { padding: 16px 14px !important; }
+          .tp-person { gap: 10px !important; }
+          .tp-detail-pad { padding: 18px 16px 20px !important; }
+          .tp-pay-actions .MuiButton-root { flex: 1 1 100% !important; justify-content: center !important; }
         }
       `}</style>
 
@@ -702,7 +706,7 @@ function TripCard({ trip, copy, now, todayIso, active, onSelect }) {
       </Box>
 
       {/* the other person */}
-      <Box style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 16 }}>
+      <Box className="tp-person" style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 16 }}>
         <PersonAvatar person={trip.counterpart} />
         <Box style={{ minWidth: 0, flex: 1 }}>
           <Box style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -830,7 +834,7 @@ function TripDetail({ trip, copy, now, todayIso, mapRoute, isLift, busy, onPay, 
         )}
       </Box>
 
-      <Box style={{ padding: "22px 24px 24px" }}>
+      <Box className="tp-detail-pad" style={{ padding: "22px 24px 24px" }}>
         <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <Typography style={{ fontSize: 19, fontWeight: 800 }}>Trip details</Typography>
           <Pill tone={chip.tone}>{chip.label}</Pill>
@@ -989,7 +993,7 @@ function PaymentPanel({ trip, isLift, now, busy, onPay, onCancel, notice }) {
       )}
 
       {(canPay || canCancel) && (
-        <Box style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+        <Box className="tp-pay-actions" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
           {canPay && (
             <Button
               disableElevation

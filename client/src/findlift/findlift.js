@@ -207,6 +207,20 @@ export default function FindLift() {
 
   const [route, setRoute] = useState(IDLE_ROUTE);
 
+  // A shorter map on phones, so the form and the map aren't a long scroll apart
+  const [compact, setCompact] = useState(
+    () => typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(max-width: 600px)").matches
+  );
+  useEffect(() => {
+    if (!window.matchMedia) return undefined;
+    const mq = window.matchMedia("(max-width: 600px)");
+    const onChange = (e) => setCompact(e.matches);
+    setCompact(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  const mapHeight = compact ? 340 : 460;
+
   const [locating, setLocating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -591,6 +605,10 @@ export default function FindLift() {
           .fl-two-col { grid-template-columns: minmax(0, 1fr) !important; }
           .fl-map-stats { flex-wrap: wrap; gap: 14px !important; }
           .fl-checks { flex-direction: column !important; align-items: flex-start !important; }
+          .fl-pad { padding: 20px 16px 22px !important; }
+          .fl-arch { padding: 18px 16px !important; gap: 14px !important; }
+          /* a more compact route summary, so it covers less of the map */
+          .fl-map-stats { gap: 10px 18px !important; padding: 10px 14px !important; }
         }
       `}</style>
 
@@ -685,7 +703,7 @@ export default function FindLift() {
               }}
             />
 
-            <Box style={{ padding: "26px 28px 28px" }}>
+            <Box className="fl-pad" style={{ padding: "26px 28px 28px" }}>
               <Typography component="h1" style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.4px" }}>
                 Find a lift
               </Typography>
@@ -1112,12 +1130,12 @@ export default function FindLift() {
           {/* ------------------- RIGHT: MAP + INFO --------------------- */}
           <Box style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0 }}>
             {/* live route map */}
-            <Box style={{ ...cardStyle, overflow: "hidden", height: 460 }}>
+            <Box style={{ ...cardStyle, overflow: "hidden", height: mapHeight }}>
               <RouteMap
                 start={routeReady ? route.start : null}
                 end={routeReady ? route.end : null}
                 line={routeReady ? route.line : null}
-                minHeight={460}
+                minHeight={mapHeight}
                 padTop={120}
                 padBottom={50}
                 startName={routeReady ? shortName(pickup, "Pickup") : ""}
@@ -1131,6 +1149,7 @@ export default function FindLift() {
 
             {/* matching architecture */}
             <Box
+              className="fl-arch"
               style={{
                 borderRadius: 22,
                 padding: "22px 24px",

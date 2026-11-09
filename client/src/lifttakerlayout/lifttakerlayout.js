@@ -59,6 +59,15 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
     <>
       <style>{`
         .ltl-btn:focus-visible { outline: 2px solid ${tealBright}; outline-offset: 2px; }
+        /* tablets and small laptops: the header has the brand, three tabs, SOS, bell and
+           profile to fit, so the extras shrink or step aside instead of being pushed off screen */
+        @media (max-width: 1100px) {
+          .ltl-chip { display: none !important; }
+          .ltl-sos-text { display: none !important; }
+          .ltl-sos { padding: 9px 12px !important; }
+          .ltl-tab { padding: 10px 16px !important; font-size: 14px !important; }
+          .ltl-actions { gap: 12px !important; }
+        }
         @media (max-width: 760px) {
           .ltl-nav { display: none !important; }
           .ltl-sos-text { display: none !important; }
@@ -173,7 +182,7 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
           {/* actions */}
           <Box className="ltl-actions" style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <Box
-              className="ltl-btn"
+              className="ltl-btn ltl-sos"
               role="button"
               tabIndex={0}
               aria-label="Police SOS"
@@ -276,7 +285,7 @@ export function LiftTakerHeader({ active = "home", user, photoUrl }) {
 function NavTab({ active, onClick, children }) {
   return (
     <Box
-      className="ltl-btn"
+      className="ltl-btn ltl-tab"
       role="button"
       tabIndex={0}
       aria-current={active ? "page" : undefined}

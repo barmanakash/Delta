@@ -838,15 +838,19 @@ export default function LiftTakerHome() {
         .lt-page .lt-hover-card {
           transition: transform 240ms cubic-bezier(0.22, 0.8, 0.24, 1), filter 240ms ease;
         }
-        .lt-page .lt-hover-card:hover {
-          transform: translateY(-4px);
-          filter: drop-shadow(0 12px 16px rgba(24, 34, 70, 0.12));
+        @media (hover: hover) {
+          .lt-page .lt-hover-card:hover {
+            transform: translateY(-4px);
+            filter: drop-shadow(0 12px 16px rgba(24, 34, 70, 0.12));
+          }
         }
         .lt-page .lt-card-icon {
           transition: transform 240ms cubic-bezier(0.22, 0.8, 0.24, 1);
         }
-        .lt-page .lt-hover-card:hover .lt-card-icon {
-          transform: translateY(-2px) rotate(-4deg);
+        @media (hover: hover) {
+          .lt-page .lt-hover-card:hover .lt-card-icon {
+            transform: translateY(-2px) rotate(-4deg);
+          }
         }
         .lt-page .lt-focus {
           transition: transform 180ms cubic-bezier(0.22, 0.8, 0.24, 1);
@@ -881,9 +885,16 @@ export default function LiftTakerHome() {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.65; transform: scale(1.18); }
         }
+        @media (max-width: 1100px) {
+          .lt-chip { display: none !important; }
+          .lt-sos-text { display: none !important; }
+          .lt-sos { padding: 9px 12px !important; }
+          .lt-tab { padding: 10px 16px !important; font-size: 14px !important; }
+          .lt-actions { gap: 12px !important; }
+        }
         @media (max-width: 960px) {
           .lt-grid { grid-template-columns: minmax(0, 1fr) !important; }
-          .lt-hero-row { flex-direction: column !important; }
+          .lt-hero-row { flex-direction: column !important; align-items: stretch !important; }
           .lt-stats { grid-template-columns: 1fr 1fr !important; }
           .lt-footer-grid { grid-template-columns: 1fr 1fr !important; }
         }
@@ -895,7 +906,22 @@ export default function LiftTakerHome() {
           .lt-pad { padding-left: 16px !important; padding-right: 16px !important; }
           .lt-two-col { grid-template-columns: minmax(0, 1fr) !important; }
           .lt-footer-grid { grid-template-columns: minmax(0, 1fr) !important; }
-          .lt-h1 { font-size: 32px !important; }
+          .lt-h1 { font-size: 32px !important; letter-spacing: -0.8px !important; }
+          /* the hero pill may wrap instead of pushing the page wider than the screen */
+          .lt-pill { flex-wrap: wrap !important; row-gap: 4px !important; max-width: 100% !important; box-sizing: border-box !important; padding: 8px 14px !important; }
+          .lt-plan-pad { padding: 18px 16px 20px !important; }
+          .lt-places { padding: 12px !important; margin-top: 18px !important; }
+          /* icon only, so the pickup field keeps its room */
+          .lt-gps-text { display: none !important; }
+        }
+        @media (max-width: 520px) {
+          .lt-chip, .lt-divider { display: none !important; }
+          .lt-actions { gap: 12px !important; }
+        }
+        @media (max-width: 380px) {
+          .lt-h1 { font-size: 28px !important; }
+          .lt-actions { gap: 8px !important; }
+          .lt-sos { padding: 8px 12px !important; }
         }
         @media (prefers-reduced-motion: reduce) {
           .lt-page .lt-route-path,
@@ -951,6 +977,7 @@ export default function LiftTakerHome() {
             </Box>
 
             <Box
+              className="lt-chip"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -989,9 +1016,9 @@ export default function LiftTakerHome() {
           </Box>
 
           {/* actions */}
-          <Box style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <Box className="lt-actions" style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <Box
-              className="lt-btn"
+              className="lt-btn lt-sos"
               role="button"
               tabIndex={0}
               aria-label="Police SOS"
@@ -1020,7 +1047,7 @@ export default function LiftTakerHome() {
               <ActivityBell iconSize={25} />
             </Box>
 
-            <Box style={{ width: 1, height: 34, background: "#e4e6f0" }} />
+            <Box className="lt-divider" style={{ width: 1, height: 34, background: "#e4e6f0" }} />
 
             <ProfileMenu user={user} photoUrl={photoUrl} variant="stacked" />
           </Box>
@@ -1053,6 +1080,7 @@ export default function LiftTakerHome() {
           >
             <Box className="lt-reveal">
               <Box
+                className="lt-pill"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -1158,7 +1186,7 @@ export default function LiftTakerHome() {
             >
               <Box style={{ height: 5, background: `linear-gradient(90deg, ${teal}, ${indigo})` }} />
 
-              <Box style={{ padding: "22px 24px 24px" }}>
+              <Box className="lt-plan-pad" style={{ padding: "22px 24px 24px" }}>
                 {/* header row */}
                 <Box
                   style={{
@@ -1234,6 +1262,7 @@ export default function LiftTakerHome() {
 
                 {/* pickup / destination */}
                 <Box
+                  className="lt-places"
                   style={{
                     background: "#f4f5fd",
                     borderRadius: 20,
@@ -1297,7 +1326,7 @@ export default function LiftTakerHome() {
                       ) : (
                         <MyLocationOutlinedIcon style={{ fontSize: 17 }} />
                       )}
-                      Current GPS
+                      <span className="lt-gps-text">Current GPS</span>
                     </Box>
                   </Box>
 
@@ -2045,7 +2074,7 @@ const tileLabel = { fontSize: 11.5, fontWeight: 500, color: "#4b5468" };
 function NavTab({ active, onClick, children }) {
   return (
     <Box
-      className="lt-btn"
+      className="lt-btn lt-tab"
       role="button"
       tabIndex={0}
       aria-current={active ? "page" : undefined}

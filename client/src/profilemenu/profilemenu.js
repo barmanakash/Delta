@@ -165,6 +165,13 @@ export default function ProfileMenu({ user, photoUrl, variant = "default" }) {
           .pm-default .pm-extra { display: none !important; }
           .pm-default .pm-name > p { max-width: 120px !important; }
         }
+        /* lift taker header: shorter name on tablets, avatar only before the nav tabs get squeezed */
+        @media (max-width: 1100px) {
+          .pm-stacked .pm-name > p { max-width: 110px !important; }
+        }
+        @media (max-width: 900px) {
+          .pm-stacked .pm-name { display: none !important; }
+        }
         /* phones: just the avatar, so the header has room for everything else */
         @media (max-width: 640px) {
           .pm-name, .pm-extra { display: none !important; }
@@ -174,7 +181,7 @@ export default function ProfileMenu({ user, photoUrl, variant = "default" }) {
 
       {/* TRIGGER */}
       <Box
-        className={stacked ? "pm-trigger" : "pm-trigger pm-default"}
+        className={stacked ? "pm-trigger pm-stacked" : "pm-trigger pm-default"}
         role="button"
         tabIndex={0}
         aria-haspopup="true"

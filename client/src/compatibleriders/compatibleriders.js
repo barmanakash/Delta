@@ -416,6 +416,10 @@ export default function CompatibleRiders() {
         .cr-btn:focus-visible { outline: 2px solid ${tealBright}; outline-offset: 2px; }
         .cr-scroll::-webkit-scrollbar { height: 0; }
         @keyframes crPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+        /* the three time stats share a narrow column on smaller laptops */
+        @media (max-width: 1250px) {
+          .cr-clock { font-size: 26px !important; }
+        }
         @media (max-width: 1000px) {
           .cr-grid { grid-template-columns: minmax(0, 1fr) !important; }
           .cr-actions { flex-direction: column !important; align-items: stretch !important; }
@@ -426,6 +430,11 @@ export default function CompatibleRiders() {
           .cr-stat-sep { border-left: none !important; padding-left: 0 !important; border-top: 1px solid #e8eaf6; padding-top: 12px; }
           .cr-tiles { grid-template-columns: minmax(0, 1fr) !important; }
           .cr-head-row { flex-direction: column !important; align-items: flex-start !important; }
+          .cr-card { padding: 18px 14px 20px !important; }
+          /* the overlap badge drops below the name instead of squeezing it */
+          .cr-card-head { flex-wrap: wrap !important; }
+          .cr-low-body { padding: 0 16px 18px 16px !important; }
+          .cr-map-head { padding: 14px 14px !important; gap: 10px !important; }
         }
       `}</style>
 
@@ -936,7 +945,7 @@ export default function CompatibleRiders() {
                   </Box>
 
                   {lowOpen && (
-                    <Box style={{ padding: "0 20px 20px 74px", display: "flex", flexDirection: "column", gap: 10 }}>
+                    <Box className="cr-low-body" style={{ padding: "0 20px 20px 74px", display: "flex", flexDirection: "column", gap: 10 }}>
                       {[
                         "Your search stays active and refreshes automatically, so riders who publish a matching route appear here without you doing anything.",
                         "Turn on Flexible pickup time to also search a few minutes either side of your window.",
@@ -955,7 +964,7 @@ export default function CompatibleRiders() {
               {/* ---------------- RIGHT: MAP + SAFETY ---------------- */}
               <Box style={{ display: "flex", flexDirection: "column", gap: 24, minWidth: 0 }}>
                 <Box id="route-overview" style={{ ...cardStyle, overflow: "hidden" }}>
-                  <Box style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 20px" }}>
+                  <Box className="cr-map-head" style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 20px" }}>
                     <Box
                       style={{
                         width: 40,
@@ -1147,6 +1156,7 @@ function RiderCard({ match: m, request, active, onPreview, onView }) {
 
   return (
     <Box
+      className="cr-card"
       style={{
         ...cardStyle,
         padding: "22px 22px 24px",
@@ -1155,7 +1165,7 @@ function RiderCard({ match: m, request, active, onPreview, onView }) {
       }}
     >
       {/* header */}
-      <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+      <Box className="cr-card-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
         <Box style={{ display: "flex", gap: 14, minWidth: 0 }}>
           <RiderAvatar match={m} />
           <Box style={{ minWidth: 0 }}>
@@ -1310,7 +1320,7 @@ function Stat({ label, clock, unit, sub, separated }) {
     >
       <Typography style={{ fontSize: 12.5, color: "#3b4357" }}>{label}</Typography>
       <Box style={{ display: "flex", alignItems: "baseline", gap: 5, marginTop: 4 }}>
-        <span style={{ fontSize: 32, fontWeight: 800, color: teal, letterSpacing: "-0.5px" }}>{clock}</span>
+        <span className="cr-clock" style={{ fontSize: 32, fontWeight: 800, color: teal, letterSpacing: "-0.5px" }}>{clock}</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: muted }}>{unit}</span>
       </Box>
       <Typography style={{ fontSize: 12.5, color: muted, marginTop: 2, wordBreak: "break-word" }}>{sub}</Typography>
