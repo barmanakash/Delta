@@ -27,6 +27,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import VerifiedOutlinedIcon from "@mui/icons-material/VerifiedOutlined";
 import { useNavigate } from "react-router-dom";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 
 const API_BASE_URL = "http://localhost:8000";
 
@@ -407,18 +408,6 @@ export default function Profile() {
           >
             FriendRide
           </Typography>
-
-          <Typography
-            className="pf-brand2"
-            style={{
-              fontSize: 17,
-              fontWeight: 600,
-              color: "#172033",
-              marginLeft: 10,
-            }}
-          >
-            FriendRide
-          </Typography>
         </Box>
 
         <Box
@@ -433,30 +422,10 @@ export default function Profile() {
             style={{
               fontSize: 12,
               fontWeight: 600,
-              color: "#3f464b",
+              color: "#079b90",
             }}
           >
-            Profile
-          </Typography>
-
-          <Typography
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#3f464b",
-            }}
-          >
-            Vehicle
-          </Typography>
-
-          <Typography
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#3f464b",
-            }}
-          >
-            Safety
+            Create Profile
           </Typography>
 
           <Box
@@ -471,12 +440,12 @@ export default function Profile() {
           >
             <Typography
               style={{
-                color: "#007d74",
                 fontSize: 12,
-                fontWeight: 700,
+                color: "#424a4e",
+                fontWeight: 600,
               }}
             >
-              STEP 1 OF 4
+              Step 1 of 4
             </Typography>
           </Box>
 
@@ -637,16 +606,6 @@ export default function Profile() {
               >
                 1. Profile
               </Typography>
-
-              <Typography
-                style={{
-                  fontSize: 12,
-                  color: "#3d4749",
-                  marginTop: 1,
-                }}
-              >
-                In Progress
-              </Typography>
             </Box>
 
             {/* STEP 2 */}
@@ -688,16 +647,6 @@ export default function Profile() {
               >
                 2. Verification
               </Typography>
-
-              <Typography
-                style={{
-                  fontSize: 12,
-                  color: "#656d70",
-                  marginTop: 1,
-                }}
-              >
-                Government ID
-              </Typography>
             </Box>
 
             {/* STEP 3 */}
@@ -738,16 +687,6 @@ export default function Profile() {
                 }}
               >
                 3. Role & Mode
-              </Typography>
-
-              <Typography
-                style={{
-                  fontSize: 12,
-                  color: "#656d70",
-                  marginTop: 1,
-                }}
-              >
-                Ride options
               </Typography>
             </Box>
 
@@ -791,20 +730,40 @@ export default function Profile() {
               >
                 4. Gender
               </Typography>
-
-              <Typography
-                style={{
-                  fontSize: 12,
-                  color: "#656d70",
-                  marginTop: 1,
-                  textAlign: "center",
-                }}
-              >
-                Preferences
-              </Typography>
             </Box>
           </Box>
         </Box>
+          <Box
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              height: 22,
+              padding: "0 11px",
+              borderRadius: 12,
+              background: "#e7e9fc",
+              width: "fit-content",
+              margin: "15px auto 0",
+            }}
+          >
+            <SwapHorizIcon
+              style={{
+                color: "#007b73",
+                fontSize: 15,
+              }}
+            />
+
+            <Typography
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#454d54",
+                letterSpacing: "0.2px",
+              }}
+            >
+              STEP 1 OF 4
+            </Typography>
+          </Box>
 
         {/* MAIN CARD */}
         <Box
@@ -866,7 +825,7 @@ export default function Profile() {
                   fontWeight: 700,
                 }}
               >
-                Rider Persona
+                Rider and Lift Taker Persona
               </Typography>
             </Box>
 
@@ -893,7 +852,7 @@ export default function Profile() {
               }}
             >
               A few verified details ensure seamless safety
-              and community trust on SafeRoute.
+              and community trust on FriendRide.
             </Typography>
 
             {/* PROFILE IMAGE */}
@@ -931,26 +890,26 @@ export default function Profile() {
                   overflow: "hidden",
                 }}
               >
-              {displayPhoto ? (
-                <Box
-                  component="img"
-                  src={displayPhoto}
-                  alt="Profile"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              ) : (
-                <PersonOutlineOutlinedIcon
-                  style={{
-                    color: "#007a71",
-                    fontSize: 68,
-                    strokeWidth: 1,
-                  }}
-                />
-              )}
+                {displayPhoto ? (
+                  <Box
+                    component="img"
+                    src={displayPhoto}
+                    alt="Profile"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <PersonOutlineOutlinedIcon
+                    style={{
+                      color: "#007a71",
+                      fontSize: 68,
+                      strokeWidth: 1,
+                    }}
+                  />
+                )}
               </Box>
 
               {/* CAMERA */}
@@ -994,11 +953,11 @@ export default function Profile() {
                 style={{
                   fontSize: 12,
                   fontWeight: 400,
-                  color: "#535c5e",
+                  color: "#dc2626",
                   marginLeft: 4,
                 }}
               >
-                (Required)
+                *
               </span>
             </Typography>
 
@@ -1106,7 +1065,6 @@ export default function Profile() {
               </Box>
             </Box>
           </Box>
-
           {/* RIGHT FORM */}
           <Box
             style={{
