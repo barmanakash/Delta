@@ -18,6 +18,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import HelpOutlinedIcon from "@mui/icons-material/HelpOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 
 const API_BASE_URL = "http://localhost:8000";
 
@@ -184,6 +185,15 @@ export default function Gender() {
             }}
           >
             Gender Verification
+          </Typography>
+          <Typography
+            style={{
+              fontSize: 12,
+              color: "#424a4e",
+              fontWeight: 600,
+            }}
+          >
+            Step 4 of 4
           </Typography>
           <Box
             style={{
@@ -435,59 +445,36 @@ export default function Gender() {
             </Box>
           </Box>
         </Box>
-
-        {/* TOP BADGE */}
         <Box
-          className="gd-badge"
           style={{
-            position: "relative",
-            height: 24,
-            padding: "0 13px",
-            borderRadius: 13,
-            background: "#dff1f2",
-            display: "flex",
+            display: "inline-flex",
             alignItems: "center",
-            gap: 7,
+            gap: 5,
+            height: 22,
+            padding: "0 11px",
+            borderRadius: 12,
+            background: "#e7e9fc",
           }}
         >
-          <ShieldOutlinedIcon
+          <SwapHorizIcon
             style={{
+              color: "#007b73",
               fontSize: 15,
-              color: "#007970",
             }}
           />
 
           <Typography
             style={{
               fontSize: 12,
-              fontWeight: 700,
-              color: "#007970",
-              letterSpacing: "0.4px",
-            }}
-          >
-            COMMUTE SAFETY PROTOCOL
-          </Typography>
-
-          <Typography
-            style={{
-              color: "#007970",
-              fontSize: 12,
-            }}
-          >
-            •
-          </Typography>
-
-          <Typography
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#007970",
-              letterSpacing: "0.3px",
+              fontWeight: 600,
+              color: "#454d54",
+              letterSpacing: "0.2px",
             }}
           >
             STEP 4 OF 4
           </Typography>
         </Box>
+
 
         {/* TITLE */}
         <Typography
