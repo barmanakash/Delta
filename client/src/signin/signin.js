@@ -594,6 +594,15 @@ function App() {
                   border: fieldErrors.password ? "1px solid #d32f2f" : "none",
                 }}
               >
+                <LockOutlined
+                  style={{
+                    color: "#788187",
+                    fontSize: "19px",
+                    marginLeft: "14px",
+                    marginRight: "10px",
+                  }}
+                />
+
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
