@@ -397,7 +397,7 @@ export default function RolAndMode() {
                     className="rm-stepper"
                     style={{
                         position: "relative",
-                        width: 560,
+                        width: 680,
                         height: 83,
                         margin: "23px auto 0",
                     }}
@@ -405,9 +405,9 @@ export default function RolAndMode() {
                     <Box
                         style={{
                             position: "absolute",
-                            left: 37,
-                            right: 37,
-                            top: 28,
+                            left: "16.6667%",
+                            right: "16.6667%",
+                            top: 18,
                             height: 4,
                             borderRadius: 4,
                             background: "#007c73",

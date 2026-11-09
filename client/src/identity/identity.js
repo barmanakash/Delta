@@ -257,7 +257,7 @@ export default function Identity() {
           /* keep only the avatar (last child) in the header */
           .id-nav > div:not(:last-child) { display: none !important; }
           .id-stepper { width: calc(100% - 24px) !important; }
-          .id-fill { width: calc((100% - 72px) / 2) !important; }
+          .id-fill { width: calc(50% - 17px) !important; }
           .id-title { font-size: 24px !important; }
           .id-sub { width: auto !important; padding: 0 20px; }
           .id-sub br { display: none; }
@@ -588,7 +588,7 @@ export default function Identity() {
           style={{
             position: "relative",
             zIndex: 2,
-            width: 580,
+            width: 680,
             height: 76,
             margin: "19px auto 0",
           }}
@@ -597,9 +597,9 @@ export default function Identity() {
           <Box
             style={{
               position: "absolute",
-              left: 36,
-              right: 36,
-              top: 34,
+              left: 17,
+              right: 17,
+              top: 15.5,
               height: 3,
               background: "#dfe3f8",
               borderRadius: 4,
@@ -610,9 +610,9 @@ export default function Identity() {
             className="id-fill"
             style={{
               position: "absolute",
-              left: 36,
-              width: 258,
-              top: 34,
+              left: 17,
+              width: "calc(50% - 17px)",
+              top: 15.5,
               height: 3,
               background: "#007b73",
               borderRadius: 4,
@@ -637,8 +637,8 @@ export default function Identity() {
             >
               <Box
                 style={{
-                  width: 30,
-                  height: 30,
+                  width: 34,
+                  height: 34,
                   borderRadius: "50%",
                   background: "#007d74",
                   display: "flex",
@@ -737,8 +737,8 @@ export default function Identity() {
             >
               <Box
                 style={{
-                  width: 30,
-                  height: 30,
+                  width: 34,
+                  height: 34,
                   borderRadius: "50%",
                   background: "#e9ebf9",
                   display: "flex",

@@ -571,9 +571,9 @@ export default function Profile() {
           <Box
             style={{
               position: "absolute",
-              left: 33,
-              right: 33,
-              top: 37,
+              left: 18.5,
+              right: 18.5,
+              top: 17.5,
               height: 2,
               background: "#d9dfff",
             }}
@@ -582,9 +582,9 @@ export default function Profile() {
           <Box
             style={{
               position: "absolute",
-              left: 0,
-              width: 33,
-              top: 37,
+              left: 18.5,
+              width: 0,
+              top: 17.5,
               height: 2,
               background: "#007c73",
             }}
