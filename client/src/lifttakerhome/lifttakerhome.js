@@ -1907,7 +1907,7 @@ export default function LiftTakerHome() {
             }}
           >
             <span>
-              © {now.getFullYear()} SafeRoute Technologies India Pvt Ltd. Intercity &amp; Urban Mobility Network.
+              © {now.getFullYear()} FriendRide. Intercity &amp; Urban Mobility Network.
             </span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
               <Box style={{ width: 7, height: 7, borderRadius: "50%", background: tealBright }} />

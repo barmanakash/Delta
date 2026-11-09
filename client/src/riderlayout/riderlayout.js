@@ -243,7 +243,7 @@ export function RiderFooter() {
         color: "#3b4357",
       }}
     >
-      <span>© {new Date().getFullYear()} FriendRide Technologies Inc. All rights reserved.</span>
+      <span>© {new Date().getFullYear()} FriendRide. All rights reserved.</span>
       <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
         <Box style={{ width: 7, height: 7, borderRadius: "50%", background: teal }} />
         AIS-140 compliant · 24/7 response desk

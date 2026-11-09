@@ -313,7 +313,7 @@ function Footer() {
           }}
         >
           <Typography sx={{ fontSize: 12, color: MUTED }}>
-            © 2025 FriendRide Technologies Inc. All rights reserved.
+            © 2025 FriendRide. All rights reserved.
           </Typography>
 
           <Stack direction="row" spacing={3}>

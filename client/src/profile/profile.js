@@ -1470,7 +1470,7 @@ export default function Profile() {
             color: "#3b4548",
           }}
         >
-          © 2024 FriendRide Technologies Inc. All rights reserved.
+          © 2024 FriendRide. All rights reserved.
         </Typography>
       </Box>
 

@@ -655,7 +655,7 @@ export default function App() {
             color: "#354044",
           }}
         >
-          © 2025 FriendRide Technologies Inc. All commuter
+          © 2025 FriendRide. All commuter
           safety protocols active.
         </Typography>
 

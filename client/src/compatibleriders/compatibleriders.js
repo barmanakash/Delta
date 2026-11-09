@@ -1090,7 +1090,7 @@ export default function CompatibleRiders() {
             items: ["Privacy Policy", "Terms of Service", "Compliance Desk", "Security Standards"],
           },
         ]}
-        copyright="FriendRide Technologies India Pvt Ltd. All rights reserved."
+        copyright="FriendRide. All rights reserved."
       />
     </Box>
   );

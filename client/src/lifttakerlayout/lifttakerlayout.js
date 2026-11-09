@@ -319,7 +319,7 @@ const DEFAULT_FOOTER_COLUMNS = [
 export function LiftTakerFooter({
   description = DEFAULT_FOOTER_TEXT,
   columns = DEFAULT_FOOTER_COLUMNS,
-  copyright = "FriendRide Technologies India Pvt Ltd. Intercity & Metro Commuter Network. All rights reserved.",
+  copyright = "FriendRide. Intercity & Metro Commuter Network. All rights reserved.",
 }) {
   const year = new Date().getFullYear();
 

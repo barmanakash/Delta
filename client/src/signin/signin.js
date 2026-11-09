@@ -780,7 +780,7 @@ function App() {
             color: "#343b40",
           }}
         >
-          © 2025 FriendRide Technologies Inc. All commuter safety protocols
+          © 2025 FriendRide. All commuter safety protocols
           active.
         </Typography>
 

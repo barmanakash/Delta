@@ -870,7 +870,7 @@ export default function Gender() {
             color: "#414b4e",
           }}
         >
-          © 2025 FriendRide Technologies Inc. All commuter safety protocols active.
+          © 2025 FriendRide. All commuter safety protocols active.
         </Typography>
       </Box>
 
