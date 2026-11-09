@@ -165,56 +165,6 @@ export default function RolAndMode() {
                             justifyContent: "center",
                         }}
                     >
-                        <Box
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 5,
-                            }}
-                        >
-                            <Typography
-                                style={{
-                                    fontSize: 17,
-                                    lineHeight: 1,
-                                    fontWeight: 700,
-                                    color: "#172033",
-                                }}
-                            >
-                                FriendRide
-                            </Typography>
-
-                            <Box
-                                style={{
-                                    height: 18,
-                                    padding: "0 7px",
-                                    borderRadius: 10,
-                                    background: "#9cefe9",
-                                    display: "flex",
-                                    alignItems: "center",
-                                }}
-                            >
-                                <Typography
-                                    style={{
-                                        fontSize: 12,
-                                        fontWeight: 700,
-                                        color: "#00776f",
-                                        letterSpacing: "0.2px",
-                                    }}
-                                >
-                                    INSTITUTIONAL
-                                </Typography>
-                            </Box>
-                        </Box>
-
-                        <Typography
-                            style={{
-                                fontSize: 12,
-                                color: "#5f676b",
-                                marginTop: 3,
-                            }}
-                        >
-                            Urban Mobility Co-Ride Grid
-                        </Typography>
                     </Box>
                 </Box>
 
@@ -247,27 +197,6 @@ export default function RolAndMode() {
                     >
                         Role Selection
                     </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: "#454d50",
-                        }}
-                    >
-                        Safety Guidelines
-                    </Typography>
-
-                    <Typography
-                        style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: "#454d50",
-                        }}
-                    >
-                        Support Desk
-                    </Typography>
-
                     <Box
                         style={{
                             height: 30,
