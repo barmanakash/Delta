@@ -25,6 +25,7 @@ import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 
 const API_BASE_URL = "http://localhost:8000";
 const MAX_DOC_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -55,13 +56,13 @@ export default function Identity() {
   const docTitle = file
     ? file.name
     : savedDoc
-    ? savedDoc.original_filename
-    : "Upload your ID";
+      ? savedDoc.original_filename
+      : "Upload your ID";
   const docSubtitle = file
     ? `${formatFileSize(file.size)} \u00b7 Ready to upload`
     : savedDoc
-    ? "Uploaded \u00b7 pending verification"
-    : "";
+      ? "Uploaded \u00b7 pending verification"
+      : "";
 
   // Load what is already saved (so a returning user isn't asked again)
   useEffect(() => {
@@ -628,15 +629,6 @@ export default function Identity() {
               >
                 Profile
               </Typography>
-
-              <Typography
-                style={{
-                  fontSize: 12,
-                  color: "#687174",
-                }}
-              >
-                Verified
-              </Typography>
             </Box>
 
             {/* VERIFICATION */}
@@ -680,16 +672,6 @@ export default function Identity() {
               >
                 2. Verification
               </Typography>
-
-              <Typography
-                style={{
-                  fontSize: 12,
-                  color: "#007b73",
-                  fontWeight: 600,
-                }}
-              >
-                Government ID
-              </Typography>
             </Box>
 
             {/* PREFERENCES */}
@@ -730,15 +712,6 @@ export default function Identity() {
                 }}
               >
                 3. Role & Mode
-              </Typography>
-
-              <Typography
-                style={{
-                  fontSize: 12,
-                  color: "#999fa1",
-                }}
-              >
-                Ride options
               </Typography>
             </Box>
 
@@ -782,18 +755,39 @@ export default function Identity() {
               >
                 4. Gender
               </Typography>
-
-              <Typography
-                style={{
-                  fontSize: 12,
-                  color: "#999fa1",
-                  textAlign: "center",
-                }}
-              >
-                Preferences
-              </Typography>
             </Box>
           </Box>
+        </Box>
+        <Box
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            height: 22,
+            padding: "0 11px",
+            borderRadius: 12,
+            background: "#e7e9fc",
+            width: "fit-content",
+            margin: "8px auto 0",
+          }}
+        >
+          <SwapHorizIcon
+            style={{
+              color: "#007b73",
+              fontSize: 15,
+            }}
+          />
+
+          <Typography
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#454d54",
+              letterSpacing: "0.2px",
+            }}
+          >
+            STEP 2 OF 4
+          </Typography>
         </Box>
 
         {/* PAGE TITLE */}
@@ -1097,8 +1091,8 @@ export default function Identity() {
               border: fieldErrors.document
                 ? "1.5px dashed #d32f2f"
                 : dragActive
-                ? "1.5px dashed #008078"
-                : "1.5px dashed transparent",
+                  ? "1.5px dashed #008078"
+                  : "1.5px dashed transparent",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
