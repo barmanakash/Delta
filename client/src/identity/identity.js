@@ -326,17 +326,6 @@ export default function Identity() {
             FriendRide
           </Typography>
 
-          <Typography
-            className="id-brand2"
-            style={{
-              fontSize: 17,
-              fontWeight: 600,
-              color: "#172033",
-              marginLeft: 8,
-            }}
-          >
-            FriendRide
-          </Typography>
         </Box>
 
         <Box
@@ -356,27 +345,6 @@ export default function Identity() {
           >
             Verification Protocol
           </Typography>
-
-          <Typography
-            style={{
-              color: "#424a4d",
-              fontSize: 12,
-              fontWeight: 600,
-            }}
-          >
-            Safety Guidelines
-          </Typography>
-
-          <Typography
-            style={{
-              color: "#424a4d",
-              fontSize: 12,
-              fontWeight: 600,
-            }}
-          >
-            Support Desk
-          </Typography>
-
           <Box
             style={{
               height: 25,
@@ -1531,7 +1499,7 @@ export default function Identity() {
                 color: "#737b7c",
               }}
             >
-              Your personal information is protected by SafeRoute's
+              Your personal information is protected by FriendRide
               privacy and security standards.
             </Typography>
           </Box>
@@ -1663,7 +1631,7 @@ export default function Identity() {
             color: "#3e494b",
           }}
         >
-          © 2025 FriendRide Technologies Inc. All commuter safety protocols
+          © 2025 FriendRide. All commuter safety protocols
           active.
         </Typography>
       </Box>

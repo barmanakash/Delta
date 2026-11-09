@@ -17,12 +17,23 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 
+const API_BASE_URL = "http://localhost:8000";
 
 export default function RolAndMode() {
     const navigate = useNavigate();
     const [selectedRole, setSelectedRole] = useState("");
     const [notice, setNotice] = useState("");
     const [saving, setSaving] = useState(false);
+    const [profilePhotoUrl, setProfilePhotoUrl] = useState(() => {
+        try {
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            return user.profile_photo_url
+                ? new URL(user.profile_photo_url, API_BASE_URL).toString()
+                : "";
+        } catch {
+            return "";
+        }
+    });
 
     const handleContinue = async () => {
         if (!selectedRole || saving) return;
@@ -256,14 +267,29 @@ export default function RolAndMode() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            overflow: "hidden",
                         }}
                     >
-                        <AccountCircleOutlinedIcon
-                            style={{
-                                color: "#fff",
-                                fontSize: 21,
-                            }}
-                        />
+                        {profilePhotoUrl ? (
+                            <Box
+                                component="img"
+                                src={profilePhotoUrl}
+                                alt="Profile"
+                                onError={() => setProfilePhotoUrl("")}
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                }}
+                            />
+                        ) : (
+                            <AccountCircleOutlinedIcon
+                                style={{
+                                    color: "#fff",
+                                    fontSize: 21,
+                                }}
+                            />
+                        )}
                     </Box>
                 </Box>
             </Box>
@@ -431,7 +457,7 @@ export default function RolAndMode() {
                             marginTop: 11,
                         }}
                     >
-                        Choose how you'd like to use SafeRoute. You can change your mode later.
+                        Choose how you'd like to use FriendRide. You can change your mode later.
                     </Typography>
                 </Box>
 
@@ -619,7 +645,7 @@ export default function RolAndMode() {
                             marginRight: 7,
                         }}
                     />
-                    {saving ? "Saving..." : "Continue to SafeRoute"}
+                    {saving ? "Saving..." : "Continue to FriendRide"}
                 </Button>
 
                 {/* BACK */}
