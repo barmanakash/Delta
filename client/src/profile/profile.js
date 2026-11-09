@@ -1581,7 +1581,7 @@ const fieldStyle = {
   },
 
   "& .MuiInputBase-input": {
-    padding: "10px 0",
+    padding: "10px 8px",
   },
 
   "& .MuiInputAdornment-root": {
