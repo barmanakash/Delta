@@ -201,6 +201,29 @@ export default function Trips() {
     return () => clearInterval(id);
   }, []);
 
+  /* ---- a payment that was started but not finished: ask the server to check it ----
+     (the lift taker may have paid and closed the Stripe tab before coming back, so
+     the trip would otherwise stay "Payment pending" until they pressed Pay again).
+     This runs after every refresh while a payment is pending; the server asks Stripe. */
+  useEffect(() => {
+    if (role !== "lift" || !data?.trips) return;
+    const pending = data.trips.filter((t) => t.payment_status === "pending");
+    if (!pending.length) return;
+
+    (async () => {
+      let changed = false;
+      for (const t of pending) {
+        try {
+          const { ok, data: result } = await apiRequest(`/api/payments/trips/${t.id}/confirm`, { method: "POST" });
+          if (ok && result && result.status !== "pending") changed = true;
+        } catch {
+          // offline or Stripe unreachable: we'll look again at the next refresh
+        }
+      }
+      if (changed) load();
+    })();
+  }, [data, role, load]);
+
   /* ---- payments (TEST MODE: no real money) ------------------------- */
   const startPayment = async (trip) => {
     setNotice(null);

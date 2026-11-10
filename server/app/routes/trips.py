@@ -199,6 +199,23 @@ async def cancel_trip(
         )
 
     payment = doc.get("payment") or {}
+
+    # A payment the customer started may have finished without us hearing yet (they
+    # paid and closed the tab). Ask Stripe, so a paid trip is refunded and an unpaid
+    # payment page is closed instead of staying payable after the trip is cancelled.
+    paid_in_the_meantime = False
+    if (
+        payment.get("status") == "pending"
+        and payment.get("provider") == "stripe"
+        and payment.get("session_id")
+    ):
+        state = await provider.fetch_session_state(payment["session_id"])
+        if state["paid"]:
+            payment = {**payment, "status": "paid", "payment_intent": state["payment_intent"]}
+            paid_in_the_meantime = True
+        elif state["open"]:
+            await provider.expire_session(payment["session_id"])
+
     refunded = payment.get("status") == "paid"
     if refunded:
         await provider.refund(payment)  # raises (and nothing changes) if it fails
@@ -211,6 +228,13 @@ async def cancel_trip(
     }
     if refunded:
         changes.update({"payment.status": "refunded", "payment.refunded_at": now})
+        if paid_in_the_meantime:
+            changes.update(
+                {
+                    "payment.paid_at": now,
+                    "payment.payment_intent": payment.get("payment_intent"),
+                }
+            )
     elif payment.get("status") == "pending":
         changes["payment.status"] = "failed"  # an unfinished payment is dropped
 

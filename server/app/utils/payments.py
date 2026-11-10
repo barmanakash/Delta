@@ -135,6 +135,41 @@ async def fetch_paid_state(session_id: str) -> tuple[bool, Optional[str]]:
     return session.payment_status == "paid", session.payment_intent
 
 
+async def fetch_session_state(session_id: str) -> dict:
+    """
+    Where a Checkout Session stands right now:
+      paid            the customer has paid it
+      open            it can still be paid (and `url` is its payment page)
+      expired         it ran out of time unpaid
+      payment_intent  the Stripe payment reference once paid
+    """
+    stripe = _stripe()
+    try:
+        session = await run_in_threadpool(stripe.checkout.Session.retrieve, session_id)
+    except Exception as exc:
+        raise _stripe_failed(exc)
+    return {
+        "paid": session.payment_status == "paid",
+        "open": session.status == "open",
+        "expired": session.status == "expired",
+        "url": getattr(session, "url", None),
+        "payment_intent": session.payment_intent,
+    }
+
+
+async def expire_session(session_id: str) -> None:
+    """
+    Close an unpaid Checkout Session so it can't be paid any more (used when a trip
+    is cancelled). Best effort: a session that has just been paid or has already
+    expired can't be closed, which is fine.
+    """
+    stripe = _stripe()
+    try:
+        await run_in_threadpool(stripe.checkout.Session.expire, session_id)
+    except Exception as exc:
+        logger.warning("Couldn't expire Stripe session %s: %r", session_id, exc)
+
+
 def parse_webhook(payload: bytes, signature: str) -> dict:
     """Check that a webhook really came from Stripe, then return its event."""
     secret = settings.STRIPE_WEBHOOK_SECRET

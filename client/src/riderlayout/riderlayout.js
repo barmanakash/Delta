@@ -9,8 +9,7 @@ import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import DirectionsCarOutlinedIcon from "@mui/icons-material/DirectionsCarOutlined";
 
 import ProfileMenu from "../profilemenu/profilemenu";
-import NotificationBell from "../notificationbell/notificationbell";
-import PaymentReceivedToast from "../payment/paymentreceived";
+import ActivityBell from "../notifications/activitybell";
 import MobileTabBar from "../mobiletabbar/mobiletabbar";
 
 /**
@@ -207,8 +206,8 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
 
         {/* Notifications + profile */}
         <Box style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 18, flexShrink: 1, minWidth: 0 }}>
-          {/* lift requests on the rider's route show up here */}
-          <NotificationBell user={user} enabled={user?.role === "rider"} />
+          {/* requests, accepted lifts, payments and cancellations (same bell as the lift taker header) */}
+          <ActivityBell />
 
           <ProfileMenu user={user} photoUrl={photoUrl} />
         </Box>
@@ -220,7 +219,6 @@ export function RiderHeader({ active = "home", user, photoUrl, pendingCount = 0 
           badge: n.key === "requests" && pendingCount > 0 ? String(pendingCount) : null,
         }))}
       />
-    <PaymentReceivedToast enabled={user?.role === "rider"} />
     </>
   );
 }

@@ -3,13 +3,13 @@ Payments for trips (TEST MODE ONLY, no real money).
 
 A trip is a lift request that a rider accepted. Its price is the fixed
 fuel-split saved on the trip (`accepted_match.fare`, whole rupees). The lift
-taker pays it; the payment's state lives on the same document under
-`payment`:
+taker pays it through Stripe's hosted Checkout page; the payment's state lives
+on the same document under `payment`:
 
     { status: pending | paid | failed | refunded,
-      provider: sandbox | stripe, session_id, amount, currency, paid_at, ... }
+      provider: stripe, session_id, amount, currency, paid_at, ... }
 
-No `payment` field means "unpaid". See app/utils/payments.py for the providers.
+No `payment` field means "unpaid". See app/utils/payments.py for the Stripe calls.
 """
 
 from datetime import datetime, timezone
@@ -17,7 +17,6 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pymongo import ReturnDocument
 
 from app.database import get_lift_requests_collection, get_users_collection
 from app.models.payment import (
@@ -25,8 +24,6 @@ from app.models.payment import (
     PaymentStatus,
     ReceivedPayment,
     ReceivedPayments,
-    SandboxOutcome,
-    SandboxSession,
     SeenPayments,
 )
 from app.models.user import MessageResponse
@@ -54,6 +51,30 @@ async def _announce_payment(doc: dict) -> None:
         f"for {doc['pickup']} → {doc['destination']}.",
         "/trips",
     )
+
+
+async def _mark_paid(doc: dict, payment_intent) -> bool:
+    """
+    Record a pending payment as paid and tell the rider. Returns True only for the
+    call that actually changed it, so the rider is announced once even when the
+    webhook, the return page and a retry all find the payment at the same time.
+    """
+    lifts = get_lift_requests_collection()
+    result = await lifts.update_one(
+        {"_id": doc["_id"], "payment.status": "pending"},
+        {
+            "$set": {
+                "payment.status": "paid",
+                "payment.paid_at": datetime.now(timezone.utc),
+                "payment.payment_intent": payment_intent,
+            }
+        },
+    )
+    if not result.modified_count:
+        return False
+    await _announce_payment(await lifts.find_one({"_id": doc["_id"]}))
+    return True
+
 
 # A trip can be paid for once a rider has accepted it
 PAYABLE_STATES = ("matched", "completed")
@@ -140,6 +161,27 @@ async def start_checkout(
         await get_lift_requests_collection().update_one(
             {"_id": doc["_id"]}, {"$set": {"accepted_match.fare": MIN_FARE}}
         )
+
+    # A payment was started earlier: look at it before opening a second one. Without
+    # this, a customer who paid and closed the tab could be sent to pay again, and the
+    # first payment would never be recorded (we only remember the newest session).
+    earlier = doc.get("payment") or {}
+    if (
+        earlier.get("status") == "pending"
+        and earlier.get("provider") == "stripe"
+        and earlier.get("session_id")
+    ):
+        state = await provider.fetch_session_state(earlier["session_id"])
+        if state["paid"]:
+            await _mark_paid(doc, state["payment_intent"])
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This trip is already paid",
+            )
+        if state["open"] and state["url"] and earlier.get("amount") == amount:
+            # Still payable: carry on with the same payment page
+            return CheckoutResponse(checkout_url=state["url"], provider="stripe")
+
     title = f"FriendRide lift: {doc['pickup']} to {doc['destination']}"
     session_id, checkout_url = await provider.create_checkout(
         str(doc["_id"]), amount, title, customer_email=current_user.get("email")
@@ -186,9 +228,9 @@ async def confirm_payment(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Called when the lift taker comes back from the payment page. The server
-    asks the provider itself, so a payment is never marked paid just because
-    the browser said so.
+    Called when the lift taker comes back from the payment page, and by the Trips
+    page for any payment still pending. The server asks Stripe itself, so a
+    payment is never marked paid just because the browser said so.
     """
     _require_lift_taker(current_user)
     doc = await _my_trip(request_id, current_user)
@@ -199,22 +241,22 @@ async def confirm_payment(
         and payment.get("provider") == "stripe"
         and payment.get("session_id")
     ):
-        paid, intent = await provider.fetch_paid_state(payment["session_id"])
-        if paid:
-            lifts = get_lift_requests_collection()
-            result = await lifts.update_one(
-                {"_id": doc["_id"], "payment.status": "pending"},
+        state = await provider.fetch_session_state(payment["session_id"])
+        lifts = get_lift_requests_collection()
+        if state["paid"]:
+            await _mark_paid(doc, state["payment_intent"])
+            doc = await lifts.find_one({"_id": doc["_id"]})
+        elif state["expired"]:
+            # The payment page timed out unpaid: stop showing it as "pending"
+            await lifts.update_one(
                 {
-                    "$set": {
-                        "payment.status": "paid",
-                        "payment.paid_at": datetime.now(timezone.utc),
-                        "payment.payment_intent": intent,
-                    }
+                    "_id": doc["_id"],
+                    "payment.status": "pending",
+                    "payment.session_id": payment["session_id"],
                 },
+                {"$set": {"payment.status": "failed", "payment.failed_at": datetime.now(timezone.utc)}},
             )
             doc = await lifts.find_one({"_id": doc["_id"]})
-            if result.modified_count:  # only the call that marks it paid announces it
-                await _announce_payment(doc)
 
     return _status_of(doc)
 
@@ -346,85 +388,3 @@ async def mark_received_seen(
             {"$set": {"payment.rider_seen_at": datetime.now(timezone.utc)}},
         )
     return MessageResponse(message="OK")
-
-
-# ---------------------------------------------------------------------------
-#  Sandbox checkout (the built-in test payment page)
-# ---------------------------------------------------------------------------
-
-def _sandbox_query(session_id: str, user: dict) -> dict:
-    return {
-        "payment.session_id": session_id,
-        "payment.provider": "sandbox",
-        "user_id": user["_id"],
-    }
-
-
-@router.get(
-    "/sandbox/{session_id}",
-    response_model=SandboxSession,
-    summary="What the test checkout page shows for one payment",
-)
-async def get_sandbox_session(
-    session_id: str,
-    current_user: dict = Depends(get_current_user),
-):
-    _require_lift_taker(current_user)
-    doc = await get_lift_requests_collection().find_one(
-        _sandbox_query(session_id, current_user)
-    )
-    if not doc or not doc.get("accepted_match"):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment session not found",
-        )
-
-    match, payment = doc["accepted_match"], doc["payment"]
-    return SandboxSession(
-        session_id=session_id,
-        trip_id=str(doc["_id"]),
-        status=payment["status"],
-        amount=int(payment["amount"]),
-        pickup=doc["pickup"],
-        destination=doc["destination"],
-        rider_name=match["rider_name"],
-        travel_date=doc["travel_date"],
-        pickup_time=match["pickup_time"],
-    )
-
-
-@router.post(
-    "/sandbox/{session_id}/complete",
-    response_model=PaymentStatus,
-    summary="Finish a test payment as paid or failed",
-)
-async def complete_sandbox_payment(
-    session_id: str,
-    payload: SandboxOutcome,
-    current_user: dict = Depends(get_current_user),
-):
-    _require_lift_taker(current_user)
-    lifts = get_lift_requests_collection()
-    query = _sandbox_query(session_id, current_user)
-
-    doc = await lifts.find_one(query)
-    if not doc or not doc.get("accepted_match"):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Payment session not found",
-        )
-    if doc["payment"]["status"] != "pending":
-        return _status_of(doc)  # already settled: pressing twice is harmless
-
-    now = datetime.now(timezone.utc)
-    changes = (
-        {"payment.status": "paid", "payment.paid_at": now}
-        if payload.outcome == "success"
-        else {"payment.status": "failed", "payment.failed_at": now}
-    )
-    updated = await lifts.find_one_and_update(
-        {**query, "payment.status": "pending"},
-        {"$set": changes},
-        return_document=ReturnDocument.AFTER,
-    )
-    return _status_of(updated or doc)
