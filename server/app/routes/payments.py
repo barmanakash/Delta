@@ -178,9 +178,18 @@ async def start_checkout(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="This trip is already paid",
             )
-        if state["open"] and state["url"] and earlier.get("amount") == amount:
-            # Still payable: carry on with the same payment page
+        if (
+            state["open"]
+            and state["url"]
+            and earlier.get("amount") == amount
+            and earlier.get("methods") == "card+upi"
+        ):
+            # Still payable, and it offers both card and UPI: carry on with the same page
             return CheckoutResponse(checkout_url=state["url"], provider="stripe")
+        if state["open"]:
+            # An older payment page (card only, or another amount): close it so it can't
+            # be paid as well, then open a fresh one below
+            await provider.expire_session(earlier["session_id"])
 
     title = f"FriendRide lift: {doc['pickup']} to {doc['destination']}"
     session_id, checkout_url = await provider.create_checkout(
@@ -198,6 +207,7 @@ async def start_checkout(
                     "session_id": session_id,
                     "amount": amount,
                     "currency": "INR",
+                    "methods": "card+upi",  # what its payment page offers
                     "started_at": datetime.now(timezone.utc),
                 }
             }

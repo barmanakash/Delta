@@ -992,10 +992,10 @@ function PaymentPanel({ trip, isLift, now, busy, onPay, onCancel, notice }) {
   } else if (state === "pending") {
     message = "You started a payment but it isn't finished yet.";
   } else {
-    message = `Pay your ₹${trip.fare} fuel-split securely with Stripe to confirm the trip.`;
+    message = `Pay your ₹${trip.fare} fuel-split securely by card or UPI to confirm the trip.`;
   }
 
-  const payLabel = state === "failed" ? "Try payment again" : state === "pending" ? "Continue to payment" : `Pay ₹${trip.fare} with Stripe`;
+  const payLabel = state === "failed" ? "Try payment again" : state === "pending" ? "Continue to payment" : `Pay ₹${trip.fare} (card or UPI)`;
 
   return (
     <Box style={{ border: "1px solid #e4e6f3", borderRadius: 14, padding: "16px", marginTop: 16 }}>
@@ -1061,7 +1061,7 @@ function PaymentPanel({ trip, isLift, now, busy, onPay, onCancel, notice }) {
 
       {canPay && (
         <Typography style={{ fontSize: 12, color: muted, marginTop: 10, lineHeight: 1.5 }}>
-          Secure checkout by Stripe (test mode): no real money moves. On Stripe's page use card 4242 4242 4242 4242 with any future expiry and any CVC.
+          Secure checkout by Stripe (test mode): no real money moves. Choose Card (4242 4242 4242 4242, any future expiry, any CVC) or UPI, which Stripe simulates in test mode.
         </Typography>
       )}
     </Box>

@@ -84,11 +84,20 @@ async def create_checkout(
     amount: int,
     title: str,
     customer_email: Optional[str] = None,
+    method: str = "any",
 ) -> tuple[str, str]:
-    """Start a payment of `amount` rupees. Returns (session_id, checkout_url)."""
+    """
+    Start a payment of `amount` rupees. Returns (session_id, checkout_url).
+
+    `method` is "any" (the default): Stripe's page lets the lift taker choose between card
+    and UPI. Pass "card" or "upi" to offer just one. Stripe removed `payment_method_types`
+    from Checkout in its 2026-09-30 API; `allowed_payment_method_types` replaces it and only
+    filters the methods switched on in the Stripe dashboard (Settings > Payment methods),
+    so a method that isn't enabled there (UPI, say) is simply left out, not an error.
+    """
     stripe = _stripe()
 
-    def _create():
+    def _create(allowed):
         params = dict(
             mode="payment",
             line_items=[
@@ -107,21 +116,30 @@ async def create_checkout(
             ),
             cancel_url=f"{settings.FRONTEND_URL}/payment/result?trip={trip_id}&cancelled=1",
             client_reference_id=trip_id,
-            metadata={"trip_id": trip_id},
+            metadata={"trip_id": trip_id, "method": method},
             # Shows up on the payment in the Stripe dashboard
             payment_intent_data={
                 "description": title[:300],
                 "metadata": {"trip_id": trip_id},
             },
         )
+        if allowed:
+            params["allowed_payment_method_types"] = allowed
         if customer_email:
             params["customer_email"] = customer_email
         return stripe.checkout.Session.create(**params)
 
+    allowed = ["card", "upi"] if method == "any" else [method]
     try:
-        session = await run_in_threadpool(_create)
+        session = await run_in_threadpool(_create, allowed)
     except Exception as exc:
-        raise _stripe_failed(exc)
+        if "allowed_payment_method_types" not in str(exc):
+            raise _stripe_failed(exc)
+        # A Stripe API too old to know this filter: show whatever the dashboard has enabled
+        try:
+            session = await run_in_threadpool(_create, None)
+        except Exception as exc_again:
+            raise _stripe_failed(exc_again)
     return session.id, session.url
 
 

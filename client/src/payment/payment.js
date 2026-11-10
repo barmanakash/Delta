@@ -240,8 +240,8 @@ export function PaymentResult() {
           icon={<CheckCircleOutlineIcon style={{ fontSize: 36 }} />}
           tint={teal}
           bg="#d6f3ef"
-          title="Payment received"
-          body={`Your ₹${info?.amount ?? ""} fuel-split is paid. Your rider will see the trip as paid. Have a safe ride!`}
+          title="Payment successful"
+          body={`You paid ₹${info?.amount ?? ""} for your trip. Your rider will see it as paid. Have a safe ride!`}
         >
           {toTrips}
         </StatusView>
